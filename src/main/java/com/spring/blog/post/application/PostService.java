@@ -1,5 +1,6 @@
 package com.spring.blog.post.application;
 
+import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
@@ -29,6 +30,12 @@ public class PostService {
         PostContent postContent =
             new PostContent(postRequestDto.getTitle(), postRequestDto.getContent());
         Post post = postRepository.save(new Post(postContent, user));
-        return PostResponseDto.from(post, user);
+        return PostResponseDto.from(post);
+    }
+
+    public PostResponseDto readById(Long id) {
+        Post post = postRepository.findWithAuthorById(id)
+            .orElseThrow(PostNotFoundException::new);
+        return PostResponseDto.from(post);
     }
 }

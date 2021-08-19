@@ -5,10 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.domain.content.PostContent;
+import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +36,9 @@ class PostServiceIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PostRepository postRepository;
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
@@ -65,10 +72,56 @@ class PostServiceIntegrationTest {
 
         // when
         PostResponseDto postResponseDto = postService.write(postRequestDto);
-
+        PostResponseDto expected = new PostResponseDto(
+            null,
+            "title",
+            "content",
+            "kevin",
+            0L,
+            null,
+            null
+        );
         // then
         assertThat(postResponseDto)
-            .extracting("author", "title", "content", "viewCounts")
-            .containsExactly("kevin", "title", "content", 0L);
+            .usingRecursiveComparison()
+            .ignoringFields("id", "createdDate", "modifiedDate")
+            .isEqualTo(expected);
+    }
+
+    @DisplayName("단건 조회시 게시물이 존재하면 정상적으로 조회한다.")
+    @Test
+    void readById_ValidId_Success() {
+        // given
+        User savedUser = userRepository.save(new User("kevin", "image"));
+        Post post = new Post(new PostContent("title", "content"), savedUser);
+        postRepository.save(post);
+
+        // when
+        PostResponseDto postResponseDto = postService.readById(post.getId());
+        PostResponseDto expected = new PostResponseDto(
+            post.getId(),
+            post.getTitle(),
+            post.getContent(),
+            post.getAuthorName(),
+            post.getViewCounts(),
+            null,
+            null
+        );
+        // then
+        assertThat(postResponseDto)
+            .usingRecursiveComparison()
+            .ignoringFields("createdDate", "modifiedDate")
+            .isEqualTo(expected);
+    }
+
+    @DisplayName("단건 조회시 게시물이 없으면 예외가 발생한다.")
+    @Test
+    void readById_Invalid_ExceptionThrown() {
+        // given, when, then
+        assertThatCode(() -> postService.readById(13221L))
+            .isInstanceOf(PostNotFoundException.class)
+            .hasMessage("게시글을 조회할 수 없습니다.")
+            .hasFieldOrPropertyWithValue("errorCode", "P0001")
+            .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
     }
 }
