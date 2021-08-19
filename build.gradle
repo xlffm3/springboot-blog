@@ -56,3 +56,10 @@ sourceSets {
 test {
     useJUnitPlatform()
 }
+
+processResources.dependsOn('copySecurity')
+
+task copySecurity(type: Copy) {
+    from './submodule/security/application-security.yml'
+    into './src/main/resources'
+}
