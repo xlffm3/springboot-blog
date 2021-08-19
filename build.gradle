@@ -31,6 +31,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     runtimeOnly 'com.h2database:h2'
     compileOnly 'org.projectlombok:lombok:1.18.20'
@@ -55,4 +56,11 @@ sourceSets {
 
 test {
     useJUnitPlatform()
+}
+
+processResources.dependsOn('copySecurity')
+
+task copySecurity(type: Copy) {
+    from './submodule/security/application-security.yml'
+    into './src/main/resources'
 }
