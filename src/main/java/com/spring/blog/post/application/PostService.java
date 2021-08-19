@@ -24,6 +24,7 @@ public class PostService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public PostResponseDto write(PostRequestDto postRequestDto) {
         User user = userRepository.findById(postRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
@@ -33,9 +34,11 @@ public class PostService {
         return PostResponseDto.from(post);
     }
 
+    @Transactional
     public PostResponseDto readById(Long id) {
         Post post = postRepository.findWithAuthorById(id)
             .orElseThrow(PostNotFoundException::new);
+        post.updateViewCounts();
         return PostResponseDto.from(post);
     }
 }

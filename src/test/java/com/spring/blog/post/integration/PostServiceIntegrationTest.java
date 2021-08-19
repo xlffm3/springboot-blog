@@ -88,7 +88,7 @@ class PostServiceIntegrationTest {
             .isEqualTo(expected);
     }
 
-    @DisplayName("단건 조회시 게시물이 존재하면 정상적으로 조회한다.")
+    @DisplayName("단건 조회시 게시물이 존재하면 정상적으로 조회하며 조회수가 1 증가한다.")
     @Test
     void readById_ValidId_Success() {
         // given
@@ -97,16 +97,17 @@ class PostServiceIntegrationTest {
         postRepository.save(post);
 
         // when
-        PostResponseDto postResponseDto = postService.readById(post.getId());
         PostResponseDto expected = new PostResponseDto(
             post.getId(),
             post.getTitle(),
             post.getContent(),
             post.getAuthorName(),
-            post.getViewCounts(),
+            post.getViewCounts() + 1,
             null,
             null
         );
+        PostResponseDto postResponseDto = postService.readById(post.getId());
+
         // then
         assertThat(postResponseDto)
             .usingRecursiveComparison()

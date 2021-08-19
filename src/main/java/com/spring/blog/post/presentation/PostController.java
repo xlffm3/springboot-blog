@@ -6,8 +6,11 @@ import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.presentation.dto.PostRequest;
+import com.spring.blog.post.presentation.dto.PostResponse;
 import java.net.URI;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +42,24 @@ public class PostController {
         String url = String.format(REDIRECT_URL_FORMAT_AFTER_WRITING, postResponseDto.getId());
         return ResponseEntity.created(URI.create(url))
             .build();
+    }
+
+    @GetMapping("/posts/{id}")
+    public ResponseEntity<PostResponse> read(@PathVariable Long id) {
+        PostResponseDto postResponseDto = postService.readById(id);
+        PostResponse postResponse = generatePostResponse(postResponseDto);
+        return ResponseEntity.ok(postResponse);
+    }
+
+    private PostResponse generatePostResponse(PostResponseDto postResponseDto) {
+        return new PostResponse(
+            postResponseDto.getId(),
+            postResponseDto.getTitle(),
+            postResponseDto.getContent(),
+            postResponseDto.getAuthor(),
+            postResponseDto.getViewCounts(),
+            postResponseDto.getCreatedDate(),
+            postResponseDto.getModifiedDate()
+        );
     }
 }

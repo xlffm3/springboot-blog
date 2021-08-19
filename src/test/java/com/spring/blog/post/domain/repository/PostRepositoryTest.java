@@ -83,7 +83,7 @@ class PostRepositoryTest {
         }
     }
 
-    void flushAndClear() {
+    private void flushAndClear() {
         testEntityManager.flush();
         testEntityManager.clear();
     }

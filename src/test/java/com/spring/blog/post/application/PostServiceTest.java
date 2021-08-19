@@ -109,7 +109,7 @@ class PostServiceTest {
         @Nested
         class Context_valid_id {
 
-            @DisplayName("정상적으로 조회한다.")
+            @DisplayName("정상적으로 조회되며 조회수가 1 증가한다.")
             @Test
             void it_returns_response() {
                 // given
@@ -119,15 +119,16 @@ class PostServiceTest {
                 given(postRepository.findWithAuthorById(id)).willReturn(Optional.of(post));
 
                 // when
-                PostResponseDto postResponseDto = postService.readById(id);
                 PostResponseDto expected = new PostResponseDto(
                     post.getId(),
                     post.getTitle(),
                     post.getContent(),
                     post.getAuthorName(),
-                    post.getViewCounts(),
+                    post.getViewCounts() + 1,
                     null,
-                    null);
+                    null
+                );
+                PostResponseDto postResponseDto = postService.readById(id);
 
                 // then
                 assertThat(postResponseDto)

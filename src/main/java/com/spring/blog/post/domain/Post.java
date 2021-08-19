@@ -52,6 +52,10 @@ public class Post {
         this.baseDate = new BaseDate();
     }
 
+    public void updateViewCounts() {
+        this.viewCounts++;
+    }
+
     public Long getId() {
         return id;
     }
