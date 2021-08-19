@@ -47,4 +47,12 @@ public class PostContent {
             throw new PostContentException();
         }
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getContent() {
+        return content;
+    }
 }
