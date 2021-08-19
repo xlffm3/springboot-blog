@@ -25,10 +25,15 @@ class OAuthServiceIntegrationTest {
     private OAuthService oAuthService;
 
     @Autowired
-    private DatabaseCleaner databaseCleaner;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private DatabaseCleaner databaseCleaner;
+
+    @AfterEach
+    void tearDown() {
+        databaseCleaner.execute();
+    }
 
     @DisplayName("Github Login Url을 요청한다.")
     @Test
@@ -38,11 +43,6 @@ class OAuthServiceIntegrationTest {
 
         // then
         assertThat(githubAuthorizationUrl).isEqualTo("https://api.github.com/authorize?");
-    }
-
-    @AfterEach
-    void tearDown() {
-        databaseCleaner.execute();
     }
 
     @DisplayName("외부 플랫폼에서 조회한 유저가 신규 유저면 DB에 저장한다.")
