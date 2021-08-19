@@ -64,6 +64,10 @@ public class Post {
         return postContent.getContent();
     }
 
+    public String getAuthorName() {
+        return user.getName();
+    }
+
     public Long getViewCounts() {
         return viewCounts;
     }

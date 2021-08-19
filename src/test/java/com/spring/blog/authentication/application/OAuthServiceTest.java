@@ -90,7 +90,7 @@ class OAuthServiceTest {
                 assertThatCode(() -> oAuthService.createToken(invalidCode))
                     .isInstanceOf(PlatformHttpErrorException.class)
                     .hasMessage("외부 플랫폼 연동에 실패했습니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "P0001")
+                    .hasFieldOrPropertyWithValue("errorCode", "V0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.INTERNAL_SERVER_ERROR);
 
                 verify(oAuthClient, times(1)).getAccessToken(invalidCode);
@@ -115,7 +115,7 @@ class OAuthServiceTest {
                 assertThatCode(() -> oAuthService.createToken(validCode))
                     .isInstanceOf(PlatformHttpErrorException.class)
                     .hasMessage("외부 플랫폼 연동에 실패했습니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "P0001")
+                    .hasFieldOrPropertyWithValue("errorCode", "V0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.INTERNAL_SERVER_ERROR);
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
