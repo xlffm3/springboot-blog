@@ -82,12 +82,19 @@ class HierarchyTest {
                 parentHierarchy.addChildComment(parentComment, childComment);
                 ChildComments expectedChildCommentsOfParent =
                     new ChildComments(Arrays.asList(childComment));
+                Hierarchy expectedChildHierarchy =
+                    new Hierarchy(
+                        parentComment,
+                        parentComment,
+                        new ChildComments(new ArrayList<>()),
+                        depth + 1
+                    );
 
                 // then
                 assertThat(childComment)
                     .extracting("hierarchy")
-                    .extracting("depth", "parentComment", "rootComment")
-                    .containsExactly(depth + 1, parentComment, parentComment);
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedChildHierarchy);
 
                 assertThat(parentHierarchy)
                     .extracting("childComments")
@@ -138,11 +145,12 @@ class HierarchyTest {
 
                 // when
                 hierarchy.update(comment, comment, depth);
+                Hierarchy expected = new Hierarchy(comment, comment, null, depth);
 
                 // then
                 assertThat(hierarchy)
                     .usingRecursiveComparison()
-                    .isEqualTo(new Hierarchy(comment, comment, null, depth));
+                    .isEqualTo(expected);
             }
         }
 

@@ -22,6 +22,11 @@ public class User {
     }
 
     public User(String name, String profileImage) {
+        this(null, name, profileImage);
+    }
+
+    public User(Long id, String name, String profileImage) {
+        this.id = id;
         this.name = name;
         this.profileImage = profileImage;
     }

@@ -52,6 +52,10 @@ public class Post {
         this.baseDate = new BaseDate();
     }
 
+    public void updateViewCounts() {
+        this.viewCounts++;
+    }
+
     public Long getId() {
         return id;
     }
@@ -62,6 +66,10 @@ public class Post {
 
     public String getContent() {
         return postContent.getContent();
+    }
+
+    public String getAuthorName() {
+        return user.getName();
     }
 
     public Long getViewCounts() {
