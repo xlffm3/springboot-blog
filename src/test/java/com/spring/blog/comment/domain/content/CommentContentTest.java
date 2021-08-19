@@ -1,5 +1,6 @@
 package com.spring.blog.comment.domain.content;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.exception.comment.CommentContentException;
@@ -58,7 +59,7 @@ class CommentContentTest {
 
         @DisplayName("댓글이 1~140자일 때")
         @Nested
-        class Context_comment_from_one_to_140 {
+        class Context_comment_from_1_to_140 {
 
             @DisplayName("댓글 내용이 정상 생성된다.")
             @ParameterizedTest
@@ -67,9 +68,13 @@ class CommentContentTest {
                 // given
                 String content = String.join("", Collections.nCopies(length, "a"));
 
-                // when, then
-                assertThatCode(() -> new CommentContent(content))
-                    .doesNotThrowAnyException();
+                // when
+                CommentContent commentContent = new CommentContent(content);
+
+                // then
+                assertThat(commentContent)
+                    .usingRecursiveComparison()
+                    .isEqualTo(new CommentContent(content));
             }
         }
     }
