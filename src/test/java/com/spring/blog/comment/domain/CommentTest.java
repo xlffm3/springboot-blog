@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.comment.domain.content.CommentContent;
+import com.spring.blog.comment.domain.hierarchy.ChildComments;
+import com.spring.blog.comment.domain.hierarchy.Hierarchy;
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
+import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -89,12 +92,18 @@ class CommentTest {
 
                 // when
                 target.updateHierarchy(parentAndRoot, parentAndRoot, 13);
+                Hierarchy expected =
+                    new Hierarchy(parentAndRoot,
+                        parentAndRoot,
+                        new ChildComments(new ArrayList<>()),
+                        13
+                    );
 
                 // then
                 assertThat(target)
                     .extracting("hierarchy")
-                    .extracting("rootComment", "parentComment", "depth")
-                    .containsExactly(parentAndRoot, parentAndRoot, 13);
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
             }
         }
     }
