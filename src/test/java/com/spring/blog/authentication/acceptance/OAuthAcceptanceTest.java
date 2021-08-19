@@ -24,7 +24,7 @@ class OAuthAcceptanceTest extends AcceptanceTest {
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
-            .is2xxSuccessful()
+            .isOk()
             .expectBody(OAuthLoginUrlResponse.class)
             .consumeWith(response -> {
                 String url = response.getResponseBody().getUrl();
@@ -41,7 +41,7 @@ class OAuthAcceptanceTest extends AcceptanceTest {
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
-            .is2xxSuccessful()
+            .isOk()
             .expectBody()
             .jsonPath("$.userName", "kevin");
     }

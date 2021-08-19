@@ -8,12 +8,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.spring.blog.authentication.application.OAuthService;
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(OAuthController.class)
@@ -32,7 +33,8 @@ class OAuthControllerTest {
         given(oAuthService.getGithubAuthorizationUrl()).willReturn("https://github.com/authorize");
 
         // when, then
-        mockMvc.perform(get("/api/authorization/github"))
+        mockMvc.perform(get("/api/authorization/github")
+            .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.url").value("https://github.com/authorize"));
 
@@ -44,11 +46,12 @@ class OAuthControllerTest {
     void getLoginToken_Valid_Success() throws Exception {
         // given
         String code = "code.123.for.github";
-        TokenDto tokenDto = new TokenDto("user jwt token", "kevin");
-        given(oAuthService.createToken(code)).willReturn(tokenDto);
+        TokenResponseDto tokenResponseDto = new TokenResponseDto("user jwt token", "kevin");
+        given(oAuthService.createToken(code)).willReturn(tokenResponseDto);
 
         // when, then
-        mockMvc.perform(get("/api/afterlogin?code={code}", code))
+        mockMvc.perform(get("/api/afterlogin?code={code}", code)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.token").value("user jwt token"))
             .andExpect(jsonPath("$.userName").value("kevin"));

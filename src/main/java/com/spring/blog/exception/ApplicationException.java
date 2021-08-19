@@ -12,4 +12,12 @@ public abstract class ApplicationException extends RuntimeException {
         this.errorCode = errorCode;
         this.httpStatus = httpStatus;
     }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
+    }
 }

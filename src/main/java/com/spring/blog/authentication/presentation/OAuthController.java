@@ -1,7 +1,7 @@
 package com.spring.blog.authentication.presentation;
 
 import com.spring.blog.authentication.application.OAuthService;
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.presentation.dto.OAuthLoginUrlResponse;
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +30,9 @@ public class OAuthController {
 
     @GetMapping("/afterlogin")
     public ResponseEntity<OAuthTokenResponse> getLoginToken(@RequestParam String code) {
-        TokenDto tokenDto = oAuthService.createToken(code);
+        TokenResponseDto tokenResponseDto = oAuthService.createToken(code);
         OAuthTokenResponse oAuthTokenResponse =
-            new OAuthTokenResponse(tokenDto.getToken(), tokenDto.getUserName());
+            new OAuthTokenResponse(tokenResponseDto.getToken(), tokenResponseDto.getUserName());
         return ResponseEntity.ok(oAuthTokenResponse);
     }
 }

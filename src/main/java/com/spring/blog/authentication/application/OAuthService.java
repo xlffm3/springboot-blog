@@ -1,18 +1,23 @@
 package com.spring.blog.authentication.application;
 
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
+import com.spring.blog.authentication.domain.user.AppUser;
+import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.authentication.domain.user.UserProfile;
+import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @Transactional(readOnly = true)
+@Service
 public class OAuthService {
+
+    private static final String JWT_TOKEN_KEY_NAME = "userName";
 
     private final OAuthClient oAuthClient;
     private final UserRepository userRepository;
@@ -33,14 +38,14 @@ public class OAuthService {
     }
 
     @Transactional
-    public TokenDto createToken(String code) {
+    public TokenResponseDto createToken(String code) {
         String accessToken = oAuthClient.getAccessToken(code);
         UserProfile userProfile = oAuthClient.getUserProfile(accessToken);
         String userName = userProfile.getName();
         userRepository.findByName(userName)
             .orElseGet(registerNewUser(userProfile));
         String jwtToken = jwtTokenProvider.createToken(userName);
-        return new TokenDto(jwtToken, userName);
+        return new TokenResponseDto(jwtToken, userName);
     }
 
     private Supplier<User> registerNewUser(UserProfile userProfile) {
@@ -48,5 +53,16 @@ public class OAuthService {
             User user = new User(userProfile.getName(), userProfile.getProfileImageUrl());
             return userRepository.save(user);
         };
+    }
+
+    public boolean validateToken(String token) {
+        return jwtTokenProvider.validateToken(token);
+    }
+
+    public AppUser findRequestUserByToken(String token) {
+        String userName = jwtTokenProvider.getPayloadByKey(token, JWT_TOKEN_KEY_NAME);
+        User user = userRepository.findByName(userName)
+            .orElseThrow(UserNotFoundException::new);
+        return new LoginUser(user.getId(), user.getName());
     }
 }

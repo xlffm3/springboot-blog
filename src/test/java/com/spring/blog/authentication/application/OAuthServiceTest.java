@@ -7,11 +7,15 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
+import com.spring.blog.authentication.domain.user.AppUser;
+import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.authentication.domain.user.UserProfile;
+import com.spring.blog.exception.authentication.InvalidTokenException;
 import com.spring.blog.exception.platform.PlatformHttpErrorException;
+import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Optional;
@@ -138,12 +142,12 @@ class OAuthServiceTest {
                 given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
 
                 // when
-                TokenDto tokenDto = oAuthService.createToken(validCode);
+                TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
 
                 // then
-                assertThat(tokenDto)
+                assertThat(tokenResponseDto)
                     .usingRecursiveComparison()
-                    .isEqualTo(new TokenDto(jwtToken, userName));
+                    .isEqualTo(new TokenResponseDto(jwtToken, userName));
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
@@ -173,18 +177,146 @@ class OAuthServiceTest {
                 given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
 
                 // when
-                TokenDto tokenDto = oAuthService.createToken(validCode);
+                TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
 
                 // then
-                assertThat(tokenDto)
+                assertThat(tokenResponseDto)
                     .usingRecursiveComparison()
-                    .isEqualTo(new TokenDto(jwtToken, userName));
+                    .isEqualTo(new TokenResponseDto(jwtToken, userName));
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
                 verify(userRepository, times(1)).findByName(userName);
                 verify(userRepository, times(0)).save(any(User.class));
                 verify(jwtTokenProvider, times(1)).createToken(userName);
+            }
+        }
+    }
+
+    @DisplayName("validateToken 메서드는")
+    @Nested
+    class Describe_validateToken {
+
+        @DisplayName("토큰이 정상인 경우")
+        @Nested
+        class Context_valid_token {
+
+            @DisplayName("true를 반환한다.")
+            @Test
+            void it_returns_true() {
+                // given
+                String token = "token";
+                given(jwtTokenProvider.validateToken(token)).willReturn(true);
+
+                // when
+                boolean isValid = oAuthService.validateToken(token);
+
+                // then
+                assertThat(isValid).isTrue();
+
+                verify(jwtTokenProvider, times(1)).validateToken(token);
+            }
+        }
+
+        @DisplayName("토큰이 비정상인 경우")
+        @Nested
+        class Context_invalid_token {
+
+            @DisplayName("false를 반환한다.")
+            @Test
+            void it_returns_false() {
+                // given
+                String token = "token";
+                given(jwtTokenProvider.validateToken(token)).willReturn(false);
+
+                // when
+                boolean isValid = oAuthService.validateToken(token);
+
+                // then
+                assertThat(isValid).isFalse();
+
+                verify(jwtTokenProvider, times(1)).validateToken(token);
+            }
+        }
+    }
+
+    @DisplayName("findRequestUserByToken 메서드는")
+    @Nested
+    class Describe_findRequestUserByToken {
+
+        @DisplayName("token이 유효하지 않은 경우")
+        @Nested
+        class Context_invalid_token {
+
+            @DisplayName("예외가 발생한다.")
+            @Test
+            void it_throws_InvalidTokenException() {
+                // given
+                String token = "invalid token";
+                given(jwtTokenProvider.getPayloadByKey(token, "userName"))
+                    .willThrow(new InvalidTokenException());
+
+                // when, then
+                assertThatCode(() -> oAuthService.findRequestUserByToken(token))
+                    .isInstanceOf(InvalidTokenException.class)
+                    .hasMessage("유효하지 않은 토큰입니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "A0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.UNAUTHORIZED);
+
+                verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
+            }
+        }
+
+        @DisplayName("token이 유효한 경우")
+        @Nested
+        class Context_valid_token {
+
+            @DisplayName("회원을 조회하여 반환한다.")
+            @Test
+            void it_returns_appUser() {
+                // given
+                String token = "token";
+                User user = new User("kevin", "image");
+                given(jwtTokenProvider.getPayloadByKey(token, "userName"))
+                    .willReturn("kevin");
+                given(userRepository.findByName("kevin")).willReturn(Optional.of(user));
+
+                // when
+                AppUser appUser = oAuthService.findRequestUserByToken(token);
+
+                // then
+                assertThat(appUser)
+                    .usingRecursiveComparison()
+                    .isEqualTo(new LoginUser(null, "kevin"));
+
+                verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
+                verify(userRepository, times(1)).findByName("kevin");
+            }
+        }
+
+        @DisplayName("token이 유효하지만 해당 이름의 회원이 없는 경우")
+        @Nested
+        class Context_valid_token_but_user_not_found {
+
+            @DisplayName("회원 조회 예외가 발생한다.")
+            @Test
+            void it_throws_UserNotFoundException() {
+                // given
+                String token = "token";
+                User user = new User("kevin", "image");
+                given(jwtTokenProvider.getPayloadByKey(token, "userName"))
+                    .willReturn("kevin");
+                given(userRepository.findByName("kevin")).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> oAuthService.findRequestUserByToken(token))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessage("유저를 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "U0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
+                verify(userRepository, times(1)).findByName("kevin");
             }
         }
     }
