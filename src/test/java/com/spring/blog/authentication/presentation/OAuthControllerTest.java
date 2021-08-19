@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.spring.blog.authentication.application.OAuthService;
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +44,8 @@ class OAuthControllerTest {
     void getLoginToken_Valid_Success() throws Exception {
         // given
         String code = "code.123.for.github";
-        TokenDto tokenDto = new TokenDto("user jwt token", "kevin");
-        given(oAuthService.createToken(code)).willReturn(tokenDto);
+        TokenResponseDto tokenResponseDto = new TokenResponseDto("user jwt token", "kevin");
+        given(oAuthService.createToken(code)).willReturn(tokenResponseDto);
 
         // when, then
         mockMvc.perform(get("/api/afterlogin?code={code}", code))

@@ -7,7 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
 import com.spring.blog.authentication.domain.user.UserProfile;
@@ -138,12 +138,12 @@ class OAuthServiceTest {
                 given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
 
                 // when
-                TokenDto tokenDto = oAuthService.createToken(validCode);
+                TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
 
                 // then
-                assertThat(tokenDto)
+                assertThat(tokenResponseDto)
                     .usingRecursiveComparison()
-                    .isEqualTo(new TokenDto(jwtToken, userName));
+                    .isEqualTo(new TokenResponseDto(jwtToken, userName));
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
@@ -173,12 +173,12 @@ class OAuthServiceTest {
                 given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
 
                 // when
-                TokenDto tokenDto = oAuthService.createToken(validCode);
+                TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
 
                 // then
-                assertThat(tokenDto)
+                assertThat(tokenResponseDto)
                     .usingRecursiveComparison()
-                    .isEqualTo(new TokenDto(jwtToken, userName));
+                    .isEqualTo(new TokenResponseDto(jwtToken, userName));
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);

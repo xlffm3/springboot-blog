@@ -1,14 +1,14 @@
 package com.spring.blog.authentication.application.dto;
 
-public class TokenDto {
+public class TokenResponseDto {
 
     private String token;
     private String userName;
 
-    private TokenDto() {
+    private TokenResponseDto() {
     }
 
-    public TokenDto(String token, String userName) {
+    public TokenResponseDto(String token, String userName) {
         this.token = token;
         this.userName = userName;
     }

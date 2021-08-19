@@ -1,6 +1,6 @@
 package com.spring.blog.authentication.application;
 
-import com.spring.blog.authentication.application.dto.TokenDto;
+import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
 import com.spring.blog.authentication.domain.user.UserProfile;
@@ -10,8 +10,8 @@ import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @Transactional(readOnly = true)
+@Service
 public class OAuthService {
 
     private final OAuthClient oAuthClient;
@@ -33,14 +33,14 @@ public class OAuthService {
     }
 
     @Transactional
-    public TokenDto createToken(String code) {
+    public TokenResponseDto createToken(String code) {
         String accessToken = oAuthClient.getAccessToken(code);
         UserProfile userProfile = oAuthClient.getUserProfile(accessToken);
         String userName = userProfile.getName();
         userRepository.findByName(userName)
             .orElseGet(registerNewUser(userProfile));
         String jwtToken = jwtTokenProvider.createToken(userName);
-        return new TokenDto(jwtToken, userName);
+        return new TokenResponseDto(jwtToken, userName);
     }
 
     private Supplier<User> registerNewUser(UserProfile userProfile) {
