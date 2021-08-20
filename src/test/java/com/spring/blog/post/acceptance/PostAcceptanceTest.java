@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
+import com.spring.blog.post.presentation.dto.PostListResponse;
 import com.spring.blog.post.presentation.dto.PostRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +86,35 @@ class PostAcceptanceTest extends AcceptanceTest {
                     .ignoringFields("createdDate", "modifiedDate")
                     .isEqualTo(postResponse)
             );
+    }
+
+    @DisplayName("게시물 목록을 페이지네이션으로 최신순 조회한다.")
+    @Test
+    void readList_OrderByDateDesc_Success() {
+        // given
+        String token = requestLoginAndRetrieveToken("kevin");
+        PostRequest postRequest = new PostRequest("title", "content");
+        for (int i = 0; i < 15; i++) {
+            requestToWritePost(postRequest, token);
+        }
+
+        // when
+        webTestClient.get()
+            .uri("/api/posts?page={page}&size={size}&displayPageNum={num}", 3, 3, 3)
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(PostListResponse.class)
+            .value(postListResponse -> {
+                List<PostResponse> postResponse = postListResponse.getPostResponse();
+                assertThat(postResponse)
+                    .extracting("id")
+                    .containsExactly(6L, 5L, 4L);
+                assertThat(postListResponse)
+                    .extracting("startPage", "endPage", "prev", "next")
+                    .containsExactly(4, 5, true, false);
+            });
     }
 
     private ResponseSpec requestToWritePost(PostRequest postRequest, String token) {

@@ -1,5 +1,6 @@
 package com.spring.blog.post.presentation.dto;
 
+import com.spring.blog.post.application.dto.PostResponseDto;
 import java.time.LocalDateTime;
 
 public class PostResponse {
@@ -32,6 +33,18 @@ public class PostResponse {
         this.viewCounts = viewCounts;
         this.createdDate = createdDate;
         this.modifiedDate = modifiedDate;
+    }
+
+    public static PostResponse from(PostResponseDto postResponseDto) {
+        return new PostResponse(
+            postResponseDto.getId(),
+            postResponseDto.getTitle(),
+            postResponseDto.getContent(),
+            postResponseDto.getAuthor(),
+            postResponseDto.getViewCounts(),
+            postResponseDto.getCreatedDate(),
+            postResponseDto.getModifiedDate()
+        );
     }
 
     public Long getId() {
