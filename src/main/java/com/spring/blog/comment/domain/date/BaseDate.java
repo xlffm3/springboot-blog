@@ -14,6 +14,22 @@ public class BaseDate {
     @LastModifiedDate
     private LocalDateTime modifiedDate;
 
-    protected BaseDate() {
+    public BaseDate() {
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public LocalDateTime getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(LocalDateTime modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 }

@@ -60,6 +60,7 @@ public class Comment {
         this.hierarchy = hierarchy;
         this.post = post;
         this.user = user;
+        this.baseDate = new BaseDate();
     }
 
     public void addChildComment(Comment childComment) {
@@ -72,5 +73,9 @@ public class Comment {
 
     public void updateHierarchy(Comment rootComment, Comment parentComment, int depth) {
         hierarchy.update(rootComment, parentComment, depth);
+    }
+
+    public Long getId() {
+        return id;
     }
 }
