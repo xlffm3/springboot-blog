@@ -73,6 +73,30 @@ class CommentRepositoryTest {
         assertThat(commentRepository.findById(comment2.getId())).isNotEmpty();
     }
 
+    @DisplayName("특정 Post에 포함되어 있는 Comment 개수를 조회한다.")
+    @Test
+    void countCommentByPost_True() {
+        // given
+        User user = new User("kevin", "image");
+        Post post = new Post(new PostContent("hi", "there"), user);
+        Comment comment1 = new Comment(new CommentContent("1"), post, user);
+        Comment comment2 = new Comment(new CommentContent("2"), post, user);
+
+        Post post2 = new Post(new PostContent("hi", "there"), user);
+        Comment comment3 = new Comment(new CommentContent("1"), post2, user);
+        Comment comment4 = new Comment(new CommentContent("2"), post2, user);
+        userRepository.save(user);
+        postRepository.saveAll(Arrays.asList(post, post2));
+        commentRepository.saveAll(Arrays.asList(comment1, comment2, comment3, comment4));
+        flushAndClear();
+
+        // when
+        Long counts = commentRepository.countCommentByPost(post);
+
+        // then
+        assertThat(counts).isEqualTo(2);
+    }
+
     @DisplayName("findCommentsOrderByHierarchyAndDateDesc 메서드는")
     @Nested
     class Describe_findCommentsOrderByHierarchyAndDateDesc {
