@@ -31,7 +31,7 @@ function renderUserInformationSection() {
   const $logoutBox = document.getElementById('logout-box');
   $logoutBox.addEventListener('click', e => {
     localStorage.clear();
-    moveToRedirectUrl();
+    location.reload();
   });
 }
 
@@ -40,13 +40,4 @@ export function addLogoClickEvent() {
     sessionStorage.removeItem('page');
     window.location.replace('/');
   });
-}
-
-export function moveToRedirectUrl() {
-  const redirectUrl = sessionStorage.getItem('redirect-url');
-  if (redirectUrl === null) {
-    window.location.return('/');
-  }
-  sessionStorage.removeItem('redirect-url');
-  window.location.replace(redirectUrl);
 }

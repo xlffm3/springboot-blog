@@ -25,7 +25,7 @@
   </section>
   <br>
   <br>
-  <div class="col-md-10">
+  <div class="col-md-12">
     <h2 id="post-title"></h2>
     <hr>
     <div class="text-right">
@@ -40,6 +40,35 @@
     <hr>
     <br>
   </div>
+
+  <table class="table table-hover table-bordered">
+    <tbody id="tbody">
+    </tbody>
+
+    <script id="template-comment-row-template" type="text/template">
+      <tr id="{comment-id}">
+        <td>{author}</td>
+        <td>{content}</td>
+        <td>{created}</td>
+      </tr>
+    </script>
+  </table>
+
+  <ul id="page-navigator" class="pagination">
+    <script id="template-prev-button" type="text/template">
+      <li class="page-item"><a id="prev" class="page-link">Prev</a></li>
+    </script>
+
+    <script id="template-page-button" type="text/template">
+      <li class="page-item"><a id="page-button-{index}" class="page-link">{index}</a></li>
+    </script>
+
+    <script id="template-next-button" type="text/template">
+      <li class="page-item"><a id="next" class="page-link">Next</a></li>
+    </script>
+  </ul>
+
+  <br>
   <a class="btn btn-secondary" href="/" role="button">Back</a>
 </div>
 </body>

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 public class PostListResponse {
 
-    private List<PostResponse> postResponse;
+    private List<PostResponse> postResponses;
     private int startPage;
     private int endPage;
     private boolean prev;
@@ -16,13 +16,13 @@ public class PostListResponse {
     }
 
     public PostListResponse(
-        List<PostResponse> postResponse,
+        List<PostResponse> postResponses,
         int startPage,
         int endPage,
         boolean prev,
         boolean next
     ) {
-        this.postResponse = postResponse;
+        this.postResponses = postResponses;
         this.startPage = startPage;
         this.endPage = endPage;
         this.prev = prev;
@@ -43,8 +43,8 @@ public class PostListResponse {
         );
     }
 
-    public List<PostResponse> getPostResponse() {
-        return postResponse;
+    public List<PostResponse> getPostResponses() {
+        return postResponses;
     }
 
     public int getStartPage() {
