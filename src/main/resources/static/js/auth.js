@@ -1,3 +1,5 @@
+import {moveToRedirectUrl} from "./module/header-module.js";
+
 async function requestLoginToken() {
   const code = searchParam('code');
 
@@ -6,7 +8,7 @@ async function requestLoginToken() {
     const data = response.data;
     localStorage.setItem('token', data.token);
     localStorage.setItem('userName', data.userName);
-    window.location.replace('/');
+    moveToRedirectUrl();
   }).catch(error => {
     alert(error);
     window.location.replace('/');

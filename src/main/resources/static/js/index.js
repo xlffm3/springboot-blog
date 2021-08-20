@@ -1,42 +1,8 @@
+import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
+import {parseDate} from "./module/string-parser.js";
+
 const DEFAULT_SIZE_PER_PAGE = 10;
 const DEFAULT_PAGE_BLOCK_COUNTS = 10;
-
-function renderLoginSection() {
-  const token = localStorage.getItem('token');
-  if (token === null) {
-    const $loginSection = document.getElementById('login');
-    const githubLoginHtml = document.querySelector('#template-login-github')
-        .innerHTML;
-    $loginSection.insertAdjacentHTML('beforeend', githubLoginHtml);
-    const $loginBox = document.getElementById('login-github-box');
-    $loginBox.addEventListener('click', startLogin);
-    return;
-  }
-  renderUserInformationSection();
-}
-
-const startLogin = async () => {
-  await axios.get('/api/authorization/github')
-  .then(response => window.location.replace(response.data.url))
-  .catch(error => alert(error));
-}
-
-function renderUserInformationSection() {
-  const $loginSection = document.getElementById('login');
-  const userInformationHtml = document.querySelector(
-      '#template-user-information')
-  .innerHTML.replace('{userName}', localStorage.getItem('userName'));
-  $loginSection.insertAdjacentHTML('beforeend', userInformationHtml);
-
-  const logoutHtml = document.querySelector('#template-logout')
-      .innerHTML;
-  $loginSection.insertAdjacentHTML('beforeend', logoutHtml);
-  const $logoutBox = document.getElementById('logout-box');
-  $logoutBox.addEventListener('click', e => {
-    localStorage.clear();
-    window.location.replace('/');
-  });
-}
 
 async function renderBoardSection() {
   let page = sessionStorage.getItem('page');
@@ -68,8 +34,14 @@ function renderPostRow(response) {
         .replace('{title}', post.title)
         .replace('{author}', post.author)
         .replace('{views}', post.viewCounts)
-        .replace('{created}', post.createdDate);
+        .replace('{created}', parseDate(post.createdDate));
     $table.insertAdjacentHTML('beforeend', postRowHtml);
+
+    const $post = document.getElementById(post.id);
+    $post.addEventListener('click', e => {
+      sessionStorage.setItem('post-id', post.id);
+      window.location.replace('/page/post')
+    });
   });
 }
 
@@ -119,14 +91,7 @@ function renderPageNavigation(response) {
   $activeButton.parentNode.className = 'page-item active';
 }
 
-function addLogoClickEvent() {
-  document.getElementById('logo').addEventListener('click', ev => {
-    sessionStorage.removeItem('page');
-    window.location.replace('/');
-  });
-}
-
 renderLoginSection();
-renderBoardSection();
 addLogoClickEvent();
+renderBoardSection();
 
