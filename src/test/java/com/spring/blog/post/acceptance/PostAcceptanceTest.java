@@ -109,7 +109,7 @@ class PostAcceptanceTest extends AcceptanceTest {
             .isOk()
             .expectBody(PostListResponse.class)
             .value(postListResponse -> {
-                List<PostResponse> postResponse = postListResponse.getPostResponse();
+                List<PostResponse> postResponse = postListResponse.getPostResponses();
                 assertThat(postResponse)
                     .extracting("id")
                     .containsExactly(6L, 5L, 4L);

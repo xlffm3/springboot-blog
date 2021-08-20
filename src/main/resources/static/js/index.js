@@ -1,14 +1,15 @@
 import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
 import {parseDate} from "./module/string-parser.js";
+import {renderPageNavigation} from "./module/navigator-module.js";
 
 const DEFAULT_SIZE_PER_PAGE = 10;
 const DEFAULT_PAGE_BLOCK_COUNTS = 10;
 
 async function renderBoardSection() {
-  let page = sessionStorage.getItem('page');
+  let page = sessionStorage.getItem('page-post');
   if (page === null) {
     page = '0';
-    sessionStorage.setItem('page', '0');
+    sessionStorage.setItem('page-post', '0');
   }
 
   await axios.get('/api/posts', {
@@ -19,14 +20,14 @@ async function renderBoardSection() {
     }
   }).then(response => {
     renderPostRow(response);
-    renderPageNavigation(response);
+    renderPageNavigation(response, '/', 'page-post');
   }).catch(error => alert(error));
 }
 
 function renderPostRow(response) {
   const $table = document.getElementById('tbody');
 
-  response.data.postResponse.forEach(post => {
+  response.data.postResponses.forEach(post => {
     const postRowHtml =
         document.querySelector('#template-post-row-template')
         .innerHTML.replace('{post-id}', post.id)
@@ -43,52 +44,6 @@ function renderPostRow(response) {
       window.location.replace('/page/post')
     });
   });
-}
-
-function renderPageNavigation(response) {
-  const $navigator = document.getElementById('page-navigator');
-  const startPage = response.data.startPage;
-  const endPage = response.data.endPage;
-  const prev = response.data.prev;
-  const next = response.data.next;
-
-  if (prev === true) {
-    const prevHtml = document.querySelector('#template-prev-button')
-        .innerHTML;
-    $navigator.insertAdjacentHTML('beforeend', prevHtml);
-    const $prevButton = document.getElementById('prev');
-    $prevButton.addEventListener('click', e => {
-      sessionStorage.setItem('page', startPage - 2);
-      window.location.replace('/');
-    });
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    const pageButtonHtml =
-        document.querySelector('#template-page-button').innerHTML
-        .replaceAll('{index}', i);
-    $navigator.insertAdjacentHTML('beforeend', pageButtonHtml);
-    const $pageButton = document.getElementById('page-button-' + i);
-    $pageButton.addEventListener('click', e => {
-      sessionStorage.setItem('page', i - 1);
-      window.location.replace('/');
-    });
-  }
-
-  if (next === true && endPage > 0) {
-    const nextHtml = document.querySelector('#template-next-button')
-        .innerHTML;
-    $navigator.insertAdjacentHTML('beforeend', nextHtml);
-    const $nextButton = document.getElementById('next');
-    $nextButton.addEventListener('click', e => {
-      sessionStorage.setItem('page', endPage);
-      window.location.replace('/');
-    });
-  }
-
-  const currentPage = Number(sessionStorage.getItem('page')) + 1;
-  const $activeButton = document.getElementById('page-button-' + currentPage);
-  $activeButton.parentNode.className = 'page-item active';
 }
 
 renderLoginSection();
