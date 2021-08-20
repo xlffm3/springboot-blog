@@ -2,6 +2,7 @@ package com.spring.blog.post.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -9,6 +10,8 @@ import static org.mockito.Mockito.verify;
 
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
+import com.spring.blog.post.application.dto.PostListRequestDto;
+import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
@@ -16,6 +19,8 @@ import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 @DisplayName("PostService 슬라이스 테스트")
@@ -157,6 +163,52 @@ class PostServiceTest {
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
                 verify(postRepository, times(1)).findWithAuthorById(1L);
+            }
+        }
+    }
+
+    @DisplayName("readPostList 메서드는")
+    @Nested
+    class Describe_readPostList {
+
+        @DisplayName("페이지네이션 정보가 주어질 때")
+        @Nested
+        class Context_given_pagination {
+
+            @DisplayName("Post를 최신순으로 페이지네이션하며, 페이지 정보를 함께 반환한다.")
+            @Test
+            void it_returns_posts_with_pagination_information() {
+                // given
+                PostListRequestDto postListRequestDto =
+                    new PostListRequestDto(1L, 5L, 3L);
+                List<Post> mockPosts = Arrays.asList(
+                    new Post(new PostContent("a3", "b3"), new User("kevin3", "image")),
+                    new Post(new PostContent("a2", "b2"), new User("kevin2", "image")),
+                    new Post(new PostContent("a", "b"), new User("kevin", "image"))
+                );
+                given(postRepository.findLatestPostsWithAuthorPagination(any(Pageable.class)))
+                    .willReturn(mockPosts);
+                given(postRepository.count()).willReturn(23L);
+
+                // when
+                PostListResponseDto postListResponseDto =
+                    postService.readPostList(postListRequestDto);
+
+                // then
+                assertThat(postListResponseDto)
+                    .extracting("startPage", "endPage", "next", "prev")
+                    .containsExactly(1, 3, true, false);
+                assertThat(postListResponseDto.getPostResponseDtos())
+                    .extracting("title", "author")
+                    .containsExactly(
+                        tuple("a3", "kevin3"),
+                        tuple("a2", "kevin2"),
+                        tuple("a", "kevin")
+                    );
+
+                verify(postRepository, times(1))
+                    .findLatestPostsWithAuthorPagination(any(Pageable.class));
+                verify(postRepository, times(1)).count();
             }
         }
     }

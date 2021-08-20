@@ -27,6 +27,9 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         if (isPreflightRequest(request)) {
             return true;
         }
+        if (isPostListReadRequest(request)) {
+            return true;
+        }
         String token = AuthorizationExtractor.extract(request);
         if (!oAuthService.validateToken(token)) {
             throw new InvalidTokenException();
@@ -56,5 +59,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private boolean hasOrigin(HttpServletRequest request) {
         return Objects.nonNull(request.getHeader(HttpHeaders.ORIGIN));
+    }
+
+    private boolean isPostListReadRequest(HttpServletRequest request) {
+        return request.getMethod().equalsIgnoreCase(HttpMethod.GET.toString())
+            && request.getRequestURI().equals("/api/posts");
     }
 }

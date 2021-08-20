@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Springboot Blog :: Post</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+  <h1 id="logo">Springboot Blog</h1><br>
+  <section id="login">
+    <script id="template-login-github" type="text/template">
+      <a id="login-github-box" class="btn btn-primary" role="button">GitHub Login</a>
+    </script>
+
+    <script id="template-user-information" type="text/template">
+      <a id="user-name">ID : {userName}</a>
+    </script>
+
+    <script id="template-logout" type="text/template">
+      <a id="logout-box" class="btn btn-warning" role="button">Logout</a>
+    </script>
+  </section>
+  <br>
+  <br>
+  <div class="col-md-10">
+    <h2 id="post-title"></h2>
+    <hr>
+    <div class="text-right">
+      <p id="author-name">작성자 :&nbsp;</p>
+      <p id="view-counts">조회수 :&nbsp;</p>
+      <p id="created-date">작성일 :&nbsp;</p>
+      <p id="modified-date">수정일 :&nbsp;</p>
+    </div>
+    <hr>
+    <br>
+    <p id="content"></p>
+    <hr>
+    <br>
+  </div>
+  <a class="btn btn-secondary" href="/" role="button">Back</a>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module" src="/js/post.js"></script>
+</html>

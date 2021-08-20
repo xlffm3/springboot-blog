@@ -3,8 +3,11 @@ package com.spring.blog.post.presentation;
 import com.spring.blog.authentication.domain.Authenticated;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.post.application.PostService;
+import com.spring.blog.post.application.dto.PostListRequestDto;
+import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.presentation.dto.PostListResponse;
 import com.spring.blog.post.presentation.dto.PostRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
 import java.net.URI;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/api")
@@ -44,22 +48,22 @@ public class PostController {
             .build();
     }
 
+    @GetMapping("/posts")
+    public ResponseEntity<PostListResponse> readList(
+        @RequestParam Long page,
+        @RequestParam Long size,
+        @RequestParam Long pageBlockCounts
+    ) {
+        PostListRequestDto postListRequestDto = new PostListRequestDto(page, size, pageBlockCounts);
+        PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
+        PostListResponse postListResponse = PostListResponse.from(postListResponseDto);
+        return ResponseEntity.ok(postListResponse);
+    }
+
     @GetMapping("/posts/{id}")
     public ResponseEntity<PostResponse> read(@PathVariable Long id) {
         PostResponseDto postResponseDto = postService.readById(id);
-        PostResponse postResponse = generatePostResponse(postResponseDto);
+        PostResponse postResponse = PostResponse.from(postResponseDto);
         return ResponseEntity.ok(postResponse);
-    }
-
-    private PostResponse generatePostResponse(PostResponseDto postResponseDto) {
-        return new PostResponse(
-            postResponseDto.getId(),
-            postResponseDto.getTitle(),
-            postResponseDto.getContent(),
-            postResponseDto.getAuthor(),
-            postResponseDto.getViewCounts(),
-            postResponseDto.getCreatedDate(),
-            postResponseDto.getModifiedDate()
-        );
     }
 }

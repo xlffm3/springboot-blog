@@ -14,11 +14,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
+import com.spring.blog.common.PageMaker;
 import com.spring.blog.post.application.PostService;
+import com.spring.blog.post.application.dto.PostListRequestDto;
+import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.domain.content.PostContent;
+import com.spring.blog.post.presentation.dto.PostListResponse;
 import com.spring.blog.post.presentation.dto.PostRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
+import com.spring.blog.user.domain.User;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,5 +109,30 @@ class PostControllerTest {
             .andExpect(content().string(expected));
 
         verify(postService, times(1)).readById(1L);
+    }
+
+    @DisplayName("복수의 게시물 목록을 페이지네이션으로 조회한다.")
+    @Test
+    void readList_OrderByDateDesc_Success() throws Exception {
+        // given
+        List<Post> mockPosts = Arrays.asList(
+            new Post(new PostContent("a3", "b3"), new User("kevin3", "image")),
+            new Post(new PostContent("a2", "b2"), new User("kevin2", "image")),
+            new Post(new PostContent("a", "b"), new User("kevin", "image"))
+        );
+        PageMaker pageMaker = new PageMaker(0, 3, 5, 3);
+        PostListResponseDto postListResponseDto = PostListResponseDto.from(mockPosts, pageMaker);
+        PostListResponse postListResponse = PostListResponse.from(postListResponseDto);
+        String expectedResponseBody = objectMapper.writeValueAsString(postListResponse);
+        given(postService.readPostList(any(PostListRequestDto.class)))
+            .willReturn(postListResponseDto);
+
+        // when
+        mockMvc.perform(get("/api/posts?page={page}&size={size}&pageBlockCounts={block}", "0", "3", "5"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(expectedResponseBody));
+
+        // then
+        verify(postService, times(1)).readPostList(any(PostListRequestDto.class));
     }
 }
