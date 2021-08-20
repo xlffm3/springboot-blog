@@ -30,4 +30,8 @@ public class CommentContent {
             throw new CommentContentException();
         }
     }
+
+    public String getContent() {
+        return content;
+    }
 }

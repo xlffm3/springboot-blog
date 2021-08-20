@@ -5,6 +5,7 @@ import com.spring.blog.comment.domain.date.BaseDate;
 import com.spring.blog.comment.domain.hierarchy.Hierarchy;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
+import java.time.LocalDateTime;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -77,5 +78,21 @@ public class Comment {
 
     public Long getId() {
         return id;
+    }
+
+    public String getAuthorName() {
+        return user.getName();
+    }
+
+    public String getContent() {
+        return commentContent.getContent();
+    }
+
+    public Integer getDepth() {
+        return hierarchy.getDepth();
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return baseDate.getCreatedDate();
     }
 }
