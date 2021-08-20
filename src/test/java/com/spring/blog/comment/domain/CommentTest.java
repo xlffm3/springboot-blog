@@ -46,8 +46,7 @@ class CommentTest {
 
                 // then
                 assertThat(parent)
-                    .extracting("hierarchy")
-                    .extracting("depth")
+                    .extracting("hierarchy.depth")
                     .isEqualTo(depth + 1);
             }
         }
@@ -138,8 +137,7 @@ class CommentTest {
 
                 // then
                 assertThat(comment)
-                    .extracting("hierarchy")
-                    .extracting("rootComment")
+                    .extracting("hierarchy.rootComment")
                     .isEqualTo(comment);
             }
         }
