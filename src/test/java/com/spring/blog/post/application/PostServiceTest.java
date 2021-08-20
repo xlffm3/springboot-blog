@@ -186,7 +186,7 @@ class PostServiceTest {
                     new Post(new PostContent("a2", "b2"), new User("kevin2", "image")),
                     new Post(new PostContent("a", "b"), new User("kevin", "image"))
                 );
-                given(postRepository.findLatestPostsWithAuthorPagination(any(Pageable.class)))
+                given(postRepository.findPostsOrderByDateDesc(any(Pageable.class)))
                     .willReturn(mockPosts);
                 given(postRepository.count()).willReturn(23L);
 
@@ -207,7 +207,7 @@ class PostServiceTest {
                     );
 
                 verify(postRepository, times(1))
-                    .findLatestPostsWithAuthorPagination(any(Pageable.class));
+                    .findPostsOrderByDateDesc(any(Pageable.class));
                 verify(postRepository, times(1)).count();
             }
         }

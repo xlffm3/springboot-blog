@@ -37,6 +37,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+@DisplayName("PostController 슬라이스 테스트")
 @WebMvcTest(PostController.class)
 class PostControllerTest {
 

@@ -53,7 +53,7 @@ public class PostService {
             Math.toIntExact(postListRequestDto.getPage()),
             Math.toIntExact(postListRequestDto.getSize())
         );
-        List<Post> posts = postRepository.findLatestPostsWithAuthorPagination(pageable);
+        List<Post> posts = postRepository.findPostsOrderByDateDesc(pageable);
         PageMaker pageMaker = generatePageMaker(postListRequestDto);
         return PostListResponseDto.from(posts, pageMaker);
     }

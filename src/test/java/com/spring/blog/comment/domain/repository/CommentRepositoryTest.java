@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+@DisplayName("CommentRepository 단위 테스트")
 @Import(JpaTestConfiguration.class)
 @DataJpaTest
 class CommentRepositoryTest {
