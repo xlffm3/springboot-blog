@@ -7,6 +7,9 @@ import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
 import com.spring.blog.exception.comment.CommentDepthException;
+import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.domain.content.PostContent;
+import com.spring.blog.user.domain.User;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
@@ -73,8 +76,10 @@ class HierarchyTest {
             void it_adds_child_comment_successfully(int depth) {
                 // given
                 ChildComments childComments = new ChildComments(new ArrayList<>());
-                Comment parentComment = new Comment(new CommentContent("parent"));
-                Comment childComment = new Comment(new CommentContent("child"));
+                User user = new User("kevin", "image");
+                Post post = new Post(new PostContent("title", "content"), user);
+                Comment parentComment = new Comment(new CommentContent("parent"), post, user);
+                Comment childComment = new Comment(new CommentContent("child"), post, user);
                 Hierarchy parentHierarchy =
                     new Hierarchy(parentComment, null, childComments, depth);
 
@@ -112,8 +117,10 @@ class HierarchyTest {
             void it_throws_CannotAddChildCommentException() {
                 // given
                 ChildComments childComments = new ChildComments(new ArrayList<>());
-                Comment parentComment = new Comment(new CommentContent("parent"));
-                Comment childComment = new Comment(new CommentContent("child"));
+                User user = new User("kevin", "image");
+                Post post = new Post(new PostContent("title", "content"), user);
+                Comment parentComment = new Comment(new CommentContent("parent"), post, user);
+                Comment childComment = new Comment(new CommentContent("child"), post, user);
                 Hierarchy parentHierarchy =
                     new Hierarchy(parentComment, null, childComments, 99);
 
@@ -141,7 +148,9 @@ class HierarchyTest {
             void it_updates_Hierarchy(int depth) {
                 // given
                 Hierarchy hierarchy = new Hierarchy(null, null, null, 1);
-                Comment comment = new Comment(new CommentContent("hi"));
+                User user = new User("kevin", "image");
+                Post post = new Post(new PostContent("title", "content"), user);
+                Comment comment = new Comment(new CommentContent("hi"), post, user);
 
                 // when
                 hierarchy.update(comment, comment, depth);
@@ -188,7 +197,9 @@ class HierarchyTest {
             void it_sets_given_comment_as_root() {
                 // given
                 Hierarchy hierarchy = new Hierarchy();
-                Comment comment = new Comment(new CommentContent("root"));
+                User user = new User("kevin", "image");
+                Post post = new Post(new PostContent("title", "content"), user);
+                Comment comment = new Comment(new CommentContent("root"), post, user);
 
                 // when
                 hierarchy.updateRoot(comment);

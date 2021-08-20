@@ -6,7 +6,9 @@ import com.spring.blog.post.domain.QPost;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class CustomPostRepositoryImpl implements CustomPostRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
@@ -26,13 +28,13 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     }
 
     @Override
-    public List<Post> findLatestPostsWithAuthorPagination(Pageable pageable) {
+    public List<Post> findPostsOrderByDateDesc(Pageable pageable) {
         return jpaQueryFactory.selectFrom(QPost.post)
             .innerJoin(QPost.post.user)
             .fetchJoin()
             .orderBy(QPost.post.baseDate.createdDate.desc())
-            .limit(pageable.getPageSize())
             .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
             .fetch();
     }
 }

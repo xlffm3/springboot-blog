@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 
+@DisplayName("Post 인수 테스트")
 class PostAcceptanceTest extends AcceptanceTest {
 
     @Autowired

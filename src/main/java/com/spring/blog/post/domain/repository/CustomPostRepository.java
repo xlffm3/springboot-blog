@@ -9,5 +9,5 @@ public interface CustomPostRepository {
 
     Optional<Post> findWithAuthorById(Long id);
 
-    List<Post> findLatestPostsWithAuthorPagination(Pageable pageable);
+    List<Post> findPostsOrderByDateDesc(Pageable pageable);
 }

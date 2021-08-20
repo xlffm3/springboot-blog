@@ -4,6 +4,8 @@ import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.date.BaseDate;
 import com.spring.blog.comment.domain.hierarchy.Hierarchy;
 import com.spring.blog.post.domain.Post;
+import com.spring.blog.user.domain.User;
+import java.time.LocalDateTime;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -30,8 +32,12 @@ public class Comment {
     private Hierarchy hierarchy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Embedded
     private BaseDate baseDate;
@@ -39,24 +45,27 @@ public class Comment {
     protected Comment() {
     }
 
-    public Comment(CommentContent commentContent) {
-        this(null, commentContent);
+    public Comment(CommentContent commentContent, Post post, User user) {
+        this(null, commentContent, new Hierarchy(), post, user);
     }
 
-    public Comment(Long id, CommentContent commentContent) {
-        this(id, commentContent, new Hierarchy(), null);
+    public Comment(Long id, CommentContent commentContent, Post post, User user) {
+        this(id, commentContent, new Hierarchy(), post, user);
     }
 
     public Comment(
         Long id,
         CommentContent commentContent,
         Hierarchy hierarchy,
-        Post post
+        Post post,
+        User user
     ) {
         this.id = id;
         this.commentContent = commentContent;
         this.hierarchy = hierarchy;
         this.post = post;
+        this.user = user;
+        this.baseDate = new BaseDate();
     }
 
     public void addChildComment(Comment childComment) {
@@ -69,5 +78,25 @@ public class Comment {
 
     public void updateHierarchy(Comment rootComment, Comment parentComment, int depth) {
         hierarchy.update(rootComment, parentComment, depth);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getAuthorName() {
+        return user.getName();
+    }
+
+    public String getContent() {
+        return commentContent.getContent();
+    }
+
+    public Integer getDepth() {
+        return hierarchy.getDepth();
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return baseDate.getCreatedDate();
     }
 }

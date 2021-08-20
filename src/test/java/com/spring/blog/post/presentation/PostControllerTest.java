@@ -37,6 +37,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+@DisplayName("PostController 슬라이스 테스트")
 @WebMvcTest(PostController.class)
 class PostControllerTest {
 
@@ -116,9 +117,9 @@ class PostControllerTest {
     void readList_OrderByDateDesc_Success() throws Exception {
         // given
         List<Post> mockPosts = Arrays.asList(
-            new Post(new PostContent("a3", "b3"), new User("kevin3", "image")),
-            new Post(new PostContent("a2", "b2"), new User("kevin2", "image")),
-            new Post(new PostContent("a", "b"), new User("kevin", "image"))
+            new Post(1L, new PostContent("a3", "b3"), new User("kevin3", "image")),
+            new Post(2L, new PostContent("a2", "b2"), new User("kevin2", "image")),
+            new Post(3L, new PostContent("a", "b"), new User("kevin", "image"))
         );
         PageMaker pageMaker = new PageMaker(0, 3, 5, 3);
         PostListResponseDto postListResponseDto = PostListResponseDto.from(mockPosts, pageMaker);

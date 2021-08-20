@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+@DisplayName("PostRepository 단위 테스트")
 @Import(JpaTestConfiguration.class)
 @DataJpaTest
 class PostRepositoryTest {
@@ -59,7 +60,13 @@ class PostRepositoryTest {
             @DisplayName("비어있는 Optional을 반환한다.")
             @Test
             void it_returns_empty_Optional() {
-                // given, when, then
+                // given
+                User savedUser = userRepository.save(new User("kevin", "image"));
+                Post post = new Post(new PostContent("title", "content"), savedUser);
+                postRepository.save(post);
+                flushAndClear();
+
+                // when, then
                 assertThat(customPostRepository.findWithAuthorById(3123L)).isEmpty();
             }
         }
@@ -87,9 +94,9 @@ class PostRepositoryTest {
         }
     }
 
-    @DisplayName("findLatestPostsWithAuthorPagination 메서드는")
+    @DisplayName("findPostsOrderByDateDesc 메서드는")
     @Nested
-    class Describe_findLatestPostsWithAuthorPagination {
+    class Describe_findPostsOrderByDateDesc {
 
         @DisplayName("Pageable이 주어졌을 때")
         @Nested
@@ -116,7 +123,7 @@ class PostRepositoryTest {
                 // when
                 Pageable pageable = PageRequest.of(0, 3);
                 List<Post> findPosts = customPostRepository
-                    .findLatestPostsWithAuthorPagination(pageable);
+                    .findPostsOrderByDateDesc(pageable);
                 Collections.reverse(posts);
 
                 // then

@@ -70,4 +70,8 @@ public class Hierarchy {
     public void updateRoot(Comment comment) {
         this.rootComment = comment;
     }
+
+    public Integer getDepth() {
+        return depth;
+    }
 }

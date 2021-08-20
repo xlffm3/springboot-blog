@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("PageMaker 유틸 단위 테스트")
 class PageMakerTest {
 
     @DisplayName("전체 아이템이 30개이며")
