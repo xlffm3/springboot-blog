@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Springboot Blog :: Main</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+  <h1 id="logo">Springboot Blog</h1><br>
+
+  <section id="login">
+    <script id="template-login-github" type="text/template">
+      <a id="login-github-box" class="btn btn-primary" role="button">GitHub Login</a>
+    </script>
+
+    <script id="template-user-information" type="text/template">
+      <a id="user-name">ID : {userName}</a>
+    </script>
+
+    <script id="template-logout" type="text/template">
+      <a id="logout-box" class="btn btn-warning" role="button">Logout</a>
+    </script>
+  </section>
+
+  <br>
+  <br>
+
+  <table class="table table-hover table-bordered">
+    <thead class="thead-strong">
+    <tr>
+      <th>Index</th>
+      <th>Title</th>
+      <th>Author</th>
+      <th>Views</th>
+      <th>Created Date</th>
+    </tr>
+    </thead>
+    <tbody id="tbody">
+    </tbody>
+
+    <script id="template-post-row-template" type="text/template">
+      <tr id="{post-id}">
+        <td>{index}</td>
+        <td>{title}</td>
+        <td>{author}</td>
+        <td>{views}</td>
+        <td>{created}</td>
+      </tr>
+    </script>
+  </table>
+  <ul id="page-navigator" class="pagination">
+    <script id="template-prev-button" type="text/template">
+      <li class="page-item"><a id="prev" class="page-link">Prev</a></li>
+    </script>
+
+    <script id="template-page-button" type="text/template">
+      <li class="page-item"><a id="page-button-{index}" class="page-link">{index}</a></li>
+    </script>
+
+    <script id="template-next-button" type="text/template">
+      <li class="page-item"><a id="next" class="page-link">Next</a></li>
+    </script>
+  </ul>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module" src="/js/index.js"></script>
+</html>
