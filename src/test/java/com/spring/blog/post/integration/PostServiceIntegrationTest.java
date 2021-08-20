@@ -2,12 +2,15 @@ package com.spring.blog.post.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
+import com.spring.blog.post.application.dto.PostListRequestDto;
+import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
@@ -15,6 +18,8 @@ import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -124,5 +129,41 @@ class PostServiceIntegrationTest {
             .hasMessage("게시글을 조회할 수 없습니다.")
             .hasFieldOrPropertyWithValue("errorCode", "P0001")
             .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+    }
+
+    @DisplayName("게시물 목록을 페이지네이션으로 최신순으로 조회한다.")
+    @Test
+    void readPostList_OrderByDateDesc_ThreePosts() {
+        // given
+        List<User> users = Arrays.asList(
+            new User("kevin", "hi"),
+            new User("kevin2", "hi2"),
+            new User("kevin3", "hi3")
+        );
+        userRepository.saveAll(users);
+        List<Post> posts = Arrays.asList(
+            new Post(new PostContent("a1", "b"), users.get(0)),
+            new Post(new PostContent("a2", "b"), users.get(1)),
+            new Post(new PostContent("a3", "b"), users.get(2))
+        );
+        postRepository.saveAll(posts);
+        PostListRequestDto postListRequestDto =
+            new PostListRequestDto(0L, 3L, 3L);
+
+        // when
+        PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
+        System.out.println(postRepository.count());
+
+        // then
+        assertThat(postListResponseDto.getPostResponseDtos())
+            .extracting("title", "author")
+            .containsExactly(
+                tuple("a3", "kevin3"),
+                tuple("a2", "kevin2"),
+                tuple("a1", "kevin")
+            );
+        assertThat(postListResponseDto)
+            .extracting("startPage", "endPage", "next", "prev")
+            .containsExactly(1, 1, false, false);
     }
 }
