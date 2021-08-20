@@ -49,6 +49,10 @@ public class Comment {
         this(null, commentContent, new Hierarchy(), post, user);
     }
 
+    public Comment(Long id, CommentContent commentContent, Post post, User user) {
+        this(id, commentContent, new Hierarchy(), post, user);
+    }
+
     public Comment(
         Long id,
         CommentContent commentContent,
