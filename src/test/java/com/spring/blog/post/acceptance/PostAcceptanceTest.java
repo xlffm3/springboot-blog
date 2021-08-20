@@ -60,6 +60,7 @@ class PostAcceptanceTest extends AcceptanceTest {
         // given
         String token = requestLoginAndRetrieveToken("kevin");
         PostRequest postRequest = new PostRequest("title", "content");
+        requestToWritePost(postRequest, token);
         ResponseSpec responseSpec = requestToWritePost(postRequest, token);
         String postId = extractPostId(responseSpec);
         PostResponse postResponse = new PostResponse(

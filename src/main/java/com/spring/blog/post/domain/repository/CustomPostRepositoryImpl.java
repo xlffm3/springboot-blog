@@ -20,6 +20,7 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
         Post post = jpaQueryFactory.selectFrom(QPost.post)
             .innerJoin(QPost.post.user)
             .fetchJoin()
+            .where(QPost.post.id.eq(id))
             .fetchFirst();
         return Optional.ofNullable(post);
     }
