@@ -1,13 +1,12 @@
-package com.spring.blog.post.infrasructure;
+package com.spring.blog.post.domain.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.QPost;
-import com.spring.blog.post.domain.repository.CustomPostRepository;
+import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
 
-@Repository
 public class CustomPostRepositoryImpl implements CustomPostRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
@@ -23,5 +22,16 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
             .fetchJoin()
             .fetchFirst();
         return Optional.ofNullable(post);
+    }
+
+    @Override
+    public List<Post> findLatestPostsWithAuthorPagination(Pageable pageable) {
+        return jpaQueryFactory.selectFrom(QPost.post)
+            .innerJoin(QPost.post.user)
+            .fetchJoin()
+            .orderBy(QPost.post.baseDate.createdDate.desc())
+            .limit(pageable.getPageSize())
+            .offset(pageable.getOffset())
+            .fetch();
     }
 }
