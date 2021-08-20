@@ -100,7 +100,7 @@ class PostAcceptanceTest extends AcceptanceTest {
 
         // when
         webTestClient.get()
-            .uri("/api/posts?page={page}&size={size}&displayPageNum={num}", 3, 3, 3)
+            .uri("/api/posts?page={page}&size={size}&pageBlockCounts={num}", 3, 3, 3)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

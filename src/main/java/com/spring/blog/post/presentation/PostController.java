@@ -52,9 +52,9 @@ public class PostController {
     public ResponseEntity<PostListResponse> readList(
         @RequestParam Long page,
         @RequestParam Long size,
-        @RequestParam Long displayPageNum
+        @RequestParam Long pageBlockCounts
     ) {
-        PostListRequestDto postListRequestDto = new PostListRequestDto(page, size, displayPageNum);
+        PostListRequestDto postListRequestDto = new PostListRequestDto(page, size, pageBlockCounts);
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
         PostListResponse postListResponse = PostListResponse.from(postListResponseDto);
         return ResponseEntity.ok(postListResponse);

@@ -128,7 +128,7 @@ class PostControllerTest {
             .willReturn(postListResponseDto);
 
         // when
-        mockMvc.perform(get("/api/posts?page={page}&size={size}&displayPageNum={block}", "0", "3", "5"))
+        mockMvc.perform(get("/api/posts?page={page}&size={size}&pageBlockCounts={block}", "0", "3", "5"))
             .andExpect(status().isOk())
             .andExpect(content().string(expectedResponseBody));
 
