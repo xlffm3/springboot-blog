@@ -17,4 +17,9 @@ public class PageController {
     public String moveToPostPage() {
         return "post.html";
     }
+
+    @GetMapping("/post/write")
+    public String moveToPostEditPage() {
+        return "post-write.html";
+    }
 }

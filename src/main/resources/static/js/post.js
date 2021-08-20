@@ -1,6 +1,7 @@
 import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
 import {parseDate, appendReply} from "./module/string-parser.js";
 import {renderPageNavigation} from "./module/navigator-module.js";
+import {activatePostWriteButton} from "./module/button-module.js";
 
 const DEFAULT_SIZE_PER_PAGE = 10;
 const DEFAULT_PAGE_BLOCK_COUNTS = 10;
@@ -11,7 +12,6 @@ function validateState() {
     alert('유효하지 않은 접근입니다.');
     window.location.replace('/');
   }
-  sessionStorage.setItem('redirect-url', '/page/post');
 }
 
 async function renderPostSection() {
@@ -23,12 +23,12 @@ async function renderPostSection() {
     document.getElementById('content').innerText = response.data.content;
 
     document.getElementById('author-name').innerText += response.data.author;
-    document.getElementById('created-date').innerText += parseDate(
-        response.data.createdDate);
-    document.getElementById('modified-date').innerText += parseDate(
-        response.data.modifiedDate);
-    document.getElementById(
-        'view-counts').innerText += response.data.viewCounts;
+    document.getElementById('created-date').innerText +=
+        parseDate(response.data.createdDate);
+    document.getElementById('modified-date').innerText +=
+        parseDate(response.data.modifiedDate);
+    document.getElementById('view-counts')
+        .innerText += response.data.viewCounts;
   });
 }
 
@@ -70,3 +70,4 @@ renderLoginSection();
 addLogoClickEvent();
 renderPostSection();
 renderCommentSection();
+activatePostWriteButton();

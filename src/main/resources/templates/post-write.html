@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Springboot Blog :: Edit</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        rel="stylesheet">
+</head>
+<body>
+<div class="container">
+  <h1 id="logo">Springboot Blog</h1><br>
+  <section id="login">
+    <script id="template-login-github" type="text/template">
+      <a id="login-github-box" class="btn btn-primary" role="button">GitHub Login</a>
+    </script>
+
+    <script id="template-user-information" type="text/template">
+      <a id="user-name">ID : {userName}</a>
+    </script>
+
+    <script id="template-logout" type="text/template">
+      <a id="logout-box" class="btn btn-warning" role="button">Logout</a>
+    </script>
+  </section>
+  <br>
+  <br>
+  <div class="col-md-12">
+    <form id="form">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input class="form-control" id="title" name="title" placeholder="제목을 입력하세요." required type="text">
+      </div>
+      <div class="form-group">
+        <label for="content">Content</label>
+        <textarea class="form-control" id="content" name="content" placeholder="내용을 입력하세요." required style="height: 400px;"></textarea>
+      </div>
+      <a id="submit-button" class="btn btn-primary">Write</a>
+      <a class="btn btn-secondary" href="/" role="button">Cancel</a>
+    </form>
+  </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module" src="/js/post-write.js"></script>
+</html>

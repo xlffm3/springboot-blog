@@ -1,6 +1,7 @@
 import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
 import {parseDate} from "./module/string-parser.js";
 import {renderPageNavigation} from "./module/navigator-module.js";
+import {activatePostWriteButton} from "./module/button-module.js";
 
 const DEFAULT_SIZE_PER_PAGE = 10;
 const DEFAULT_PAGE_BLOCK_COUNTS = 10;
@@ -49,4 +50,4 @@ function renderPostRow(response) {
 renderLoginSection();
 addLogoClickEvent();
 renderBoardSection();
-
+activatePostWriteButton();
