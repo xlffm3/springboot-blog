@@ -112,25 +112,4 @@ class PostAcceptanceTest extends AcceptanceTest {
                     .containsExactly(4, 5, true, false);
             });
     }
-
-    private ResponseSpec requestToWritePost(PostWriteRequest postWriteRequest, String token) {
-        return webTestClient.post()
-            .uri("/api/posts")
-            .headers(header -> header.setBearerAuth(token))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(postWriteRequest)
-            .exchange()
-            .expectStatus()
-            .isCreated();
-    }
-
-    private String extractPostId(ResponseSpec responseSpec) {
-        String path = responseSpec.expectBody()
-            .returnResult()
-            .getResponseHeaders()
-            .getLocation()
-            .getPath();
-        int index = path.lastIndexOf("/");
-        return path.substring(index + 1);
-    }
 }
