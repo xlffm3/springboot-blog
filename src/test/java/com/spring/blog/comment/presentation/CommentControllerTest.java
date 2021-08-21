@@ -74,7 +74,7 @@ class CommentControllerTest {
 
     private List<Comment> generateComments() {
         User user = new User(1L, "kevin", "image");
-        Post post = new Post(1L, new PostContent("title", "content"), user);
+        Post post = new Post(1L, "title", "content", user);
 
         Comment comment1 = new Comment(1L, "1", post, user);
         comment1.updateAsRoot();

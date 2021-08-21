@@ -14,7 +14,6 @@ import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
@@ -98,7 +97,7 @@ class PostServiceIntegrationTest {
     void readById_ValidId_Success() {
         // given
         User savedUser = userRepository.save(new User("kevin", "image"));
-        Post post = new Post(new PostContent("title", "content"), savedUser);
+        Post post = new Post("title", "content", savedUser);
         postRepository.save(post);
 
         // when
@@ -142,9 +141,9 @@ class PostServiceIntegrationTest {
         );
         userRepository.saveAll(users);
         List<Post> posts = Arrays.asList(
-            new Post(new PostContent("a1", "b"), users.get(0)),
-            new Post(new PostContent("a2", "b"), users.get(1)),
-            new Post(new PostContent("a3", "b"), users.get(2))
+            new Post("a1", "b", users.get(0)),
+            new Post("a2", "b", users.get(1)),
+            new Post("a3", "b", users.get(2))
         );
         postRepository.saveAll(posts);
         PostListRequestDto postListRequestDto =

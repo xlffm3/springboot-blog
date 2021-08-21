@@ -7,7 +7,6 @@ import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
 import com.spring.blog.exception.comment.CommentDepthException;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.user.domain.User;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,7 +75,7 @@ class HierarchyTest {
                 // given
                 ChildComments childComments = new ChildComments(new ArrayList<>());
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
+                Post post = new Post("title", "content", user);
                 Comment parentComment = new Comment("parent", post, user);
                 Comment childComment = new Comment("child", post, user);
                 Hierarchy parentHierarchy =
@@ -117,7 +116,7 @@ class HierarchyTest {
                 // given
                 ChildComments childComments = new ChildComments(new ArrayList<>());
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
+                Post post = new Post("title", "content", user);
                 Comment parentComment = new Comment("parent", post, user);
                 Comment childComment = new Comment("child", post, user);
                 Hierarchy parentHierarchy =
@@ -148,7 +147,7 @@ class HierarchyTest {
                 // given
                 Hierarchy hierarchy = new Hierarchy(null, null, null, 1);
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
+                Post post = new Post("title", "content", user);
                 Comment comment = new Comment("hi", post, user);
 
                 // when
@@ -197,7 +196,7 @@ class HierarchyTest {
                 // given
                 Hierarchy hierarchy = new Hierarchy();
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
+                Post post = new Post("title", "content", user);
                 Comment comment = new Comment("root", post, user);
 
                 // when

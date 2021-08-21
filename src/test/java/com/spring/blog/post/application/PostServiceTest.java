@@ -81,7 +81,7 @@ class PostServiceTest {
                 // given
                 PostRequestDto postRequestDto = new PostRequestDto(1L, "title", "content");
                 User user = new User("kevin", "image");
-                Post post = new Post(1L, new PostContent("title", "content"), user);
+                Post post = new Post(1L, "title", "content", user);
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.save(any(Post.class))).willReturn(post);
 
@@ -121,7 +121,7 @@ class PostServiceTest {
                 // given
                 Long id = 13212L;
                 User user = new User(id, "kevin", "image");
-                Post post = new Post(1L, new PostContent("title", "content"), user);
+                Post post = new Post(1L, "title", "content", user);
                 given(postRepository.findWithAuthorById(id)).willReturn(Optional.of(post));
 
                 // when
@@ -182,9 +182,9 @@ class PostServiceTest {
                 PostListRequestDto postListRequestDto =
                     new PostListRequestDto(1L, 5L, 3L);
                 List<Post> mockPosts = Arrays.asList(
-                    new Post(new PostContent("a3", "b3"), new User("kevin3", "image")),
-                    new Post(new PostContent("a2", "b2"), new User("kevin2", "image")),
-                    new Post(new PostContent("a", "b"), new User("kevin", "image"))
+                    new Post("a3", "b3", new User("kevin3", "image")),
+                    new Post("a2", "b2", new User("kevin2", "image")),
+                    new Post("a", "b", new User("kevin", "image"))
                 );
                 given(postRepository.findPostsOrderByDateDesc(any(Pageable.class)))
                     .willReturn(mockPosts);

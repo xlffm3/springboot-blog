@@ -79,7 +79,7 @@ class CommentServiceTest {
             void it_returns_comments_order_by_group_date_hierarchy() {
                 // given
                 User user = new User(1L, "kevin", "image");
-                Post post = new Post(1L, new PostContent("title", "content"), user);
+                Post post = new Post(1L, "title", "content", user);
                 CommentListRequestDto commentListRequestDto =
                     new CommentListRequestDto(1L, 1L, 3L, 5L);
                 Comment comment1 = new Comment("1", post, user);

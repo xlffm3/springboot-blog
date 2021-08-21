@@ -6,7 +6,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.configuration.JpaTestConfiguration;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Arrays;
@@ -62,7 +61,7 @@ class PostRepositoryTest {
             void it_returns_empty_Optional() {
                 // given
                 User savedUser = userRepository.save(new User("kevin", "image"));
-                Post post = new Post(new PostContent("title", "content"), savedUser);
+                Post post = new Post("title", "content", savedUser);
                 postRepository.save(post);
                 flushAndClear();
 
@@ -80,7 +79,7 @@ class PostRepositoryTest {
             void it_returns_post() {
                 // given
                 User savedUser = userRepository.save(new User("kevin", "image"));
-                Post post = new Post(new PostContent("title", "content"), savedUser);
+                Post post = new Post("title", "content", savedUser);
                 postRepository.save(post);
                 flushAndClear();
 
@@ -113,9 +112,9 @@ class PostRepositoryTest {
                 );
                 userRepository.saveAll(users);
                 List<Post> posts = Arrays.asList(
-                    new Post(new PostContent("a", "b"), users.get(0)),
-                    new Post(new PostContent("a", "b"), users.get(1)),
-                    new Post(new PostContent("a", "b"), users.get(2))
+                    new Post("a", "b", users.get(0)),
+                    new Post("a", "b", users.get(1)),
+                    new Post("a", "b", users.get(2))
                 );
                 postRepository.saveAll(posts);
                 flushAndClear();

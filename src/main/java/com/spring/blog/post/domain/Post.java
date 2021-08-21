@@ -40,8 +40,12 @@ public class Post {
     protected Post() {
     }
 
-    public Post(PostContent postContent, User user) {
-        this(null, postContent, user);
+    public Post(String title, String content, User user) {
+        this(null, title, content, user);
+    }
+
+    public Post(Long id, String title, String content, User user) {
+        this(id, new PostContent(title, content), user);
     }
 
     public Post(Long id, PostContent postContent, User user) {

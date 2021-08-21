@@ -9,7 +9,6 @@ import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
@@ -55,7 +54,7 @@ class CommentServiceIntegrationTest {
     void readCommentList_Pagination_True() {
         // given
         User user = new User("kevin", "image");
-        Post post = new Post(new PostContent("hi", "there"), user);
+        Post post = new Post("hi", "there", user);
         userRepository.save(user);
         postRepository.save(post);
 
