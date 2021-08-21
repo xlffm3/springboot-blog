@@ -5,6 +5,7 @@ import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
 import com.spring.blog.comment.application.dto.CommentResponseDto;
 import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
 import com.spring.blog.comment.presentation.dto.CommentListResponse;
@@ -38,6 +39,25 @@ public class CommentController {
         CommentWriteRequestDto commentWriteRequestDto =
             new CommentWriteRequestDto(postId, appUser.getId(), commentWriteRequest.getContent());
         CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
+        CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
+        return ResponseEntity.ok(commentResponse);
+    }
+
+    @PostMapping("/posts/{postId}/comments/{commentId}/reply")
+    public ResponseEntity<CommentResponse> reply(
+        @PathVariable Long postId,
+        @PathVariable Long commentId,
+        @Authenticated AppUser appUser,
+        @RequestBody CommentWriteRequest commentWriteRequest
+    ) {
+        CommentReplyRequestDto commentReplyRequestDto =
+            new CommentReplyRequestDto(
+                postId,
+                appUser.getId(),
+                commentId,
+                commentWriteRequest.getContent()
+            );
+        CommentResponseDto commentResponseDto = commentService.replyComment(commentReplyRequestDto);
         CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
         return ResponseEntity.ok(commentResponse);
     }

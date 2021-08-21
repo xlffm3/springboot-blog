@@ -1,6 +1,7 @@
 package com.spring.blog.common;
 
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
+import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -33,7 +34,7 @@ public class AcceptanceTest {
     }
 
     @DisplayName("로그인 요청")
-    public String requestLoginAndRetrieveToken(String userName) {
+    protected String requestLoginAndRetrieveToken(String userName) {
         return webTestClient.get()
             .uri("/api/afterlogin?code={code}", userName)
             .accept(MediaType.APPLICATION_JSON)
@@ -47,7 +48,7 @@ public class AcceptanceTest {
     }
 
     @DisplayName("게시물 작성 요청")
-    public ResponseSpec requestToWritePost(PostWriteRequest postWriteRequest, String token) {
+    protected ResponseSpec requestToWritePost(PostWriteRequest postWriteRequest, String token) {
         return webTestClient.post()
             .uri("/api/posts")
             .headers(header -> header.setBearerAuth(token))
@@ -59,7 +60,7 @@ public class AcceptanceTest {
     }
 
     @DisplayName("게시물 작성 후 ID 확보")
-    public String extractPostId(ResponseSpec responseSpec) {
+    protected String extractPostId(ResponseSpec responseSpec) {
         String path = responseSpec.expectBody()
             .returnResult()
             .getResponseHeaders()
@@ -67,5 +68,22 @@ public class AcceptanceTest {
             .getPath();
         int index = path.lastIndexOf("/");
         return path.substring(index + 1);
+    }
+
+    @DisplayName("댓글 작성 요청")
+    protected ResponseSpec requestToWriteComment(
+        String token,
+        CommentWriteRequest commentWriteRequest,
+        String postId
+    ) {
+        return webTestClient.post()
+            .uri("/api/posts/{postId}/comments", postId)
+            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(commentWriteRequest)
+            .exchange()
+            .expectStatus()
+            .isOk();
     }
 }

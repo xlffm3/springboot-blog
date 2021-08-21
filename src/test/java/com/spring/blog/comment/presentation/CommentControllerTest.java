@@ -16,6 +16,7 @@ import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
 import com.spring.blog.comment.application.dto.CommentResponseDto;
 import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
 import com.spring.blog.comment.domain.Comment;
@@ -56,7 +57,6 @@ class CommentControllerTest {
     @Test
     void write_NotLoginUser_Fail() throws Exception {
         // given
-        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("comment hi");
         given(oAuthService.validateToken(any())).willReturn(false);
 
         // when, then
@@ -97,6 +97,52 @@ class CommentControllerTest {
         verify(oAuthService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .writeComment(any(CommentWriteRequestDto.class));
+    }
+
+    @DisplayName("비로그인 유저는 대댓글을 작성할 수 없다.")
+    @Test
+    void reply_NotLoginUser_Fail() throws Exception {
+        // given
+        given(oAuthService.validateToken(any())).willReturn(false);
+
+        // when, then
+        mockMvc.perform(post("/api/posts/{postId}/comments/{commentId}/reply", "1", "1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isUnauthorized());
+
+        verify(oAuthService, times(1)).validateToken(any());
+    }
+
+    @DisplayName("로그인 유저는 대댓글을 작성할 수 있다.")
+    @Test
+    void reply_LoginUser_Success() throws Exception {
+        // given
+        String requestBody =
+            objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
+        CommentResponseDto commentResponseDto =
+            new CommentResponseDto(2L, "kevin", "comment hi", 2, LocalDateTime.now());
+
+        given(oAuthService.validateToken("token")).willReturn(true);
+        given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
+        given(commentService.replyComment(any(CommentReplyRequestDto.class)))
+            .willReturn(commentResponseDto);
+
+        // when, then
+        mockMvc.perform(post("/api/posts/{postId}/comments/{commentsId}/reply", "1", "1")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON_VALUE).content(requestBody))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value("2"))
+            .andExpect(jsonPath("$.author").value("kevin"))
+            .andExpect(jsonPath("$.content").value("comment hi"))
+            .andExpect(jsonPath("$.depth").value("2"));
+
+        verify(oAuthService, times(1)).validateToken("token");
+        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(commentService, times(1))
+            .replyComment(any(CommentReplyRequestDto.class));
     }
 
     @DisplayName("게시물에 달린 Comment를 페이지네이션으로 조회한다.")
