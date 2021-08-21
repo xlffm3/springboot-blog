@@ -11,7 +11,7 @@ import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostRequestDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
@@ -56,11 +56,11 @@ class PostServiceIntegrationTest {
     @Test
     void write_UserNotFound_ExceptionThrown() {
         // given
-        PostRequestDto postRequestDto =
-            new PostRequestDto(32132L, "title", "content");
+        PostWriteRequestDto postWriteRequestDto =
+            new PostWriteRequestDto(32132L, "title", "content");
 
         // when, then
-        assertThatCode(() -> postService.write(postRequestDto))
+        assertThatCode(() -> postService.write(postWriteRequestDto))
             .isInstanceOf(UserNotFoundException.class)
             .hasMessage("유저를 조회할 수 없습니다.")
             .hasFieldOrPropertyWithValue("errorCode", "U0001")
@@ -72,10 +72,10 @@ class PostServiceIntegrationTest {
     void write_UserFound_Success() {
         // given
         User savedUser = userRepository.save(new User("kevin", "image"));
-        PostRequestDto postRequestDto = new PostRequestDto(savedUser.getId(), "title", "content");
+        PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(savedUser.getId(), "title", "content");
 
         // when
-        PostResponseDto postResponseDto = postService.write(postRequestDto);
+        PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
         PostResponseDto expected = new PostResponseDto(
             null,
             "title",

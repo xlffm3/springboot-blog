@@ -5,7 +5,7 @@ import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostRequestDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
@@ -30,10 +30,10 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponseDto write(PostRequestDto postRequestDto) {
-        User user = userRepository.findById(postRequestDto.getUserId())
+    public PostResponseDto write(PostWriteRequestDto postWriteRequestDto) {
+        User user = userRepository.findById(postWriteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
-        Post post = new Post(postRequestDto.getTitle(), postRequestDto.getContent(), user);
+        Post post = new Post(postWriteRequestDto.getTitle(), postWriteRequestDto.getContent(), user);
         return PostResponseDto.from(postRepository.save(post));
     }
 

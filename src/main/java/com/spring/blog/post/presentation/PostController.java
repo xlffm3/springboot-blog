@@ -5,10 +5,10 @@ import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostRequestDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostRequest;
+import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
 import java.net.URI;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +35,14 @@ public class PostController {
     @PostMapping("/posts")
     public ResponseEntity<Void> write(
         @Authenticated AppUser appUser,
-        @RequestBody PostRequest postRequest
+        @RequestBody PostWriteRequest postWriteRequest
     ) {
-        PostRequestDto postRequestDto = new PostRequestDto(
+        PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(
             appUser.getId(),
-            postRequest.getTitle(),
-            postRequest.getContent()
+            postWriteRequest.getTitle(),
+            postWriteRequest.getContent()
         );
-        PostResponseDto postResponseDto = postService.write(postRequestDto);
+        PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
         String url = String.format(REDIRECT_URL_FORMAT_AFTER_WRITING, postResponseDto.getId());
         return ResponseEntity.created(URI.create(url))
             .build();

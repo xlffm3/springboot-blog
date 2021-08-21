@@ -18,12 +18,11 @@ import com.spring.blog.common.PageMaker;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostRequestDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostRequest;
+import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
 import com.spring.blog.user.domain.User;
 import java.util.Arrays;
@@ -71,14 +70,14 @@ class PostControllerTest {
         // given
         String token = "Bearer token";
         AppUser appUser = new LoginUser(1L, "kevin");
-        PostRequest postRequest = new PostRequest("title", "content");
+        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
         PostResponseDto postResponseDto =
             new PostResponseDto(1L, "title", "content", "kevin", 0L, null, null);
-        String requestBody = objectMapper.writeValueAsString(postRequest);
+        String requestBody = objectMapper.writeValueAsString(postWriteRequest);
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(appUser);
-        given(postService.write(any(PostRequestDto.class))).willReturn(postResponseDto);
+        given(postService.write(any(PostWriteRequestDto.class))).willReturn(postResponseDto);
 
         // when, then
         mockMvc.perform(post("/api/posts")
@@ -89,7 +88,7 @@ class PostControllerTest {
 
         verify(oAuthService, times(1)).validateToken("token");
         verify(oAuthService, times(1)).findRequestUserByToken("token");
-        verify(postService, times(1)).write(any(PostRequestDto.class));
+        verify(postService, times(1)).write(any(PostWriteRequestDto.class));
     }
 
     @DisplayName("게시물을 단건 조회한다.")

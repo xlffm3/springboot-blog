@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
 import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostRequest;
+import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +25,13 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void write_NotLogin_Fail() {
         // given
-        PostRequest postRequest = new PostRequest("title", "content");
+        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
 
         // when, then
         webTestClient.post()
             .uri("/api/posts")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(postRequest)
+            .bodyValue(postWriteRequest)
             .exchange()
             .expectStatus()
             .isUnauthorized()
@@ -47,10 +47,10 @@ class PostAcceptanceTest extends AcceptanceTest {
     void write_Login_Success() {
         // given
         String token = requestLoginAndRetrieveToken("kevin");
-        PostRequest postRequest = new PostRequest("title", "content");
+        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
 
         // when, then
-        requestToWritePost(postRequest, token)
+        requestToWritePost(postWriteRequest, token)
             .expectHeader()
             .location("/api/posts/1");
     }
@@ -60,9 +60,9 @@ class PostAcceptanceTest extends AcceptanceTest {
     void read_OnePost_Success() {
         // given
         String token = requestLoginAndRetrieveToken("kevin");
-        PostRequest postRequest = new PostRequest("title", "content");
-        requestToWritePost(postRequest, token);
-        ResponseSpec responseSpec = requestToWritePost(postRequest, token);
+        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
+        requestToWritePost(postWriteRequest, token);
+        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
         String postId = extractPostId(responseSpec);
         PostResponse postResponse = new PostResponse(
             Long.parseLong(postId),
@@ -95,9 +95,9 @@ class PostAcceptanceTest extends AcceptanceTest {
     void readList_OrderByDateDesc_Success() {
         // given
         String token = requestLoginAndRetrieveToken("kevin");
-        PostRequest postRequest = new PostRequest("title", "content");
+        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
         for (int i = 0; i < 15; i++) {
-            requestToWritePost(postRequest, token);
+            requestToWritePost(postWriteRequest, token);
         }
 
         // when
@@ -119,12 +119,12 @@ class PostAcceptanceTest extends AcceptanceTest {
             });
     }
 
-    private ResponseSpec requestToWritePost(PostRequest postRequest, String token) {
+    private ResponseSpec requestToWritePost(PostWriteRequest postWriteRequest, String token) {
         return webTestClient.post()
             .uri("/api/posts")
             .headers(header -> header.setBearerAuth(token))
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(postRequest)
+            .bodyValue(postWriteRequest)
             .exchange()
             .expectStatus()
             .isCreated();
