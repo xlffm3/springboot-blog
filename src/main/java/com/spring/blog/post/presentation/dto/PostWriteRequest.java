@@ -1,14 +1,14 @@
 package com.spring.blog.post.presentation.dto;
 
-public class PostRequest {
+public class PostWriteRequest {
 
     private String title;
     private String content;
 
-    private PostRequest() {
+    private PostWriteRequest() {
     }
 
-    public PostRequest(String title, String content) {
+    public PostWriteRequest(String title, String content) {
         this.title = title;
         this.content = content;
     }

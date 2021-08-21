@@ -4,10 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.comment.domain.Comment;
-import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.configuration.JpaTestConfiguration;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
@@ -59,9 +57,9 @@ class CommentRepositoryTest {
     void save_ChildTogether_Persistence() {
         // given
         User user = new User("kevin", "image");
-        Post post = new Post(new PostContent("hi", "there"), user);
-        Comment comment1 = new Comment(new CommentContent("1"), post, user);
-        Comment comment2 = new Comment(new CommentContent("2"), post, user);
+        Post post = new Post("hi", "there", user);
+        Comment comment1 = new Comment("1", post, user);
+        Comment comment2 = new Comment("2", post, user);
         comment1.updateAsRoot();
         comment1.addChildComment(comment2);
 
@@ -79,13 +77,13 @@ class CommentRepositoryTest {
     void countCommentByPost_True() {
         // given
         User user = new User("kevin", "image");
-        Post post = new Post(new PostContent("hi", "there"), user);
-        Comment comment1 = new Comment(new CommentContent("1"), post, user);
-        Comment comment2 = new Comment(new CommentContent("2"), post, user);
+        Post post = new Post("hi", "there", user);
+        Comment comment1 = new Comment("1", post, user);
+        Comment comment2 = new Comment("2", post, user);
 
-        Post post2 = new Post(new PostContent("hi", "there"), user);
-        Comment comment3 = new Comment(new CommentContent("1"), post2, user);
-        Comment comment4 = new Comment(new CommentContent("2"), post2, user);
+        Post post2 = new Post("hi", "there", user);
+        Comment comment3 = new Comment("1", post2, user);
+        Comment comment4 = new Comment("2", post2, user);
         userRepository.save(user);
         postRepository.saveAll(Arrays.asList(post, post2));
         commentRepository.saveAll(Arrays.asList(comment1, comment2, comment3, comment4));
@@ -111,15 +109,15 @@ class CommentRepositoryTest {
             void it_returns_comments_order_by_group_id_desc() {
                 // given
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("hi", "there"), user);
+                Post post = new Post("hi", "there", user);
                 userRepository.save(user);
                 postRepository.save(post);
 
-                Comment comment1 = new Comment(new CommentContent("1"), post, user);
+                Comment comment1 = new Comment("1", post, user);
                 comment1.updateAsRoot();
-                Comment comment2 = new Comment(new CommentContent("2"), post, user);
+                Comment comment2 = new Comment("2", post, user);
                 comment2.updateAsRoot();
-                Comment comment3 = new Comment(new CommentContent("3"), post, user);
+                Comment comment3 = new Comment("3", post, user);
                 comment3.updateAsRoot();
                 commentRepository.saveAll(Arrays.asList(comment1, comment2, comment3));
 
@@ -157,21 +155,21 @@ class CommentRepositoryTest {
             void it_returns_comments_order_by_group_id_desc() {
                 // given
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("hi", "there"), user);
+                Post post = new Post("hi", "there", user);
                 userRepository.save(user);
                 postRepository.save(post);
 
-                Comment comment1 = new Comment(new CommentContent("1"), post, user);
+                Comment comment1 = new Comment("1", post, user);
                 comment1.updateAsRoot();
-                Comment comment2 = new Comment(new CommentContent("2"), post, user);
+                Comment comment2 = new Comment("2", post, user);
                 comment2.updateAsRoot();
-                Comment comment3 = new Comment(new CommentContent("3"), post, user);
+                Comment comment3 = new Comment("3", post, user);
                 comment3.updateAsRoot();
-                Comment child1 = new Comment(new CommentContent("c1"), post, user);
-                Comment child2 = new Comment(new CommentContent("c2"), post, user);
-                Comment child3 = new Comment(new CommentContent("c3"), post, user);
-                Comment child4 = new Comment(new CommentContent("c4"), post, user);
-                Comment child5 = new Comment(new CommentContent("c5"), post, user);
+                Comment child1 = new Comment("c1", post, user);
+                Comment child2 = new Comment("c2", post, user);
+                Comment child3 = new Comment("c3", post, user);
+                Comment child4 = new Comment("c4", post, user);
+                Comment child5 = new Comment("c5", post, user);
                 comment1.addChildComment(child1);
                 comment1.addChildComment(child2);
                 child1.addChildComment(child3);

@@ -3,12 +3,14 @@ package com.spring.blog.authentication.application;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
+import com.spring.blog.authentication.domain.user.AnonymousUser;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.authentication.domain.user.UserProfile;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
+import java.util.Objects;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +62,9 @@ public class OAuthService {
     }
 
     public AppUser findRequestUserByToken(String token) {
+        if (Objects.isNull(token)) {
+            return new AnonymousUser();
+        }
         String userName = jwtTokenProvider.getPayloadByKey(token, JWT_TOKEN_KEY_NAME);
         User user = userRepository.findByName(userName)
             .orElseThrow(UserNotFoundException::new);

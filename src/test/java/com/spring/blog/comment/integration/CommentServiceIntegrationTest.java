@@ -5,16 +5,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.CommentResponseDto;
+import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
 import com.spring.blog.comment.domain.Comment;
-import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.repository.CommentRepository;
+import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Arrays;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,14 @@ class CommentServiceIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private DatabaseCleaner databaseCleaner;
+
+    @AfterEach
+    void tearDown() {
+        databaseCleaner.execute();
+    }
+
     /*
      Comment1
         ㄴ child1
@@ -56,38 +66,29 @@ class CommentServiceIntegrationTest {
     void readCommentList_Pagination_True() {
         // given
         User user = new User("kevin", "image");
-        Post post = new Post(new PostContent("hi", "there"), user);
+        Post post = new Post("hi", "there", user);
         userRepository.save(user);
         postRepository.save(post);
 
-        Comment comment1 = new Comment(new CommentContent("1"), post, user);
+        Comment comment1 = new Comment("1", post, user);
         comment1.updateAsRoot();
-        Comment comment2 = new Comment(new CommentContent("2"), post, user);
+        Comment comment2 = new Comment("2", post, user);
         comment2.updateAsRoot();
-        Comment comment3 = new Comment(new CommentContent("3"), post, user);
+        Comment comment3 = new Comment("3", post, user);
         comment3.updateAsRoot();
-        Comment child1 = new Comment(new CommentContent("c1"), post, user);
-        Comment child2 = new Comment(new CommentContent("c2"), post, user);
-        Comment child3 = new Comment(new CommentContent("c3"), post, user);
-        Comment child4 = new Comment(new CommentContent("c4"), post, user);
-        Comment child5 = new Comment(new CommentContent("c5"), post, user);
+        Comment child1 = new Comment("c1", post, user);
+        Comment child2 = new Comment("c2", post, user);
+        Comment child3 = new Comment("c3", post, user);
+        Comment child4 = new Comment("c4", post, user);
+        Comment child5 = new Comment("c5", post, user);
         comment1.addChildComment(child1);
         comment1.addChildComment(child2);
         child1.addChildComment(child3);
         child1.addChildComment(child4);
         comment3.addChildComment(child5);
-        commentRepository.saveAll(
-            Arrays.asList(
-                comment1,
-                comment2,
-                comment3,
-                child1,
-                child2,
-                child3,
-                child4,
-                child5
-            )
-        );
+        commentRepository.saveAll(Arrays.asList(
+            comment1, comment2, comment3, child1, child2, child3, child4, child5
+        ));
         CommentListRequestDto commentListRequestDto =
             new CommentListRequestDto(post.getId(), 0L, 7L, 5L);
 
@@ -99,5 +100,27 @@ class CommentServiceIntegrationTest {
         assertThat(commentListResponseDto.getCommentResponseDtos())
             .extracting("content")
             .containsExactly("1", "c1", "c3", "c4", "c2", "2", "3");
+    }
+
+    @DisplayName("Comment를 특정 Post에 작성한다.")
+    @Test
+    void writeComment_ToPost_Success() {
+        // given
+        User user = new User("kevin", "image");
+        Post post = new Post("hi", "there", user);
+        userRepository.save(user);
+        postRepository.save(post);
+        CommentWriteRequestDto commentWriteRequestDto =
+            new CommentWriteRequestDto(post.getId(), user.getId(), "good");
+        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 1, null);
+
+        // when
+        CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
+
+        // then
+        assertThat(commentResponseDto)
+            .usingRecursiveComparison()
+            .ignoringFields("id", "createdDate")
+            .isEqualTo(expected);
     }
 }

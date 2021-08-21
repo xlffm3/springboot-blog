@@ -12,10 +12,9 @@ import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostRequestDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
@@ -57,11 +56,11 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostRequestDto postRequestDto = new PostRequestDto(1L, "title", "content");
+                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title", "content");
                 given(userRepository.findById(1L)).willReturn(Optional.empty());
 
                 // when, then
-                assertThatCode(() -> postService.write(postRequestDto))
+                assertThatCode(() -> postService.write(postWriteRequestDto))
                     .isInstanceOf(UserNotFoundException.class)
                     .hasMessage("유저를 조회할 수 없습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
@@ -79,14 +78,14 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostRequestDto postRequestDto = new PostRequestDto(1L, "title", "content");
+                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title", "content");
                 User user = new User("kevin", "image");
-                Post post = new Post(1L, new PostContent("title", "content"), user);
+                Post post = new Post(1L, "title", "content", user);
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.save(any(Post.class))).willReturn(post);
 
                 // when
-                PostResponseDto postResponseDto = postService.write(postRequestDto);
+                PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
                 PostResponseDto expected = new PostResponseDto(
                     post.getId(),
                     post.getTitle(),
@@ -121,7 +120,7 @@ class PostServiceTest {
                 // given
                 Long id = 13212L;
                 User user = new User(id, "kevin", "image");
-                Post post = new Post(1L, new PostContent("title", "content"), user);
+                Post post = new Post(1L, "title", "content", user);
                 given(postRepository.findWithAuthorById(id)).willReturn(Optional.of(post));
 
                 // when
@@ -182,9 +181,9 @@ class PostServiceTest {
                 PostListRequestDto postListRequestDto =
                     new PostListRequestDto(1L, 5L, 3L);
                 List<Post> mockPosts = Arrays.asList(
-                    new Post(new PostContent("a3", "b3"), new User("kevin3", "image")),
-                    new Post(new PostContent("a2", "b2"), new User("kevin2", "image")),
-                    new Post(new PostContent("a", "b"), new User("kevin", "image"))
+                    new Post("a3", "b3", new User("kevin3", "image")),
+                    new Post("a2", "b2", new User("kevin2", "image")),
+                    new Post("a", "b", new User("kevin", "image"))
                 );
                 given(postRepository.findPostsOrderByDateDesc(any(Pageable.class)))
                     .willReturn(mockPosts);

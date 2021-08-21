@@ -2,8 +2,6 @@ package com.spring.blog.authentication.presentation.resolver;
 
 import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.domain.Authenticated;
-import com.spring.blog.exception.authentication.InvalidTokenException;
-import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
@@ -33,9 +31,6 @@ public class AuthenticationPrincipalArgumentResolver implements HandlerMethodArg
         WebDataBinderFactory binderFactory
     ) throws Exception {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-        if (Objects.isNull(request)) {
-            throw new InvalidTokenException();
-        }
         String token = (String) request.getAttribute(HttpHeaders.AUTHORIZATION);
         return oAuthService.findRequestUserByToken(token);
     }

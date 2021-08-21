@@ -1,15 +1,15 @@
 package com.spring.blog.post.application.dto;
 
-public class PostRequestDto {
+public class PostWriteRequestDto {
 
     private Long userId;
     private String title;
     private String content;
 
-    private PostRequestDto() {
+    private PostWriteRequestDto() {
     }
 
-    public PostRequestDto(Long userId, String title, String content) {
+    public PostWriteRequestDto(Long userId, String title, String content) {
         this.userId = userId;
         this.title = title;
         this.content = content;

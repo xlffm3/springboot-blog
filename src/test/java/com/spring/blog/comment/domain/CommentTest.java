@@ -3,12 +3,10 @@ package com.spring.blog.comment.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.hierarchy.ChildComments;
 import com.spring.blog.comment.domain.hierarchy.Hierarchy;
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
 import com.spring.blog.post.domain.Post;
-import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.user.domain.User;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
@@ -35,11 +33,11 @@ class CommentTest {
             void it_adds_child_comment(int depth) {
                 // given, when
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
-                Comment parent = new Comment(new CommentContent("parent"), post, user);
+                Post post = new Post("title", "content", user);
+                Comment parent = new Comment("parent", post, user);
                 parent.updateAsRoot();
                 for (int i = 0; i < depth; i++) {
-                    Comment child = new Comment(new CommentContent("child"), post, user);
+                    Comment child = new Comment("child", post, user);
                     parent.addChildComment(child);
                     parent = child;
                 }
@@ -60,18 +58,18 @@ class CommentTest {
             void it_throws_CannotAddChildCommentException() {
                 // given
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
-                Comment parent = new Comment(new CommentContent("parent"), post, user);
+                Post post = new Post("title", "content", user);
+                Comment parent = new Comment("parent", post, user);
                 parent.updateAsRoot();
                 for (int i = 0; i < 98; i++) {
-                    Comment child = new Comment(new CommentContent("child"), post, user);
+                    Comment child = new Comment("child", post, user);
                     parent.addChildComment(child);
                     parent = child;
                 }
 
                 // when, then
                 Comment lastParent = parent;
-                Comment lastChild = new Comment(new CommentContent("child"), post, user);
+                Comment lastChild = new Comment("child", post, user);
                 assertThatCode(() -> lastParent.addChildComment(lastChild))
                     .isInstanceOf(CannotAddChildCommentException.class)
                     .hasMessage("대댓글을 추가할 수 없습니다.")
@@ -94,9 +92,9 @@ class CommentTest {
             void it_sets_given_information_as_hierarchy() {
                 // given
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
-                Comment target = new Comment(new CommentContent("taret"), post, user);
-                Comment parentAndRoot = new Comment(new CommentContent("parent and root"), post, user);
+                Post post = new Post("title", "content", user);
+                Comment target = new Comment("taret", post, user);
+                Comment parentAndRoot = new Comment("parent and root", post, user);
 
                 // when
                 target.updateHierarchy(parentAndRoot, parentAndRoot, 13);
@@ -129,8 +127,8 @@ class CommentTest {
             void it_sets_itself_as_root() {
                 // given
                 User user = new User("kevin", "image");
-                Post post = new Post(new PostContent("title", "content"), user);
-                Comment comment = new Comment(new CommentContent("root"), post, user);
+                Post post = new Post("title", "content", user);
+                Comment comment = new Comment("root", post, user);
 
                 // when
                 comment.updateAsRoot();

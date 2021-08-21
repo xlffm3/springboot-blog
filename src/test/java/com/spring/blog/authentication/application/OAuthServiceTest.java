@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
+import com.spring.blog.authentication.domain.user.AnonymousUser;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.authentication.domain.user.UserProfile;
@@ -244,6 +245,21 @@ class OAuthServiceTest {
     @Nested
     class Describe_findRequestUserByToken {
 
+        @DisplayName("token이 null인경우")
+        @Nested
+        class Context_null_token {
+
+            @DisplayName("익명 유저를 반환한다.")
+            @Test
+            void it_returns_anonymous_user() {
+                // given, when
+                AppUser appUser = oAuthService.findRequestUserByToken(null);
+
+                // then
+                assertThat(appUser).isInstanceOf(AnonymousUser.class);
+            }
+        }
+
         @DisplayName("token이 유효하지 않은 경우")
         @Nested
         class Context_invalid_token {
@@ -287,7 +303,8 @@ class OAuthServiceTest {
                 // then
                 assertThat(appUser)
                     .usingRecursiveComparison()
-                    .isEqualTo(new LoginUser(null, "kevin"));
+                    .isEqualTo(new LoginUser(null, "kevin"))
+                    .isInstanceOf(LoginUser.class);
 
                 verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
                 verify(userRepository, times(1)).findByName("kevin");
