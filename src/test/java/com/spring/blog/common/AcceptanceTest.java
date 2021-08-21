@@ -1,6 +1,7 @@
 package com.spring.blog.common;
 
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
+import com.spring.blog.comment.presentation.dto.CommentResponse;
 import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.post.presentation.dto.PostWriteRequest;
@@ -33,8 +34,8 @@ public class AcceptanceTest {
         databaseCleaner.execute();;
     }
 
-    @DisplayName("로그인 요청")
-    protected String requestLoginAndRetrieveToken(String userName) {
+    @DisplayName("로그인 요청 및 토큰 반환")
+    protected String api_로그인_요청_및_토큰_반환(String userName) {
         return webTestClient.get()
             .uri("/api/afterlogin?code={code}", userName)
             .accept(MediaType.APPLICATION_JSON)
@@ -47,8 +48,14 @@ public class AcceptanceTest {
             .getToken();
     }
 
-    @DisplayName("게시물 작성 요청")
-    protected ResponseSpec requestToWritePost(PostWriteRequest postWriteRequest, String token) {
+    @DisplayName("테스트용 게시물 작성")
+    protected ResponseSpec api_테스트용_게시물_작성(String token) {
+        return api_게시물_작성("test title", "test content", token);
+    }
+
+    @DisplayName("게시물 작성")
+    protected ResponseSpec api_게시물_작성(String title, String content, String token) {
+        PostWriteRequest postWriteRequest = new PostWriteRequest(title, content);
         return webTestClient.post()
             .uri("/api/posts")
             .headers(header -> header.setBearerAuth(token))
@@ -59,8 +66,20 @@ public class AcceptanceTest {
             .isCreated();
     }
 
-    @DisplayName("게시물 작성 후 ID 확보")
-    protected String extractPostId(ResponseSpec responseSpec) {
+    @DisplayName("테스트용 게시물 작성 요청 및 ID 회수")
+    protected String api_테스트용_게시물_작성_ID_회수(String token) {
+        ResponseSpec responseSpec = api_테스트용_게시물_작성(token);
+        return 게시물_ID_추출(responseSpec);
+    }
+
+    @DisplayName("게시물 작성 요청 및 ID 회수")
+    protected String api_게시물_작성_ID_회수(String title, String content, String token) {
+        ResponseSpec responseSpec = api_게시물_작성(title, content, token);
+        return 게시물_ID_추출(responseSpec);
+    }
+
+    @DisplayName("게시물 ID 추출")
+    protected String 게시물_ID_추출(ResponseSpec responseSpec) {
         String path = responseSpec.expectBody()
             .returnResult()
             .getResponseHeaders()
@@ -70,12 +89,18 @@ public class AcceptanceTest {
         return path.substring(index + 1);
     }
 
-    @DisplayName("댓글 작성 요청")
-    protected ResponseSpec requestToWriteComment(
+    @DisplayName("테스트용 댓글 작성")
+    protected ResponseSpec api_테스트용_댓글_작성(String token, String postId) {
+        return api_댓글_작성(token, "test comment", postId);
+    }
+
+    @DisplayName("댓글 작성")
+    protected ResponseSpec api_댓글_작성(
         String token,
-        CommentWriteRequest commentWriteRequest,
+        String content,
         String postId
     ) {
+        CommentWriteRequest commentWriteRequest = new CommentWriteRequest(content);
         return webTestClient.post()
             .uri("/api/posts/{postId}/comments", postId)
             .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
@@ -85,5 +110,29 @@ public class AcceptanceTest {
             .exchange()
             .expectStatus()
             .isOk();
+    }
+
+    @DisplayName("테스트용 댓글 작성 및 ID 회수")
+    protected Long api_테스트용_댓글_작성_ID_회수(String token, String postId) {
+        ResponseSpec responseSpec = api_테스트용_댓글_작성(token, postId);
+        return extractCommentId(responseSpec);
+    }
+
+    @DisplayName("댓글 작성 요청 및 ID 회수")
+    protected Long api_댓글_작성_요청_ID_회수(
+        String token,
+        String content,
+        String postId
+    ) {
+        ResponseSpec responseSpec = api_댓글_작성(token, content, postId);
+        return extractCommentId(responseSpec);
+    }
+
+    private Long extractCommentId(ResponseSpec responseSpec) {
+        return responseSpec
+            .expectBody(CommentResponse.class)
+            .returnResult()
+            .getResponseBody()
+            .getId();
     }
 }

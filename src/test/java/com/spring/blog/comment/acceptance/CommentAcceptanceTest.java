@@ -1,14 +1,13 @@
 package com.spring.blog.comment.acceptance;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import com.spring.blog.comment.presentation.dto.CommentListResponse;
 import com.spring.blog.comment.presentation.dto.CommentResponse;
 import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
-import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,31 +25,26 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void write_LoginUser_Success() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
-        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("comment!");
-        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
-        String postId = extractPostId(responseSpec);
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
 
         // when, then
-        requestToWriteComment(token, commentWriteRequest, postId)
+        api_댓글_작성(token, "comment!", postId)
             .expectBody(CommentResponse.class)
-            .value(commentResponse -> {
+            .value(commentResponse ->
                 assertThat(commentResponse)
                     .extracting("author", "content", "depth")
-                    .containsExactly("kevin", "comment!", 1);
-            });
+                    .containsExactly("kevin", "comment!", 1)
+            );
     }
 
     @DisplayName("비로그인 유저는 특정 포스트에 댓글을 작성할 수 없다.")
     @Test
     void write_GuestUser_Fail() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
         CommentWriteRequest commentWriteRequest = new CommentWriteRequest("comment!");
-        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
-        String postId = extractPostId(responseSpec);
 
         // when, then
         webTestClient.post()
@@ -62,58 +56,35 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .expectStatus()
             .isUnauthorized()
             .expectBody(ApiErrorResponse.class)
-            .value(apiErrorResponse ->
-                assertThat(apiErrorResponse.getErrorCode()).isEqualTo("A0001")
-            );
+            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
     }
 
     @DisplayName("로그인한 유저는 특정 댓글에 대댓글을 작성할 수 있다.")
     @Test
     void reply_LoginUser_Success() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
-        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("comment!");
-        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
-        String postId = extractPostId(responseSpec);
-        Long commentId = requestToWriteComment(token, commentWriteRequest, postId)
-            .expectBody(CommentResponse.class)
-            .returnResult()
-            .getResponseBody()
-            .getId();
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
+        Long commentId = api_테스트용_댓글_작성_ID_회수(token, postId);
 
         // when, then
-        webTestClient.post()
-            .uri("/api/posts/{postId}/comments/{commentId}/reply", postId, commentId)
-            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(commentWriteRequest)
-            .exchange()
-            .expectStatus()
-            .isOk()
+        api_대댓글_작성_요청(token, postId, "comment!", commentId)
             .expectBody(CommentResponse.class)
-            .value(commentResponse -> {
+            .value(commentResponse ->
                 assertThat(commentResponse)
                     .extracting("author", "content", "depth")
-                    .containsExactly("kevin", "comment!", 2);
-            });
+                    .containsExactly("kevin", "comment!", 2)
+            );
     }
 
     @DisplayName("비로그인한 유저는 특정 댓글에 대댓글을 작성할 수 없다.")
     @Test
     void reply_GuestUser_Fail() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
+        Long commentId = api_테스트용_댓글_작성_ID_회수(token, postId);
         CommentWriteRequest commentWriteRequest = new CommentWriteRequest("comment!");
-        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
-        String postId = extractPostId(responseSpec);
-        Long commentId = requestToWriteComment(token, commentWriteRequest, postId)
-            .expectBody(CommentResponse.class)
-            .returnResult()
-            .getResponseBody()
-            .getId();
 
         // when, then
         webTestClient.post()
@@ -125,9 +96,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .expectStatus()
             .isUnauthorized()
             .expectBody(ApiErrorResponse.class)
-            .value(apiErrorResponse ->
-                assertThat(apiErrorResponse.getErrorCode()).isEqualTo("A0001")
-            );
+            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
     }
 
     /*
@@ -142,33 +111,15 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_Pagination_Success() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
-        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
-        String postId = extractPostId(responseSpec);
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
 
-        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("first comment");
-        Long firstCommentId = requestToWriteComment(token, commentWriteRequest, postId)
-            .expectBody(CommentResponse.class)
-            .returnResult()
-            .getResponseBody()
-            .getId();
+        Long firstCommentId = api_댓글_작성_요청_ID_회수(token, "first comment", postId);
+        api_댓글_작성(token, "fifth comment", postId);
 
-        CommentWriteRequest second = new CommentWriteRequest("second comment");
-        Long childCommentId = replyCommentRequest(token, postId, second, firstCommentId)
-            .expectBody(CommentResponse.class)
-            .returnResult()
-            .getResponseBody()
-            .getId();
-
-        CommentWriteRequest third = new CommentWriteRequest("third comment");
-        replyCommentRequest(token, postId, third, childCommentId);
-
-        CommentWriteRequest fourth = new CommentWriteRequest("fourth comment");
-        replyCommentRequest(token, postId, fourth, firstCommentId);
-
-        CommentWriteRequest normal = new CommentWriteRequest("fifth comment");
-        requestToWriteComment(token, normal, postId);
+        Long childCommentId = api_대댓글_작성_요청_ID_회수(token, postId, "second comment", firstCommentId);
+        api_대댓글_작성_요청(token, postId, "third comment", childCommentId);
+        api_대댓글_작성_요청(token, postId, "fourth comment", firstCommentId);
 
         // when
         webTestClient.get()
@@ -179,7 +130,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .expectStatus()
             .isOk()
             .expectBody(CommentListResponse.class)
-            .value(commentListResponse -> {
+            .value(commentListResponse ->
                 assertThat(commentListResponse.getCommentResponses())
                     .extracting("content", "depth")
                     .containsExactly(
@@ -188,16 +139,18 @@ class CommentAcceptanceTest extends AcceptanceTest {
                       tuple("third comment", 3),
                       tuple("fourth comment", 2),
                       tuple("fifth comment", 1)
-                    );
-            });
+                    )
+            );
     }
 
-    private ResponseSpec replyCommentRequest(
+    @DisplayName("대댓글 작성 요청")
+    private ResponseSpec api_대댓글_작성_요청(
         String token,
         String postId,
-        CommentWriteRequest commentWriteRequest,
+        String content,
         Long commentId
     ) {
+        CommentWriteRequest commentWriteRequest = new CommentWriteRequest(content);
         return webTestClient.post()
             .uri("/api/posts/{postId}/comments/{commentId}/reply", postId, commentId)
             .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
@@ -205,5 +158,19 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(commentWriteRequest)
             .exchange();
+    }
+
+    @DisplayName("대댓글 작성 요청 및 ID 회수")
+    private Long api_대댓글_작성_요청_ID_회수(
+        String token,
+        String postId,
+        String content,
+        Long commentId
+    ) {
+        return api_대댓글_작성_요청(token, postId, content, commentId)
+            .expectBody(CommentResponse.class)
+            .returnResult()
+            .getResponseBody()
+            .getId();
     }
 }

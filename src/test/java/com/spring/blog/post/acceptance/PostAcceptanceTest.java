@@ -5,9 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
 import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
-import java.util.List;
+import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,36 +35,33 @@ class PostAcceptanceTest extends AcceptanceTest {
             .expectStatus()
             .isUnauthorized()
             .expectBody(ApiErrorResponse.class)
-            .consumeWith(response -> {
-                String errorCode = response.getResponseBody().getErrorCode();
-                assertThat(errorCode).isEqualTo("A0001");
-            });
+            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
     }
 
     @DisplayName("로그인한 유저는 게시물을 작성할 수 있다.")
     @Test
     void write_Login_Success() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
+        String token = api_로그인_요청_및_토큰_반환("kevin");
 
-        // when, then
-        requestToWritePost(postWriteRequest, token)
-            .expectHeader()
-            .location("/api/posts/1");
+        // when
+        ResponseSpec responseSpec = api_테스트용_게시물_작성(token);
+        String postId = 게시물_ID_추출(responseSpec);
+
+        // then
+        responseSpec.expectHeader()
+            .location("/api/posts/" + postId);
     }
 
     @DisplayName("게시물을 단건 조회한다.")
     @Test
     void read_OnePost_Success() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
-        requestToWritePost(postWriteRequest, token);
-        ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
-        String postId = extractPostId(responseSpec);
-        PostResponse postResponse = new PostResponse(
-            Long.parseLong(postId), "title", "content", "kevin", 1L, null, null
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        api_테스트용_게시물_작성(token);
+        String postId = api_게시물_작성_ID_회수("hi", "there", token);
+        PostResponse expectedPostResponse = new PostResponse(
+            Long.parseLong(postId), "hi", "there", "kevin", 1L, null, null
         );
 
         // when, then
@@ -80,7 +76,7 @@ class PostAcceptanceTest extends AcceptanceTest {
                 assertThat(response)
                     .usingRecursiveComparison()
                     .ignoringFields("createdDate", "modifiedDate")
-                    .isEqualTo(postResponse)
+                    .isEqualTo(expectedPostResponse)
             );
     }
 
@@ -88,13 +84,12 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_OrderByDateDesc_Success() {
         // given
-        String token = requestLoginAndRetrieveToken("kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
+        String token = api_로그인_요청_및_토큰_반환("kevin");
         for (int i = 0; i < 15; i++) {
-            requestToWritePost(postWriteRequest, token);
+            api_테스트용_게시물_작성(token);
         }
 
-        // when
+        // when, then
         webTestClient.get()
             .uri("/api/posts?page={page}&size={size}&pageBlockCounts={num}", 3, 3, 3)
             .accept(MediaType.APPLICATION_JSON)
@@ -103,8 +98,7 @@ class PostAcceptanceTest extends AcceptanceTest {
             .isOk()
             .expectBody(PostListResponse.class)
             .value(postListResponse -> {
-                List<PostResponse> postResponse = postListResponse.getPostResponses();
-                assertThat(postResponse)
+                assertThat(postListResponse.getPostResponses())
                     .extracting("id")
                     .containsExactly(6L, 5L, 4L);
                 assertThat(postListResponse)
