@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.CommentResponseDto;
+import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
@@ -74,18 +76,9 @@ class CommentServiceIntegrationTest {
         child1.addChildComment(child3);
         child1.addChildComment(child4);
         comment3.addChildComment(child5);
-        commentRepository.saveAll(
-            Arrays.asList(
-                comment1,
-                comment2,
-                comment3,
-                child1,
-                child2,
-                child3,
-                child4,
-                child5
-            )
-        );
+        commentRepository.saveAll(Arrays.asList(
+            comment1, comment2, comment3, child1, child2, child3, child4, child5
+        ));
         CommentListRequestDto commentListRequestDto =
             new CommentListRequestDto(post.getId(), 0L, 7L, 5L);
 
@@ -97,5 +90,27 @@ class CommentServiceIntegrationTest {
         assertThat(commentListResponseDto.getCommentResponseDtos())
             .extracting("content")
             .containsExactly("1", "c1", "c3", "c4", "c2", "2", "3");
+    }
+
+    @DisplayName("Comment를 특정 Post에 작성한다.")
+    @Test
+    void writeComment_ToPost_Success() {
+        // given
+        User user = new User("kevin", "image");
+        Post post = new Post("hi", "there", user);
+        userRepository.save(user);
+        postRepository.save(post);
+        CommentWriteRequestDto commentWriteRequestDto =
+            new CommentWriteRequestDto(post.getId(), user.getId(), "good");
+        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 1, null);
+
+        // when
+        CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
+
+        // then
+        assertThat(commentResponseDto)
+            .usingRecursiveComparison()
+            .ignoringFields("id", "createdDate")
+            .isEqualTo(expected);
     }
 }
