@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
 import com.spring.blog.comment.application.dto.CommentResponseDto;
 import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
 import com.spring.blog.comment.domain.Comment;
@@ -116,6 +117,31 @@ class CommentServiceIntegrationTest {
 
         // when
         CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
+
+        // then
+        assertThat(commentResponseDto)
+            .usingRecursiveComparison()
+            .ignoringFields("id", "createdDate")
+            .isEqualTo(expected);
+    }
+
+    @DisplayName("특정 Post의 Comment에 댓글을 작성한다.")
+    @Test
+    void writeComment_ToComment_Success() {
+        // given
+        User user = new User("kevin", "image");
+        Post post = new Post("hi", "there", user);
+        Comment comment = new Comment("hi", post, user);
+        comment.updateAsRoot();
+        userRepository.save(user);
+        postRepository.save(post);
+        commentRepository.save(comment);
+        CommentReplyRequestDto commentReplyRequestDto =
+            new CommentReplyRequestDto(post.getId(), user.getId(), comment.getId(), "good");
+        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 2, null);
+
+        // when
+        CommentResponseDto commentResponseDto = commentService.replyComment(commentReplyRequestDto);
 
         // then
         assertThat(commentResponseDto)

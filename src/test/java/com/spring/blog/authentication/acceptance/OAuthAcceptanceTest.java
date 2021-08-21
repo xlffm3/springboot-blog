@@ -27,10 +27,9 @@ class OAuthAcceptanceTest extends AcceptanceTest {
             .expectStatus()
             .isOk()
             .expectBody(OAuthLoginUrlResponse.class)
-            .consumeWith(response -> {
-                String url = response.getResponseBody().getUrl();
-                assertThat(url).isEqualTo("https://api.github.com/authorize?");
-            });
+            .value(response ->
+                assertThat(response.getUrl()).isEqualTo("https://api.github.com/authorize?")
+            );
     }
 
     @DisplayName("Github Login 완료 후 토큰을 생성한다.")

@@ -1,5 +1,6 @@
 package com.spring.blog.post.domain.repository;
 
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.QPost;
@@ -19,9 +20,7 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
 
     @Override
     public Optional<Post> findWithAuthorById(Long id) {
-        Post post = jpaQueryFactory.selectFrom(QPost.post)
-            .innerJoin(QPost.post.user)
-            .fetchJoin()
+        Post post = selectPostInnerFetchJoinUser()
             .where(QPost.post.id.eq(id))
             .fetchFirst();
         return Optional.ofNullable(post);
@@ -29,12 +28,16 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
 
     @Override
     public List<Post> findPostsOrderByDateDesc(Pageable pageable) {
-        return jpaQueryFactory.selectFrom(QPost.post)
-            .innerJoin(QPost.post.user)
-            .fetchJoin()
+        return selectPostInnerFetchJoinUser()
             .orderBy(QPost.post.baseDate.createdDate.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
+    }
+
+    private JPAQuery<Post> selectPostInnerFetchJoinUser() {
+        return jpaQueryFactory.selectFrom(QPost.post)
+            .innerJoin(QPost.post.user)
+            .fetchJoin();
     }
 }
