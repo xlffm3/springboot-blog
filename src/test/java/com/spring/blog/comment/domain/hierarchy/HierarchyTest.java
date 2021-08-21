@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.comment.domain.Comment;
-import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
 import com.spring.blog.exception.comment.CommentDepthException;
 import com.spring.blog.post.domain.Post;
@@ -78,8 +77,8 @@ class HierarchyTest {
                 ChildComments childComments = new ChildComments(new ArrayList<>());
                 User user = new User("kevin", "image");
                 Post post = new Post(new PostContent("title", "content"), user);
-                Comment parentComment = new Comment(new CommentContent("parent"), post, user);
-                Comment childComment = new Comment(new CommentContent("child"), post, user);
+                Comment parentComment = new Comment("parent", post, user);
+                Comment childComment = new Comment("child", post, user);
                 Hierarchy parentHierarchy =
                     new Hierarchy(parentComment, null, childComments, depth);
 
@@ -119,8 +118,8 @@ class HierarchyTest {
                 ChildComments childComments = new ChildComments(new ArrayList<>());
                 User user = new User("kevin", "image");
                 Post post = new Post(new PostContent("title", "content"), user);
-                Comment parentComment = new Comment(new CommentContent("parent"), post, user);
-                Comment childComment = new Comment(new CommentContent("child"), post, user);
+                Comment parentComment = new Comment("parent", post, user);
+                Comment childComment = new Comment("child", post, user);
                 Hierarchy parentHierarchy =
                     new Hierarchy(parentComment, null, childComments, 99);
 
@@ -150,7 +149,7 @@ class HierarchyTest {
                 Hierarchy hierarchy = new Hierarchy(null, null, null, 1);
                 User user = new User("kevin", "image");
                 Post post = new Post(new PostContent("title", "content"), user);
-                Comment comment = new Comment(new CommentContent("hi"), post, user);
+                Comment comment = new Comment("hi", post, user);
 
                 // when
                 hierarchy.update(comment, comment, depth);
@@ -199,7 +198,7 @@ class HierarchyTest {
                 Hierarchy hierarchy = new Hierarchy();
                 User user = new User("kevin", "image");
                 Post post = new Post(new PostContent("title", "content"), user);
-                Comment comment = new Comment(new CommentContent("root"), post, user);
+                Comment comment = new Comment("root", post, user);
 
                 // when
                 hierarchy.updateRoot(comment);

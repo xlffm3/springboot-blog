@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
 import com.spring.blog.comment.domain.Comment;
-import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.post.domain.Post;
@@ -83,11 +82,11 @@ class CommentServiceTest {
                 Post post = new Post(1L, new PostContent("title", "content"), user);
                 CommentListRequestDto commentListRequestDto =
                     new CommentListRequestDto(1L, 1L, 3L, 5L);
-                Comment comment1 = new Comment(new CommentContent("1"), post, user);
+                Comment comment1 = new Comment("1", post, user);
                 comment1.updateAsRoot();
-                Comment comment2 = new Comment(new CommentContent("2"), post, user);
+                Comment comment2 = new Comment("2", post, user);
                 comment2.updateAsRoot();
-                Comment comment3 = new Comment(new CommentContent("3"), post, user);
+                Comment comment3 = new Comment("3", post, user);
                 comment3.updateAsRoot();
 
                 given(postRepository.findById(1L)).willReturn(Optional.of(post));

@@ -45,12 +45,12 @@ public class Comment {
     protected Comment() {
     }
 
-    public Comment(CommentContent commentContent, Post post, User user) {
-        this(null, commentContent, new Hierarchy(), post, user);
+    public Comment(String content, Post post, User user) {
+        this(null, content, post, user);
     }
 
-    public Comment(Long id, CommentContent commentContent, Post post, User user) {
-        this(id, commentContent, new Hierarchy(), post, user);
+    public Comment(Long id, String content, Post post, User user) {
+        this(id, new CommentContent(content), new Hierarchy(), post, user);
     }
 
     public Comment(
