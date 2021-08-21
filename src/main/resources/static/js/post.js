@@ -40,7 +40,7 @@ async function renderCommentSection() {
     sessionStorage.setItem('page-comment', '0');
   }
 
-  await axios.get('/api/comments/' + postId, {
+  await axios.get('/api/posts/' + postId + '/comments', {
     params: {
       page: page,
       size: DEFAULT_SIZE_PER_PAGE,
