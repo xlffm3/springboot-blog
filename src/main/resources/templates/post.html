@@ -41,18 +41,34 @@
     <br>
   </div>
 
-  <table class="table table-hover table-bordered">
-    <tbody id="tbody">
-    </tbody>
-
+  <ul id="comment-board" class="list-group-horizontal-md">
     <script id="template-comment-row-template" type="text/template">
-      <tr id="{comment-id}" class="comment-row">
-        <td>{author}</td>
-        <td>{content}</td>
-        <td>{created}</td>
-      </tr>
+      <li id="{comment-id}" class="media mt-4">
+        <!--      <img src="추후 작성자 사진 넣기" class="mr-3" alt="avata">-->
+        <div class="media-body">
+          <h5 class="mt-0 mb-1">{author}
+            <small>
+              {created}
+            </small>
+            <small>
+              <a href="#" class="comment-reply-btn" data-toggle="collapse"
+                 data-target=".multi-collapse-reply-{comment-id}">답글 쓰기</a>
+            </small>
+          </h5>
+          <p class="collapse multi-collapse-{comment-id} show">{content}</p>
+          <form class="collapse multi-collapse-reply-{comment-id}">
+            <div class="form-group">
+              <textarea class="form-control" id="comment-content" rows="3"></textarea>
+            </div>
+            <input type="hidden" id="comment-id" value="{comment-id}">
+            <input type="hidden" id="comment-author" value="{author}">
+            <input class="btn btn-info comment-clear-btn" type="reset" role="button" value="취소">
+            <button type="button" class="btn btn-info comment-reply-btn">등록</button>
+          </form>
+        </div>
+      </li>
     </script>
-  </table>
+  </ul>
 
   <ul id="page-navigator" class="pagination justify-content-center">
     <script id="template-prev-button" type="text/template">
