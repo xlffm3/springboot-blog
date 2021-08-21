@@ -65,13 +65,7 @@ class PostAcceptanceTest extends AcceptanceTest {
         ResponseSpec responseSpec = requestToWritePost(postWriteRequest, token);
         String postId = extractPostId(responseSpec);
         PostResponse postResponse = new PostResponse(
-            Long.parseLong(postId),
-            "title",
-            "content",
-            "kevin",
-            1L,
-            null,
-            null
+            Long.parseLong(postId), "title", "content", "kevin", 1L, null, null
         );
 
         // when, then
