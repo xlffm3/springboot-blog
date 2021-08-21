@@ -42,7 +42,7 @@
     </tbody>
 
     <script id="template-post-row-template" type="text/template">
-      <tr id="{post-id}">
+      <tr id="{post-id}" class="post-row">
         <td>{index}</td>
         <td>{title}</td>
         <td>{author}</td>
@@ -51,7 +51,7 @@
       </tr>
     </script>
   </table>
-  <ul id="page-navigator" class="pagination">
+  <ul id="page-navigator" class="pagination justify-content-center">
     <script id="template-prev-button" type="text/template">
       <li class="page-item"><a id="prev" class="page-link">Prev</a></li>
     </script>
@@ -67,7 +67,7 @@
 
   <section id="button-section">
     <script id="template-post-write-button" type="text/template">
-      <a class="btn btn-primary" href="/page/post/write" role="button">Write</a>
+      <a class="btn btn-primary" href="/page/post/write" role="button">Write Post</a>
     </script>
   </section>
 </div>

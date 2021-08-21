@@ -21,7 +21,6 @@ async function renderPostSection() {
     const dto = response.data;
     document.getElementById('post-title').innerText = dto.title;
     document.getElementById('content').innerText = response.data.content;
-
     document.getElementById('author-name').innerText += response.data.author;
     document.getElementById('created-date').innerText +=
         parseDate(response.data.createdDate);
@@ -48,7 +47,7 @@ async function renderCommentSection() {
     }
   }).then(response => {
     renderCommentRow(response);
-    renderPageNavigation(response, '/page/post', 'page-comment');
+    renderPageNavigation(response, 'page-comment', reRenderCommentSection);
   }).catch(error => alert(error));
 }
 
@@ -65,9 +64,48 @@ function renderCommentRow(response) {
   });
 }
 
+function reRenderCommentSection() {
+  Array.from(document.getElementsByClassName('comment-row'))
+  .forEach(row => row.remove());
+  Array.from(document.getElementsByTagName('li'))
+  .forEach(button => button.remove());
+  renderCommentSection();
+}
+
+function activateCommentWriteSection() {
+  const token = localStorage.getItem('token');
+  if (token === null) {
+    return;
+  }
+  const commentFormHtml =
+      document.querySelector('#template-comment-form').innerHTML;
+  const $commentForm = document.getElementById('comment-form');
+  $commentForm.insertAdjacentHTML('beforeend', commentFormHtml);
+  const $submitButton = document.getElementById('submit-button');
+  $submitButton.addEventListener('click', e => {
+    requestToWriteComment(e);
+  });
+}
+
+async function requestToWriteComment() {
+  const comment = document.getElementById('comment').value;
+  const postId = sessionStorage.getItem('post-id');
+  const token = localStorage.getItem('token');
+  const json = JSON.stringify({content: comment});
+
+  await axios.post('/api/posts/' + postId + '/comments', json, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  }).then(response => reRenderCommentSection())
+  .catch(error => alert(error));
+}
+
 validateState();
 renderLoginSection();
 addLogoClickEvent();
 renderPostSection();
 renderCommentSection();
 activatePostWriteButton();
+activateCommentWriteSection();

@@ -21,7 +21,7 @@ async function renderBoardSection() {
     }
   }).then(response => {
     renderPostRow(response);
-    renderPageNavigation(response, '/', 'page-post');
+    renderPageNavigation(response, 'page-post', reRenderBoardSection);
   }).catch(error => alert(error));
 }
 
@@ -45,6 +45,14 @@ function renderPostRow(response) {
       window.location.replace('/page/post')
     });
   });
+}
+
+function reRenderBoardSection() {
+  Array.from(document.getElementsByClassName('post-row'))
+  .forEach(row => row.remove());
+  Array.from(document.getElementsByTagName('li'))
+  .forEach(button => button.remove());
+  renderBoardSection();
 }
 
 renderLoginSection();
