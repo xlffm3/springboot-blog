@@ -11,10 +11,12 @@ import static org.mockito.Mockito.verify;
 
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
 import com.spring.blog.comment.application.dto.CommentResponseDto;
 import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
+import com.spring.blog.exception.comment.CommentNotFoundException;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.domain.Post;
@@ -211,6 +213,128 @@ class CommentServiceTest {
                 verify(userRepository, times(1)).findById(1L);
                 verify(postRepository, times(1)).findById(1L);
                 verify(commentRepository, times(1)).save(any(Comment.class));
+            }
+        }
+    }
+
+    @DisplayName("replyComment 메서드는")
+    @Nested
+    class Describe_replyComment {
+
+        @DisplayName("ID에 해당하는 User가 존재하지 않는다면")
+        @Nested
+        class Context_user_not_found {
+
+            @DisplayName("유저 조회 불가 예외가 발생한다.")
+            @Test
+            void it_throws_UserNotFoundException() {
+                // given
+                CommentReplyRequestDto commentReplyRequestDto =
+                    new CommentReplyRequestDto(1L, 1L, 1L,"ahah");
+                given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessage("유저를 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "U0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(userRepository, times(1)).findById(1L);
+            }
+        }
+
+        @DisplayName("ID에 해당하는 Post가 존재하지 않는다면")
+        @Nested
+        class Context_post_not_found {
+
+            @DisplayName("게시글 조회 불가 예외가 발생한다.")
+            @Test
+            void it_throws_PostNotFoundException() {
+                // given
+                CommentReplyRequestDto commentReplyRequestDto =
+                    new CommentReplyRequestDto(1L, 1L, 1L,"hahaha");
+                User user = new User(1L, "kevin", "image");
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
+                    .isInstanceOf(PostNotFoundException.class)
+                    .hasMessage("게시글을 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "P0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(userRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findById(1L);
+            }
+        }
+
+        @DisplayName("ID에 해당하는 부모 Comment가 존재하지 않는다면")
+        @Nested
+        class Context_comment_not_found {
+
+            @DisplayName("댓글 조회 불가 예외가 발생한다.")
+            @Test
+            void it_throws_CommentNotFoundException() {
+                // given
+                CommentReplyRequestDto commentReplyRequestDto =
+                    new CommentReplyRequestDto(1L, 1L, 1L,"hahaha");
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findById(1L)).willReturn(Optional.of(post));
+                given(commentRepository.findById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
+                    .isInstanceOf(CommentNotFoundException.class)
+                    .hasMessage("댓글을 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(userRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findById(1L);
+                verify(commentRepository, times(1)).findById(1L);
+            }
+        }
+
+        @DisplayName("정상적인 요청이라면")
+        @Nested
+        class Context_valid_request {
+
+            @DisplayName("대댓글을 등록한다.")
+            @Test
+            void it_saves_child_comment() {
+                // given
+                CommentReplyRequestDto commentReplyRequestDto =
+                    new CommentReplyRequestDto(1L, 1L, 1L,"hahaha");
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+                Comment parentComment = new Comment(1L, "comment", post, user);
+                Comment childComment = new Comment(2L, "hahaha", post, user);
+                CommentResponseDto expected =
+                    new CommentResponseDto(2L, "kevin", "hahaha", 2, null);
+                parentComment.addChildComment(childComment);
+
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findById(1L)).willReturn(Optional.of(post));
+                given(commentRepository.findById(1L)).willReturn(Optional.of(parentComment));
+                given(commentRepository.save(any(Comment.class))).willReturn(childComment);
+
+                // when, then
+                CommentResponseDto commentResponseDto =
+                    commentService.replyComment(commentReplyRequestDto);
+
+                assertThat(commentResponseDto)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdDate")
+                    .isEqualTo(expected);
+
+                verify(userRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findById(1L);
+                verify(commentRepository, times(1)).findById(1L);
             }
         }
     }
