@@ -8,7 +8,7 @@ public class CommentResponse {
     private Long id;
     private String author;
     private String content;
-    private Integer depth;
+    private Long depth;
     private LocalDateTime createdDate;
 
     private CommentResponse() {
@@ -18,7 +18,7 @@ public class CommentResponse {
         Long id,
         String author,
         String content,
-        Integer depth,
+        Long depth,
         LocalDateTime createdDate
     ) {
         this.id = id;
@@ -50,7 +50,7 @@ public class CommentResponse {
         return content;
     }
 
-    public Integer getDepth() {
+    public Long getDepth() {
         return depth;
     }
 

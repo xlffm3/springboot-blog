@@ -1,5 +1,5 @@
 import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
-import {parseDate, appendReply} from "./module/string-parser.js";
+import {parseDate} from "./module/string-parser.js";
 import {renderPageNavigation} from "./module/navigator-module.js";
 import {activatePostWriteButton} from "./module/button-module.js";
 
@@ -21,7 +21,6 @@ async function renderPostSection() {
     const dto = response.data;
     document.getElementById('post-title').innerText = dto.title;
     document.getElementById('content').innerText = response.data.content;
-
     document.getElementById('author-name').innerText += response.data.author;
     document.getElementById('created-date').innerText +=
         parseDate(response.data.createdDate);
@@ -48,21 +47,95 @@ async function renderCommentSection() {
     }
   }).then(response => {
     renderCommentRow(response);
-    renderPageNavigation(response, '/page/post', 'page-comment');
+    renderPageNavigation(response, 'page-comment', reRenderCommentSection);
   }).catch(error => alert(error));
 }
 
+function reRenderCommentSection() {
+  Array.from(document.querySelectorAll('.mt-4'))
+  .forEach(row => row.remove());
+  Array.from(document.getElementsByClassName('page-link'))
+  .forEach(button => button.remove());
+  renderCommentSection();
+}
+
 function renderCommentRow(response) {
-  const $table = document.getElementById('tbody');
+  const $table = document.getElementById('comment-board');
 
   response.data.commentResponses.forEach(comment => {
     const commentHtml = document.querySelector('#template-comment-row-template')
-    .innerHTML.replace('{comment-id}', comment.id)
+    .innerHTML.replaceAll('{comment-id}', comment.id)
+    .replaceAll('{content}', comment.content)
     .replace('{author}', comment.author)
-    .replace('{content}', appendReply(comment.content, comment.depth))
     .replace('{created}', parseDate(comment.createdDate));
     $table.insertAdjacentHTML('beforeend', commentHtml);
+
+    const $comment = document.getElementById(comment.id);
+    const margin = (Number(comment.depth) - 1) * 15
+    $comment.style.marginLeft = margin + "px";
   });
+  activateReplyRequest();
+}
+
+function activateReplyRequest() {
+  const replyButtons = document.querySelectorAll('.comment-reply-btn');
+  Array.from(replyButtons)
+  .forEach(replyButton => {
+    replyButton.addEventListener('click', e => {
+      const form = replyButton.closest('form');
+      requestToReplyComment(form);
+    });
+  });
+}
+
+async function requestToReplyComment(form) {
+  const parentCommentId = form.querySelector('#comment-id').value;
+  const commentContent = form.querySelector('#comment-content').value;
+  const postId = sessionStorage.getItem('post-id');
+  const token = localStorage.getItem('token');
+  const url = '/api/posts/' + postId + '/comments/' + parentCommentId + '/reply';
+  const json = JSON.stringify({content: commentContent});
+
+  await axios.post(url,json, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  }).then(response => reRenderCommentSection())
+  .catch(error => alert(error));
+}
+
+function activateCommentWriteSection() {
+  const token = localStorage.getItem('token');
+  if (token === null) {
+    return;
+  }
+  const commentFormHtml =
+      document.querySelector('#template-comment-form').innerHTML;
+  const $commentForm = document.getElementById('comment-form');
+  $commentForm.insertAdjacentHTML('beforeend', commentFormHtml);
+  const $submitButton = document.getElementById('submit-button');
+  $submitButton.addEventListener('click', e => {
+    requestToWriteComment(e);
+  });
+}
+
+async function requestToWriteComment() {
+  const comment = document.getElementById('comment').value;
+  const postId = sessionStorage.getItem('post-id');
+  const token = localStorage.getItem('token');
+  const json = JSON.stringify({content: comment});
+
+  await axios.post('/api/posts/' + postId + '/comments', json, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  }).then(response => {
+    document.getElementById('comment').value = '';
+    reRenderCommentSection();
+  })
+  .catch(error => alert(error));
 }
 
 validateState();
@@ -71,3 +144,4 @@ addLogoClickEvent();
 renderPostSection();
 renderCommentSection();
 activatePostWriteButton();
+activateCommentWriteSection();

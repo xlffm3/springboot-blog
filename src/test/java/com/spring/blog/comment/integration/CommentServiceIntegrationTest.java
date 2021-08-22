@@ -77,19 +77,14 @@ class CommentServiceIntegrationTest {
         comment2.updateAsRoot();
         Comment comment3 = new Comment("3", post, user);
         comment3.updateAsRoot();
-        Comment child1 = new Comment("c1", post, user);
-        Comment child2 = new Comment("c2", post, user);
-        Comment child3 = new Comment("c3", post, user);
-        Comment child4 = new Comment("c4", post, user);
-        Comment child5 = new Comment("c5", post, user);
-        comment1.addChildComment(child1);
-        comment1.addChildComment(child2);
-        child1.addChildComment(child3);
-        child1.addChildComment(child4);
-        comment3.addChildComment(child5);
-        commentRepository.saveAll(Arrays.asList(
-            comment1, comment2, comment3, child1, child2, child3, child4, child5
-        ));
+        commentRepository.saveAll(Arrays.asList(comment1, comment2, comment3));
+
+        Long child1Id = replyComment("c1", comment1.getId(), post, user);
+        replyComment("c2", comment1.getId(), post, user);
+        replyComment("c3", child1Id, post, user);
+        replyComment("c4", child1Id, post, user);
+        replyComment("c5", comment3.getId(), post, user);
+
         CommentListRequestDto commentListRequestDto =
             new CommentListRequestDto(post.getId(), 0L, 7L, 5L);
 
@@ -103,6 +98,12 @@ class CommentServiceIntegrationTest {
             .containsExactly("1", "c1", "c3", "c4", "c2", "2", "3");
     }
 
+    private Long replyComment(String content, Long parentId, Post post, User user) {
+        CommentReplyRequestDto commentReplyRequestDto =
+            new CommentReplyRequestDto(post.getId(), user.getId(), parentId, content);
+        return commentService.replyComment(commentReplyRequestDto).getId();
+    }
+
     @DisplayName("Comment를 특정 Post에 작성한다.")
     @Test
     void writeComment_ToPost_Success() {
@@ -113,7 +114,7 @@ class CommentServiceIntegrationTest {
         postRepository.save(post);
         CommentWriteRequestDto commentWriteRequestDto =
             new CommentWriteRequestDto(post.getId(), user.getId(), "good");
-        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 1, null);
+        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 1L, null);
 
         // when
         CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
@@ -138,7 +139,7 @@ class CommentServiceIntegrationTest {
         commentRepository.save(comment);
         CommentReplyRequestDto commentReplyRequestDto =
             new CommentReplyRequestDto(post.getId(), user.getId(), comment.getId(), "good");
-        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 2, null);
+        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 2L, null);
 
         // when
         CommentResponseDto commentResponseDto = commentService.replyComment(commentReplyRequestDto);

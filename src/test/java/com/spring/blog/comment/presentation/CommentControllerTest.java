@@ -75,7 +75,7 @@ class CommentControllerTest {
         String requestBody =
             objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
         CommentResponseDto commentResponseDto =
-            new CommentResponseDto(1L, "kevin", "comment hi", 1, LocalDateTime.now());
+            new CommentResponseDto(1L, "kevin", "comment hi", 1L, LocalDateTime.now());
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
@@ -121,7 +121,7 @@ class CommentControllerTest {
         String requestBody =
             objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
         CommentResponseDto commentResponseDto =
-            new CommentResponseDto(2L, "kevin", "comment hi", 2, LocalDateTime.now());
+            new CommentResponseDto(2L, "kevin", "comment hi", 2L, LocalDateTime.now());
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
@@ -185,11 +185,11 @@ class CommentControllerTest {
         Comment child3 = new Comment(6L, "c3", post, user);
         Comment child4 = new Comment(7L, "c4", post, user);
         Comment child5 = new Comment(8L, "c5", post, user);
-        comment1.addChildComment(child1);
-        comment1.addChildComment(child2);
-        child1.addChildComment(child3);
-        child1.addChildComment(child4);
-        comment3.addChildComment(child5);
+        comment1.updateChildCommentHierarchy(child1);
+        comment1.updateChildCommentHierarchy(child2);
+        child1.updateChildCommentHierarchy(child3);
+        child1.updateChildCommentHierarchy(child4);
+        comment3.updateChildCommentHierarchy(child5);
         return Arrays.asList(comment1, comment2, comment3, child1, child2, child3, child4, child5);
     }
 }

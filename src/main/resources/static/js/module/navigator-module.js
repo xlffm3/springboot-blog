@@ -1,4 +1,4 @@
-export function renderPageNavigation(response, redirectUrl, pageKey) {
+export function renderPageNavigation(response, pageKey, redrawAction) {
   const $navigator = document.getElementById('page-navigator');
   const startPage = response.data.startPage;
   const endPage = response.data.endPage;
@@ -12,7 +12,7 @@ export function renderPageNavigation(response, redirectUrl, pageKey) {
     const $prevButton = document.getElementById('prev');
     $prevButton.addEventListener('click', e => {
       sessionStorage.setItem(pageKey, startPage - 2);
-      window.location.replace(redirectUrl);
+      redrawAction();
     });
   }
 
@@ -24,7 +24,7 @@ export function renderPageNavigation(response, redirectUrl, pageKey) {
     const $pageButton = document.getElementById('page-button-' + i);
     $pageButton.addEventListener('click', e => {
       sessionStorage.setItem(pageKey, i - 1);
-      window.location.replace(redirectUrl);
+      redrawAction();
     });
   }
 
@@ -35,7 +35,7 @@ export function renderPageNavigation(response, redirectUrl, pageKey) {
     const $nextButton = document.getElementById('next');
     $nextButton.addEventListener('click', e => {
       sessionStorage.setItem(pageKey, endPage);
-      window.location.replace(redirectUrl);
+      redrawAction();
     });
   }
 

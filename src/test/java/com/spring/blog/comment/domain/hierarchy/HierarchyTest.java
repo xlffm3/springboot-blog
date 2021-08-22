@@ -8,8 +8,6 @@ import com.spring.blog.exception.comment.CannotAddChildCommentException;
 import com.spring.blog.exception.comment.CommentDepthException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
-import java.util.ArrayList;
-import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,15 +28,15 @@ class HierarchyTest {
 
             @DisplayName("Hierarchy를 정상 생성한다.")
             @ParameterizedTest
-            @ValueSource(ints = {1, 99})
-            void it_returns_Hierarchy(int depth) {
-                // when
-                Hierarchy hierarchy = new Hierarchy(null, null, null, depth);
+            @ValueSource(longs = {1, 99})
+            void it_returns_Hierarchy(long depth) {
+                // given, when
+                Hierarchy hierarchy = new Hierarchy(null, null, null, null, depth);
 
                 // then
                 assertThat(hierarchy)
                     .usingRecursiveComparison()
-                    .isEqualTo(new Hierarchy(null, null, null, depth));
+                    .isEqualTo(new Hierarchy(null, null, null, null, depth));
             }
         }
 
@@ -48,10 +46,10 @@ class HierarchyTest {
 
             @DisplayName("Hierarchy 생성 예외가 발생한다.")
             @ParameterizedTest
-            @ValueSource(ints = {0, 100})
-            void it_throws_CommentDepthException(int depth) {
+            @ValueSource(longs = {0, 100})
+            void it_throws_CommentDepthException(long depth) {
                 // given, when, then
-                assertThatCode(() -> new Hierarchy(null, null, null, depth))
+                assertThatCode(() -> new Hierarchy(null, null, null, null, depth))
                     .isInstanceOf(CommentDepthException.class)
                     .hasMessage("유효한 댓글 계층은 1~99 입니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "C0003")
@@ -60,49 +58,35 @@ class HierarchyTest {
         }
     }
 
-    @DisplayName("addChildComment 메서드는")
+    @DisplayName("updateChildCommentHierarchy 메서드는")
     @Nested
-    class Describe_addChildComment {
+    class Describe_updateChildCommentHierarchy {
 
         @DisplayName("현재 계층이 1~98이면")
         @Nested
         class Context_hierarchy_depth_from_1_to_98 {
 
-            @DisplayName("대댓글이 추가되며, 부모와 자식 댓글의 계층이 업데이트된다.")
+            @DisplayName("대댓글이 추가되며, 자식 댓글의 계층이 업데이트된다.")
             @ParameterizedTest
-            @ValueSource(ints = {1, 98})
-            void it_adds_child_comment_successfully(int depth) {
+            @ValueSource(longs = {1, 98})
+            void it_adds_child_comment_successfully(long depth) {
                 // given
-                ChildComments childComments = new ChildComments(new ArrayList<>());
                 User user = new User("kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment parentComment = new Comment("parent", post, user);
-                Comment childComment = new Comment("child", post, user);
                 Hierarchy parentHierarchy =
-                    new Hierarchy(parentComment, null, childComments, depth);
+                    new Hierarchy(parentComment, null, 1L, 2L, depth);
+                Hierarchy childHierarchy = new Hierarchy();
 
                 // when
-                parentHierarchy.addChildComment(parentComment, childComment);
-                ChildComments expectedChildCommentsOfParent =
-                    new ChildComments(Arrays.asList(childComment));
+                parentHierarchy.updateChildHierarchy(parentComment, childHierarchy);
                 Hierarchy expectedChildHierarchy =
-                    new Hierarchy(
-                        parentComment,
-                        parentComment,
-                        new ChildComments(new ArrayList<>()),
-                        depth + 1
-                    );
+                    new Hierarchy(parentComment, parentComment, 2L, 3L, depth + 1);
 
                 // then
-                assertThat(childComment)
-                    .extracting("hierarchy")
+                assertThat(childHierarchy)
                     .usingRecursiveComparison()
                     .isEqualTo(expectedChildHierarchy);
-
-                assertThat(parentHierarchy)
-                    .extracting("childComments")
-                    .usingRecursiveComparison()
-                    .isEqualTo(expectedChildCommentsOfParent);
             }
         }
 
@@ -114,69 +98,19 @@ class HierarchyTest {
             @Test
             void it_throws_CannotAddChildCommentException() {
                 // given
-                ChildComments childComments = new ChildComments(new ArrayList<>());
                 User user = new User("kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment parentComment = new Comment("parent", post, user);
                 Comment childComment = new Comment("child", post, user);
                 Hierarchy parentHierarchy =
-                    new Hierarchy(parentComment, null, childComments, 99);
+                    new Hierarchy(parentComment, null, 1L, 2L, 99L);
+                Hierarchy childHierarchy = new Hierarchy();
 
                 // when, then
-                assertThatCode(() -> parentHierarchy.addChildComment(parentComment, childComment))
+                assertThatCode(() -> parentHierarchy.updateChildHierarchy(parentComment, childHierarchy))
                     .isInstanceOf(CannotAddChildCommentException.class)
                     .hasMessage("대댓글을 추가할 수 없습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "C0002")
-                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
-            }
-        }
-    }
-
-    @DisplayName("update 메서드는")
-    @Nested
-    class Describe_update {
-
-        @DisplayName("Depth가 1~99인 경우")
-        @Nested
-        class Context_depth_from_1_to_99 {
-
-            @DisplayName("업데이트에 성공한다.")
-            @ParameterizedTest
-            @ValueSource(ints = {1, 99})
-            void it_updates_Hierarchy(int depth) {
-                // given
-                Hierarchy hierarchy = new Hierarchy(null, null, null, 1);
-                User user = new User("kevin", "image");
-                Post post = new Post("title", "content", user);
-                Comment comment = new Comment("hi", post, user);
-
-                // when
-                hierarchy.update(comment, comment, depth);
-                Hierarchy expected = new Hierarchy(comment, comment, null, depth);
-
-                // then
-                assertThat(hierarchy)
-                    .usingRecursiveComparison()
-                    .isEqualTo(expected);
-            }
-        }
-
-        @DisplayName("Depth가 0이하거나 99를 초과하는 경우")
-        @Nested
-        class Context_depth_under_1_or_over_99 {
-
-            @DisplayName("업데이트 예외가 발생한다.")
-            @ParameterizedTest
-            @ValueSource(ints = {0, 100})
-            void it_throws_CommentDepthException(int depth) {
-                // given
-                Hierarchy hierarchy = new Hierarchy(null, null, null, 1);
-
-                // when, then
-                assertThatCode(() -> hierarchy.update(null, null, depth))
-                    .isInstanceOf(CommentDepthException.class)
-                    .hasMessage("유효한 댓글 계층은 1~99 입니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "C0003")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }
@@ -200,7 +134,7 @@ class HierarchyTest {
                 Comment comment = new Comment("root", post, user);
 
                 // when
-                hierarchy.updateRoot(comment);
+                hierarchy.updateAsRoot(comment);
 
                 // then
                 assertThat(hierarchy)
