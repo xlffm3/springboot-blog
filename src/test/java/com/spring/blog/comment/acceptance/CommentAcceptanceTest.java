@@ -34,7 +34,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .value(commentResponse ->
                 assertThat(commentResponse)
                     .extracting("author", "content", "depth")
-                    .containsExactly("kevin", "comment!", 1)
+                    .containsExactly("kevin", "comment!", 1L)
             );
     }
 
@@ -73,7 +73,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .value(commentResponse ->
                 assertThat(commentResponse)
                     .extracting("author", "content", "depth")
-                    .containsExactly("kevin", "comment!", 2)
+                    .containsExactly("kevin", "comment!", 2L)
             );
     }
 
@@ -134,11 +134,11 @@ class CommentAcceptanceTest extends AcceptanceTest {
                 assertThat(commentListResponse.getCommentResponses())
                     .extracting("content", "depth")
                     .containsExactly(
-                      tuple("first comment", 1),
-                      tuple("second comment", 2),
-                      tuple("third comment", 3),
-                      tuple("fourth comment", 2),
-                      tuple("fifth comment", 1)
+                      tuple("first comment", 1L),
+                      tuple("second comment", 2L),
+                      tuple("third comment", 3L),
+                      tuple("fourth comment", 2L),
+                      tuple("fifth comment", 1L)
                     )
             );
     }

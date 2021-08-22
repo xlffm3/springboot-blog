@@ -68,16 +68,12 @@ public class Comment {
         this.baseDate = new BaseDate();
     }
 
-    public void addChildComment(Comment childComment) {
-        hierarchy.addChildComment(this, childComment);
+    public void updateChildCommentHierarchy(Comment childComment) {
+        hierarchy.updateChildHierarchy(this, childComment.hierarchy);
     }
 
     public void updateAsRoot() {
-        hierarchy.updateRoot(this);
-    }
-
-    public void updateHierarchy(Comment rootComment, Comment parentComment, int depth) {
-        hierarchy.update(rootComment, parentComment, depth);
+        hierarchy.updateAsRoot(this);
     }
 
     public Long getId() {
@@ -92,11 +88,23 @@ public class Comment {
         return commentContent.getContent();
     }
 
-    public Integer getDepth() {
+    public Long getDepth() {
         return hierarchy.getDepth();
     }
 
     public LocalDateTime getCreatedDate() {
         return baseDate.getCreatedDate();
+    }
+
+    public Long getLeftNode() {
+        return hierarchy.getLeftNode();
+    }
+
+    public Long getRightNode() {
+        return hierarchy.getRightNode();
+    }
+
+    public Comment getRootComment() {
+        return hierarchy.getRootComment();
     }
 }

@@ -56,11 +56,13 @@ public class CommentService {
             .orElseThrow(UserNotFoundException::new);
         Post post = postRepository.findById(commentReplyRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
-        Comment parentComment = commentRepository.findById(commentReplyRequestDto.getCommentId())
+        Comment parentComment = commentRepository.findByIdIdWithRootComment(commentReplyRequestDto.getCommentId())
             .orElseThrow(CommentNotFoundException::new);
         Comment comment = new Comment(commentReplyRequestDto.getContent(), post, user);
-        parentComment.addChildComment(comment);
-        return CommentResponseDto.from(commentRepository.save(comment));
+        parentComment.updateChildCommentHierarchy(comment);
+        commentRepository.save(comment);
+        commentRepository.adjustHierarchyOrders(comment);
+        return CommentResponseDto.from(comment);
     }
 
     public CommentListResponseDto readCommentList(CommentListRequestDto commentListRequestDto) {

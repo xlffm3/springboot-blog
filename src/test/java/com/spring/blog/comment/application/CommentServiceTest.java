@@ -195,7 +195,7 @@ class CommentServiceTest {
                 Post post = new Post("title", "content", user);
                 Comment comment = new Comment(1L, "comment", post, user);
                 CommentResponseDto expected =
-                    new CommentResponseDto(1L, "kevin", "comment", 1, null);
+                    new CommentResponseDto(1L, "kevin", "comment", 1L, null);
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.findById(1L)).willReturn(Optional.of(post));
                 given(commentRepository.save(any(Comment.class))).willReturn(comment);
@@ -285,7 +285,7 @@ class CommentServiceTest {
 
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.findById(1L)).willReturn(Optional.of(post));
-                given(commentRepository.findById(1L)).willReturn(Optional.empty());
+                given(commentRepository.findByIdIdWithRootComment(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
@@ -296,7 +296,7 @@ class CommentServiceTest {
 
                 verify(userRepository, times(1)).findById(1L);
                 verify(postRepository, times(1)).findById(1L);
-                verify(commentRepository, times(1)).findById(1L);
+                verify(commentRepository, times(1)).findByIdIdWithRootComment(1L);
             }
         }
 
@@ -315,12 +315,13 @@ class CommentServiceTest {
                 Comment parentComment = new Comment(1L, "comment", post, user);
                 Comment childComment = new Comment(2L, "hahaha", post, user);
                 CommentResponseDto expected =
-                    new CommentResponseDto(2L, "kevin", "hahaha", 2, null);
-                parentComment.addChildComment(childComment);
+                    new CommentResponseDto(2L, "kevin", "hahaha", 2L, null);
+                parentComment.updateAsRoot();
+                parentComment.updateChildCommentHierarchy(childComment);
 
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.findById(1L)).willReturn(Optional.of(post));
-                given(commentRepository.findById(1L)).willReturn(Optional.of(parentComment));
+                given(commentRepository.findByIdIdWithRootComment(1L)).willReturn(Optional.of(parentComment));
                 given(commentRepository.save(any(Comment.class))).willReturn(childComment);
 
                 // when, then
@@ -329,12 +330,14 @@ class CommentServiceTest {
 
                 assertThat(commentResponseDto)
                     .usingRecursiveComparison()
-                    .ignoringFields("createdDate")
+                    .ignoringFields("id", "createdDate")
                     .isEqualTo(expected);
 
                 verify(userRepository, times(1)).findById(1L);
                 verify(postRepository, times(1)).findById(1L);
-                verify(commentRepository, times(1)).findById(1L);
+                verify(commentRepository, times(1)).findByIdIdWithRootComment(1L);
+                verify(commentRepository, times(1)).adjustHierarchyOrders(any(Comment.class));
+                verify(commentRepository, times(1)).save(any(Comment.class));
             }
         }
     }
