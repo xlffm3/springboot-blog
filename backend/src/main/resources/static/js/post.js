@@ -1,7 +1,7 @@
 import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
 import {parseDate} from "./module/string-parser.js";
 import {renderPageNavigation} from "./module/navigator-module.js";
-import {activatePostWriteButton} from "./module/button-module.js";
+import {activateButtonsSection} from "./module/button-module.js";
 
 const DEFAULT_SIZE_PER_PAGE = 10;
 const DEFAULT_PAGE_BLOCK_COUNTS = 10;
@@ -20,14 +20,24 @@ async function renderPostSection() {
   .then(response => {
     const dto = response.data;
     document.getElementById('post-title').innerText = dto.title;
-    document.getElementById('content').innerText = response.data.content;
-    document.getElementById('author-name').innerText += response.data.author;
+    document.getElementById('content').innerText = dto.content;
+    document.getElementById('author-name').innerText += dto.author;
     document.getElementById('created-date').innerText +=
-        parseDate(response.data.createdDate);
+        parseDate(dto.createdDate);
     document.getElementById('modified-date').innerText +=
-        parseDate(response.data.modifiedDate);
+        parseDate(dto.modifiedDate);
     document.getElementById('view-counts')
-        .innerText += response.data.viewCounts;
+        .innerText += dto.viewCounts;
+
+    const content = document.getElementById('content');
+    const imageHtml = document.querySelector('#template-image')
+        .innerHTML;
+    Array.from(dto.urls).forEach(url => {
+      content.insertAdjacentHTML('afterend',
+          imageHtml.replace('{url}', url));
+    })
+
+    activateButtonsSection();
   });
 }
 
@@ -93,10 +103,11 @@ async function requestToReplyComment(form) {
   const commentContent = form.querySelector('#comment-content').value;
   const postId = sessionStorage.getItem('post-id');
   const token = localStorage.getItem('token');
-  const url = '/api/posts/' + postId + '/comments/' + parentCommentId + '/reply';
+  const url = '/api/posts/' + postId + '/comments/' + parentCommentId
+      + '/reply';
   const json = JSON.stringify({content: commentContent});
 
-  await axios.post(url,json, {
+  await axios.post(url, json, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
@@ -143,5 +154,4 @@ renderLoginSection();
 addLogoClickEvent();
 renderPostSection();
 renderCommentSection();
-activatePostWriteButton();
 activateCommentWriteSection();

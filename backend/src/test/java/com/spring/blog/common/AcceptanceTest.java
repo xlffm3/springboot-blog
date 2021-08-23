@@ -5,7 +5,6 @@ import com.spring.blog.comment.presentation.dto.CommentResponse;
 import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -100,10 +99,10 @@ public class AcceptanceTest {
         String title,
         String content
     ) {
-        List<MultipartFile> files = new ArrayList<>();
         MultiValueMap<String, Object> multiValueMap = new LinkedMultiValueMap<>();
         multiValueMap.add("title", title);
         multiValueMap.add("content", content);
+        multiValueMap.add("files", null);
         return multiValueMap;
     }
 

@@ -37,9 +37,13 @@
     <hr>
     <br>
     <p id="content"></p>
-    <hr>
-    <br>
+    <script id="template-image" type="text/template">
+      <img src="{url}" class="img-responsive" width="500" height="500" alt="img"/>
+    </script>
   </div>
+
+  <hr>
+  <br>
 
   <ul id="comment-board" class="list-group-horizontal-md">
     <script id="template-comment-row-template" type="text/template">
@@ -103,7 +107,10 @@
   <section id="button-section">
     <a class="btn btn-secondary" href="/" role="button">Back</a>
     <script id="template-post-write-button" type="text/template">
-      <a class="btn btn-primary" href="/page/post/write" role="button">Write Post</a>
+      <a class="btn btn-primary" href="/page/post/write" role="button">Write</a>
+    </script>
+    <script id="template-post-edit-button" type="text/template">
+      <a class="btn btn-warning" href="/page/post/edit" role="button">Edit</a>
     </script>
   </section>
 </div>

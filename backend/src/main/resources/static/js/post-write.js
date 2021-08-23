@@ -13,16 +13,20 @@ function addPostWriteButtonEvent() {
   $submitButton.addEventListener('click', e => {
     const title = document.getElementById('title').value;
     const content = document.getElementById('content').value;
-    requestToWritePost(title, content);
+    const files = document.querySelector('input[type=file]').files
+    requestToWritePost(title, content, files);
   });
 }
 
-async function requestToWritePost(title, content) {
-  const json = JSON.stringify({title: title, content: content});
+async function requestToWritePost(title, content, files) {
+  let formData = new FormData();
   const token = localStorage.getItem('token');
-  await axios.post('/api/posts', json, {
+  formData.append('title', title);
+  formData.append('content', content);
+  Array.from(files).forEach(file => formData.append('files', file));
+  await axios.post('/api/posts', formData, {
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'multipart/form-data',
       'Authorization': 'Bearer ' + token
     }
   }).then(response => moveToPostPage(response))
