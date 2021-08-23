@@ -1,5 +1,7 @@
 package com.spring.s3proxy.web.infrastructure;
 
+import com.spring.s3proxy.exception.format.FileExtensionException;
+import com.spring.s3proxy.exception.format.HashFailureException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -31,7 +33,7 @@ public class FileNameGenerator {
             md.update(bytes);
             return Hex.encodeHexString(md.digest());
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException();
+            throw new HashFailureException();
         }
     }
 
@@ -42,7 +44,7 @@ public class FileNameGenerator {
             MimeType mimeType = defaultMimeTypes.forName(target);
             return mimeType.getExtension();
         } catch (IOException | MimeTypeException e) {
-            throw new IllegalArgumentException();
+            throw new FileExtensionException();
         }
     }
 }
