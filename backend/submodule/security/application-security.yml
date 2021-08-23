@@ -1,0 +1,11 @@
+security:
+  jwt:
+    token:
+      secret-key: kevin-spring-boot-blog-appendable-rok
+      expire-length: 3600000
+  github:
+    client:
+      id: e238e9e1affce56649a1
+      secret: 3d4d047c2b27cf8b2201575c880442623f8e81cb
+    url:
+      redirect: http://localhost:8080/page/auth
