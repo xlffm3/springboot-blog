@@ -2,8 +2,11 @@ package com.spring.blog.post.domain;
 
 import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.date.BaseDate;
+import com.spring.blog.post.domain.image.Images;
 import com.spring.blog.user.domain.User;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -28,6 +31,9 @@ public class Post {
     @Embedded
     private PostContent postContent;
 
+    @Embedded
+    private Images images;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -45,15 +51,20 @@ public class Post {
     }
 
     public Post(Long id, String title, String content, User user) {
-        this(id, new PostContent(title, content), user);
+        this(id, new PostContent(title, content), new Images(new ArrayList<>()), user);
     }
 
-    public Post(Long id, PostContent postContent, User user) {
+    public Post(Long id, PostContent postContent, Images images, User user) {
         this.id = id;
         this.postContent = postContent;
+        this.images = images;
         this.user = user;
         this.viewCounts = DEFAULT_VIEW_COUNTS;
         this.baseDate = new BaseDate();
+    }
+
+    public void addImages(List<String> imageUrls) {
+        images.add(imageUrls, this);
     }
 
     public void updateViewCounts() {
@@ -86,5 +97,9 @@ public class Post {
 
     public LocalDateTime getModifiedDate() {
         return baseDate.getModifiedDate();
+    }
+
+    public List<String> getImageUrls() {
+        return images.getUrls();
     }
 }
