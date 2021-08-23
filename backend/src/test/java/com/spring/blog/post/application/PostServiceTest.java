@@ -8,17 +8,21 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.spring.blog.common.FileFactory;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
+import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 @DisplayName("PostService 슬라이스 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +49,9 @@ class PostServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private FileStorage fileStorage;
+
     @DisplayName("write 메서드는")
     @Nested
     class Describe_write {
@@ -56,7 +64,7 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title", "content");
+                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title", "content", new ArrayList<>());
                 given(userRepository.findById(1L)).willReturn(Optional.empty());
 
                 // when, then
@@ -78,11 +86,17 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title", "content");
+                List<MultipartFile> images = FileFactory.getSuccessImageFiles();
+                PostWriteRequestDto postWriteRequestDto =
+                    new PostWriteRequestDto(1L, "title", "content", images);
                 User user = new User("kevin", "image");
                 Post post = new Post(1L, "title", "content", user);
+                post.addImages(Arrays.asList("url1", "url2"));
+
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.save(any(Post.class))).willReturn(post);
+                given(fileStorage.store(images, "kevin"))
+                    .willReturn(Arrays.asList("url1", "url2"));
 
                 // when
                 PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
@@ -90,6 +104,7 @@ class PostServiceTest {
                     post.getId(),
                     post.getTitle(),
                     post.getContent(),
+                    Arrays.asList("url1", "url2"),
                     post.getAuthorName(),
                     post.getViewCounts(),
                     null,
@@ -101,6 +116,7 @@ class PostServiceTest {
                     .isEqualTo(expected);
 
                 verify(userRepository, times(1)).findById(1L);
+                verify(fileStorage, times(1)).store(images, "kevin");
                 verify(postRepository, times(1)).save(any(Post.class));
             }
         }
@@ -128,6 +144,7 @@ class PostServiceTest {
                     post.getId(),
                     post.getTitle(),
                     post.getContent(),
+                    Collections.emptyList(),
                     post.getAuthorName(),
                     post.getViewCounts() + 1,
                     null,

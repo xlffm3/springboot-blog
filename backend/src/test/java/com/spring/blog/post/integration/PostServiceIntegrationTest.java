@@ -5,18 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.spring.blog.common.DatabaseCleaner;
+import com.spring.blog.common.FileFactory;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.multipart.MultipartFile;
 
 @DisplayName("PostService 통합 테스트")
 @ActiveProfiles("test")
@@ -57,7 +60,7 @@ class PostServiceIntegrationTest {
     void write_UserNotFound_ExceptionThrown() {
         // given
         PostWriteRequestDto postWriteRequestDto =
-            new PostWriteRequestDto(32132L, "title", "content");
+            new PostWriteRequestDto(32132L, "title", "content", new ArrayList<>());
 
         // when, then
         assertThatCode(() -> postService.write(postWriteRequestDto))
@@ -67,12 +70,14 @@ class PostServiceIntegrationTest {
             .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
     }
 
-    @DisplayName("게시물 작성시 회원이 존재하면 정상 저장된다.")
+    @DisplayName("이미지를 포함한 게시물 작성시 회원이 존재하면 정상 저장된다.")
     @Test
     void write_UserFound_Success() {
         // given
         User savedUser = userRepository.save(new User("kevin", "image"));
-        PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(savedUser.getId(), "title", "content");
+        List<MultipartFile> images = FileFactory.getSuccessImageFiles();
+        PostWriteRequestDto postWriteRequestDto =
+            new PostWriteRequestDto(savedUser.getId(), "title", "content", images);
 
         // when
         PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
@@ -80,6 +85,7 @@ class PostServiceIntegrationTest {
             null,
             "title",
             "content",
+            Arrays.asList("testSuccessImage1.png", "testSuccessImage2.png"),
             "kevin",
             0L,
             null,
@@ -98,6 +104,7 @@ class PostServiceIntegrationTest {
         // given
         User savedUser = userRepository.save(new User("kevin", "image"));
         Post post = new Post("title", "content", savedUser);
+        post.addImages(Arrays.asList("url1", "url2"));
         postRepository.save(post);
 
         // when
@@ -105,6 +112,7 @@ class PostServiceIntegrationTest {
             post.getId(),
             post.getTitle(),
             post.getContent(),
+            post.getImageUrls(),
             post.getAuthorName(),
             post.getViewCounts() + 1,
             null,

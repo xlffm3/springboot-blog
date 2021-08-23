@@ -5,8 +5,9 @@ import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
+import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
@@ -23,10 +24,16 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final FileStorage fileStorage;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(
+        PostRepository postRepository,
+        UserRepository userRepository,
+        FileStorage fileStorage
+    ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.fileStorage = fileStorage;
     }
 
     @Transactional
@@ -34,6 +41,8 @@ public class PostService {
         User user = userRepository.findById(postWriteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         Post post = new Post(postWriteRequestDto.getTitle(), postWriteRequestDto.getContent(), user);
+        List<String> imageUrls = fileStorage.store(postWriteRequestDto.getFiles(), user.getName());
+        post.addImages(imageUrls);
         return PostResponseDto.from(postRepository.save(post));
     }
 

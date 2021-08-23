@@ -6,7 +6,8 @@ import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
 import com.spring.blog.post.presentation.dto.PostListResponse;
 import com.spring.blog.post.presentation.dto.PostResponse;
-import com.spring.blog.post.presentation.dto.PostWriteRequest;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +24,12 @@ class PostAcceptanceTest extends AcceptanceTest {
     @DisplayName("로그인하지 않은 유저는 게시물을 작성할 수 없다.")
     @Test
     void write_NotLogin_Fail() {
-        // given
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
-
-        // when, then
+        // given, when, then
         webTestClient.post()
             .uri("/api/posts")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(postWriteRequest)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(generateMultipartWithImages("title", "content"))
             .exchange()
             .expectStatus()
             .isUnauthorized()
@@ -38,9 +37,9 @@ class PostAcceptanceTest extends AcceptanceTest {
             .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
     }
 
-    @DisplayName("로그인한 유저는 게시물을 작성할 수 있다.")
+    @DisplayName("로그인한 유저는 이미지를 포함한 게시물을 작성할 수 있다.")
     @Test
-    void write_Login_Success() {
+    void write_LoginWithImage_Success() {
         // given
         String token = api_로그인_요청_및_토큰_반환("kevin");
 
@@ -53,6 +52,34 @@ class PostAcceptanceTest extends AcceptanceTest {
             .location("/api/posts/" + postId);
     }
 
+    /*
+    단순히 Body에 Null을 주면 테스트 통과 불가능
+    Postman 등은 실제로 비어있는 하나의 멀티파트를 전송함.
+    InvocableHandlerMethod에 디버그 찍고 확인해본 결과, 테스트가 약간은 수정되어야 함
+     */
+//    @DisplayName("로그인한 유저는 이미지 없이 게시물을 작성할 수 있다.")
+//    @Test
+//    void write_LoginWithoutImage_Success() {
+//        // given
+//        String token = api_로그인_요청_및_토큰_반환("kevin");
+//
+//        // when
+//        ResponseSpec responseSpec = webTestClient.post()
+//            .uri("/api/posts")
+//            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
+//            .contentType(MediaType.MULTIPART_FORM_DATA)
+//            .accept(MediaType.APPLICATION_JSON)
+//            .bodyValue(generateMultipartWithoutImages("title", "content"))
+//            .exchange()
+//            .expectStatus()
+//            .isOk();
+//        String postId = 게시물_ID_추출(responseSpec);
+//
+//        // then
+//        responseSpec.expectHeader()
+//            .location("/api/posts" + postId);
+//    }
+
     @DisplayName("게시물을 단건 조회한다.")
     @Test
     void read_OnePost_Success() {
@@ -60,8 +87,9 @@ class PostAcceptanceTest extends AcceptanceTest {
         String token = api_로그인_요청_및_토큰_반환("kevin");
         api_테스트용_게시물_작성(token);
         String postId = api_게시물_작성_ID_회수("hi", "there", token);
+        List<String> urls = Arrays.asList("testSuccessImage1.png", "testSuccessImage2.png");
         PostResponse expectedPostResponse = new PostResponse(
-            Long.parseLong(postId), "hi", "there", "kevin", 1L, null, null
+            Long.parseLong(postId), "hi", "there", urls,"kevin",1L, null, null
         );
 
         // when, then
