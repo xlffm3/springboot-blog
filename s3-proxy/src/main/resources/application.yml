@@ -1,0 +1,5 @@
+aws:
+  cloud_front:
+    file_url_format: https://d2lkb1z978lt7d.cloudfront.net/images/%s
+  s3:
+    bucket_name: xlffm3-test/images
