@@ -4,7 +4,9 @@ import com.spring.blog.exception.platform.PlatformHttpErrorException;
 import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.infrastructure.dto.FilesResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -27,6 +29,10 @@ public class S3Storage implements FileStorage {
 
     @Override
     public List<String> store(List<MultipartFile> files, String userName) {
+        if (Objects.isNull(files) || files.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         try {
             return WebClient.create()
                 .post()
