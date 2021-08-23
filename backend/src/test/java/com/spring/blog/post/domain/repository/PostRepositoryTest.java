@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.configuration.JpaTestConfiguration;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.domain.image.Image;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Arrays;
@@ -129,6 +130,40 @@ class PostRepositoryTest {
                 assertThat(findPosts)
                     .usingRecursiveComparison()
                     .isEqualTo(posts);
+            }
+        }
+    }
+
+    @DisplayName("save 메서드는")
+    @Nested
+    class Describe_save {
+
+        @DisplayName("Post를 영속화시킬 때")
+        @Nested
+        class Context_persist_post {
+
+            @DisplayName("Image도 함께 영속화시킨다.")
+            @Test
+            void it_saves_images_together() {
+                // given
+                User savedUser = userRepository.save(new User("kevin", "image"));
+                Post post = new Post("title", "content", savedUser);
+                List<String> images = Arrays.asList("abc", "def");
+
+                // when
+                post.addImages(images);
+                postRepository.save(post);
+                flushAndClear();
+                Post findPost = postRepository.findById(post.getId())
+                    .orElseThrow(PostNotFoundException::new);
+                List<Image> findImages = entityManager
+                    .createQuery("select i from Image i where i.post = :post", Image.class)
+                    .setParameter("post", findPost)
+                    .getResultList();
+
+                // then
+                assertThat(findPost.getImageUrls()).containsExactly("abc", "def");
+                assertThat(findImages).hasSize(2);
             }
         }
     }

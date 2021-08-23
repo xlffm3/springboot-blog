@@ -5,17 +5,16 @@ import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
+import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import java.net.URI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,12 +34,13 @@ public class PostController {
     @PostMapping("/posts")
     public ResponseEntity<Void> write(
         @Authenticated AppUser appUser,
-        @RequestBody PostWriteRequest postWriteRequest
+        PostWriteRequest postWriteRequest
     ) {
         PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(
             appUser.getId(),
             postWriteRequest.getTitle(),
-            postWriteRequest.getContent()
+            postWriteRequest.getContent(),
+            postWriteRequest.getFiles()
         );
         PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
         String url = String.format(REDIRECT_URL_FORMAT_AFTER_WRITING, postResponseDto.getId());

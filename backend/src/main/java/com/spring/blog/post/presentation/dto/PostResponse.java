@@ -2,12 +2,14 @@ package com.spring.blog.post.presentation.dto;
 
 import com.spring.blog.post.application.dto.PostResponseDto;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class PostResponse {
 
     private Long id;
     private String title;
     private String content;
+    private List<String> urls;
     private String author;
     private Long viewCounts;
     private LocalDateTime createdDate;
@@ -21,6 +23,7 @@ public class PostResponse {
         Long id,
         String title,
         String content,
+        List<String> urls,
         String author,
         Long viewCounts,
         LocalDateTime createdDate,
@@ -29,6 +32,7 @@ public class PostResponse {
         this.id = id;
         this.title = title;
         this.content = content;
+        this.urls = urls;
         this.author = author;
         this.viewCounts = viewCounts;
         this.createdDate = createdDate;
@@ -40,6 +44,7 @@ public class PostResponse {
             postResponseDto.getId(),
             postResponseDto.getTitle(),
             postResponseDto.getContent(),
+            postResponseDto.getUrls(),
             postResponseDto.getAuthor(),
             postResponseDto.getViewCounts(),
             postResponseDto.getCreatedDate(),
@@ -57,6 +62,10 @@ public class PostResponse {
 
     public String getContent() {
         return content;
+    }
+
+    public List<String> getUrls() {
+        return urls;
     }
 
     public String getAuthor() {

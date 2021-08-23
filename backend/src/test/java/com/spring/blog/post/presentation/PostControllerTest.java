@@ -5,8 +5,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,15 +16,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
+import com.spring.blog.common.FileFactory;
 import com.spring.blog.common.PageMaker;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
+import com.spring.blog.post.application.dto.PostWriteRequestDto;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.PostResponse;
 import com.spring.blog.user.domain.User;
 import java.util.Arrays;
@@ -34,6 +36,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 @DisplayName("PostController 슬라이스 테스트")
@@ -59,7 +62,7 @@ class PostControllerTest {
         given(oAuthService.validateToken(any())).willReturn(false);
 
         // when, then
-        mockMvc.perform(post("/api/posts"))
+        mockMvc.perform(multipart("/api/posts"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
     }
@@ -70,21 +73,25 @@ class PostControllerTest {
         // given
         String token = "Bearer token";
         AppUser appUser = new LoginUser(1L, "kevin");
-        PostWriteRequest postWriteRequest = new PostWriteRequest("title", "content");
         PostResponseDto postResponseDto =
-            new PostResponseDto(1L, "title", "content", "kevin", 0L, null, null);
-        String requestBody = objectMapper.writeValueAsString(postWriteRequest);
+            new PostResponseDto(1L, "title", "content", Arrays.asList("url1", "url2"), "kevin", 0L, null, null);
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(appUser);
         given(postService.write(any(PostWriteRequestDto.class))).willReturn(postResponseDto);
 
         // when, then
-        mockMvc.perform(post("/api/posts")
+        mockMvc.perform(multipart("/api/posts")
+            .file((MockMultipartFile) FileFactory.getTestSuccessImage1())
+            .file((MockMultipartFile) FileFactory.getTestSuccessImage2())
+            .param("title", "title")
+            .param("content", "content")
             .header(HttpHeaders.AUTHORIZATION, token)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody))
-            .andExpect(status().isCreated());
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isCreated())
+            .andDo(print())
+            .andExpect(header().string("location", "/api/posts/1"));
 
         verify(oAuthService, times(1)).validateToken("token");
         verify(oAuthService, times(1)).findRequestUserByToken("token");
@@ -96,9 +103,9 @@ class PostControllerTest {
     void read_SinglePost_Success() throws Exception {
         // given
         PostResponseDto postResponseDto =
-            new PostResponseDto(1L, "title", "content", "kevin", 1L, null, null);
-        PostResponse postResponse =
-            new PostResponse(1L, "title", "content", "kevin", 1L, null, null);
+            new PostResponseDto(1L, "title", "content", Arrays.asList("url1", "url2"), "kevin", 1L, null, null);
+        PostResponse postResponse = PostResponse.from(postResponseDto);
+
         given(postService.readById(1L)).willReturn(postResponseDto);
         String expected = objectMapper.writeValueAsString(postResponse);
 
