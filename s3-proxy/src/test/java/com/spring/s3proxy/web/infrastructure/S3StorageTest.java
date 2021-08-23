@@ -64,14 +64,17 @@ class S3StorageTest {
                     FileFactory.getTestSuccessImage2()
                 );
                 String userName = "kevin";
-                given(fileNameGenerator.generateFileName(any(MultipartFile.class), eq(userName)))
-                    .willCallRealMethod();
                 given(amazonS3.putObject(any(), any(), any(), any()))
                     .willReturn(new PutObjectResult());
+                given(fileNameGenerator.generateFileName(any(MultipartFile.class), eq(userName)))
+                    .willReturn("image.png");
 
                 // when
                 List<StoreResult> storeResults = s3Storage.store(images, userName);
-                List<StoreResult> expected = generateExpectedResults(images, userName);
+                List<StoreResult> expected = Arrays.asList(
+                    new StoreResult("image.png", String.format(fileUrlFormat, "image.png")),
+                    new StoreResult("image.png", String.format(fileUrlFormat, "image.png"))
+                );
 
                 // then
                 assertThat(storeResults)
@@ -81,19 +84,6 @@ class S3StorageTest {
                 verify(fileNameGenerator, times(2))
                     .generateFileName(any(MultipartFile.class), eq(userName));
                 verify(amazonS3, times(2)).putObject(any(), any(), any(), any());
-            }
-
-            private List<StoreResult> generateExpectedResults(
-                List<MultipartFile> images,
-                String userName
-            ) {
-                FileNameGenerator fileNameGenerator = new FileNameGenerator();
-                String first = fileNameGenerator.generateFileName(images.get(0), userName);
-                String second = fileNameGenerator.generateFileName(images.get(1), userName);
-                return Arrays.asList(
-                    new StoreResult(first, String.format(fileUrlFormat, first)),
-                    new StoreResult(second, String.format(fileUrlFormat, second))
-                );
             }
         }
 
@@ -111,7 +101,7 @@ class S3StorageTest {
                 );
                 String userName = "kevin";
                 given(fileNameGenerator.generateFileName(any(MultipartFile.class), eq(userName)))
-                    .willCallRealMethod();
+                    .willReturn("image.png");
                 given(amazonS3.putObject(any(), any(), any(), any()))
                     .willThrow(RuntimeException.class);
 

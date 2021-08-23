@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Repository
 public class S3Storage implements FileStorage {
 
-    @Value("${aws.s3.bucket.name}")
+    @Value("${aws.s3.bucket_name}")
     private String bucket;
 
     @Value("${aws.cloud_front.file_url_format}")

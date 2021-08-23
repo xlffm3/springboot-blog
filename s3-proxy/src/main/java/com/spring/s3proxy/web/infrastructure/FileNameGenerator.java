@@ -19,6 +19,12 @@ public class FileNameGenerator {
 
     private static final Tika TIKA = new Tika();
 
+    private final HashClock hashClock;
+
+    public FileNameGenerator(HashClock hashClock) {
+        this.hashClock = hashClock;
+    }
+
     public String generateFileName(MultipartFile multipartFile, String userName) {
         String hashFileName = applyMD5(multipartFile, userName);
         String extension = detectFileExtension(multipartFile);
@@ -29,7 +35,8 @@ public class FileNameGenerator {
         String fileName = multipartFile.getOriginalFilename();
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] bytes = (fileName + userName).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = (fileName + userName + hashClock.now().getNano())
+                .getBytes(StandardCharsets.UTF_8);
             md.update(bytes);
             return Hex.encodeHexString(md.digest());
         } catch (NoSuchAlgorithmException e) {
