@@ -34,7 +34,8 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(authenticationInterceptor())
             .addPathPatterns("/api/posts")
             .addPathPatterns("/api/posts/*/comments")
-            .addPathPatterns("/api/posts/*/comments/*/reply");
+            .addPathPatterns("/api/posts/*/comments/*/reply")
+            .addPathPatterns("/api/comments/*");
     }
 
     @Override

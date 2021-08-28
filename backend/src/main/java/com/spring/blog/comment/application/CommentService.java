@@ -1,5 +1,6 @@
 package com.spring.blog.comment.application;
 
+import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
@@ -41,7 +42,7 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDto writeComment(CommentWriteRequestDto commentWriteRequestDto) {
-        User user = userRepository.findById(commentWriteRequestDto.getAuthorId())
+        User user = userRepository.findById(commentWriteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         Post post = postRepository.findById(commentWriteRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
@@ -56,8 +57,9 @@ public class CommentService {
             .orElseThrow(UserNotFoundException::new);
         Post post = postRepository.findById(commentReplyRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
-        Comment parentComment = commentRepository.findByIdIdWithRootComment(commentReplyRequestDto.getCommentId())
-            .orElseThrow(CommentNotFoundException::new);
+        Comment parentComment =
+            commentRepository.findByIdIdWithRootComment(commentReplyRequestDto.getCommentId())
+                .orElseThrow(CommentNotFoundException::new);
         Comment comment = new Comment(commentReplyRequestDto.getContent(), post, user);
         parentComment.updateChildCommentHierarchy(comment);
         commentRepository.save(comment);
@@ -85,5 +87,15 @@ public class CommentService {
             Math.toIntExact(commentListRequestDto.getPageBlockCounts()),
             Math.toIntExact(commentRepository.countCommentByPost(post))
         );
+    }
+
+    @Transactional
+    public CommentResponseDto editComment(CommentEditRequestDto commentEditRequestDto) {
+        Comment comment = commentRepository.findByIdWithAuthor(commentEditRequestDto.getCommentId())
+            .orElseThrow(CommentNotFoundException::new);
+        User user = userRepository.findById(commentEditRequestDto.getUserId())
+            .orElseThrow(UserNotFoundException::new);
+        comment.editContent(commentEditRequestDto.getContent(), user);
+        return CommentResponseDto.from(comment);
     }
 }

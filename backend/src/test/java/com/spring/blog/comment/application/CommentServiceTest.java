@@ -9,6 +9,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
@@ -338,6 +339,95 @@ class CommentServiceTest {
                 verify(commentRepository, times(1)).findByIdIdWithRootComment(1L);
                 verify(commentRepository, times(1)).adjustHierarchyOrders(any(Comment.class));
                 verify(commentRepository, times(1)).save(any(Comment.class));
+            }
+        }
+    }
+
+    @DisplayName("editComment 메서드는")
+    @Nested
+    class Describe_editComment {
+
+        @DisplayName("해당 ID의 comment가 존재하지 않을 때")
+        @Nested
+        class Context_comment_not_found {
+
+            @DisplayName("예외가 발생한다.")
+            @Test
+            void it_throws_CommentNotFoundException() {
+                // given
+                CommentEditRequestDto commentEditRequestDto =
+                    new CommentEditRequestDto(1L, 1L, "edit content");
+                given(commentRepository.findByIdWithAuthor(1L))
+                    .willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.editComment(commentEditRequestDto))
+                    .isInstanceOf(CommentNotFoundException.class)
+                    .hasMessage("댓글을 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(commentRepository, times(1)).findByIdWithAuthor(1L);
+            }
+        }
+
+        @DisplayName("해당 ID의 user가 존재하지 않을 때")
+        @Nested
+        class Context_user_not_found {
+
+            @DisplayName("예외가 발생한다.")
+            @Test
+            void it_throws_UserNotFoundException() {
+                // given
+                CommentEditRequestDto commentEditRequestDto =
+                    new CommentEditRequestDto(1L, 1L, "edit content");
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+                Comment comment = new Comment("comment", post, user);
+                given(commentRepository.findByIdWithAuthor(1L))
+                    .willReturn(Optional.of(comment));
+                given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.editComment(commentEditRequestDto))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessage("유저를 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "U0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(commentRepository, times(1)).findByIdWithAuthor(1L);
+                verify(userRepository, times(1)).findById(1L);
+            }
+        }
+
+        @DisplayName("해당 ID의 User와 Comment가 모두 존재할 때")
+        @Nested
+        class Context_user_comment_found {
+
+            @DisplayName("댓글을 정상적으로 수정한다.")
+            @Test
+            void it_edits_comment() {
+                // given
+                CommentEditRequestDto commentEditRequestDto =
+                    new CommentEditRequestDto(1L, 1L, "edit content");
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+                Comment comment = new Comment("comment", post, user);
+                given(commentRepository.findByIdWithAuthor(1L))
+                    .willReturn(Optional.of(comment));
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+                // when
+                CommentResponseDto commentResponseDto =
+                    commentService.editComment(commentEditRequestDto);
+
+                // then
+                assertThat(commentResponseDto)
+                    .extracting("content")
+                    .isEqualTo("edit content");
+
+                verify(commentRepository, times(1)).findByIdWithAuthor(1L);
+                verify(userRepository, times(1)).findById(1L);
             }
         }
     }

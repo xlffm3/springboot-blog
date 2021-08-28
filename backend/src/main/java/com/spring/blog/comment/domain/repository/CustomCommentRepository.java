@@ -10,6 +10,8 @@ public interface CustomCommentRepository {
 
     List<Comment> findCommentsOrderByHierarchyAndDateDesc(Pageable pageable, Post post);
 
+    Optional<Comment> findByIdWithAuthor(Long commentId);
+
     Optional<Comment> findByIdIdWithRootComment(Long commentId);
 
     void adjustHierarchyOrders(Comment newComment);
