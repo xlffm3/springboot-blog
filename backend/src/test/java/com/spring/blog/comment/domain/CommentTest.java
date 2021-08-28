@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
+import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
@@ -99,6 +100,55 @@ class CommentTest {
                 assertThat(comment)
                     .extracting("hierarchy.rootComment")
                     .isEqualTo(comment);
+            }
+        }
+    }
+
+    @DisplayName("editContent 메서드는")
+    @Nested
+    class Describe_editContent {
+
+        @DisplayName("작성자와 수정자가 다르면")
+        @Nested
+        class Context_writer_editor_different {
+
+            @DisplayName("예외가 발생한다.")
+            @Test
+            void it_throws_CannotEditCommentException() {
+                // given
+                User writer = new User(1L, "kevin", "image.url");
+                User editor = new User(2L, "ginger", "image.url");
+                Post post = new Post("title", "content", writer);
+                Comment comment = new Comment("comment", post, writer);
+
+                // when, then
+                assertThatCode(() -> comment.editContent("change", editor))
+                    .isInstanceOf(CannotEditCommentException.class)
+                    .hasMessage("댓글을 수정할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0004")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        @DisplayName("작성자와 수정자가 동일하면")
+        @Nested
+        class Context_writer_editor_same {
+
+            @DisplayName("댓글이 수정된다.")
+            @Test
+            void it_throws_CannotEditCommentException() {
+                // given
+                User writer = new User(1L, "kevin", "image.url");
+                Post post = new Post("title", "content", writer);
+                Comment comment = new Comment("comment", post, writer);
+
+                // when
+                comment.editContent("change comment", writer);
+
+                // then
+                assertThat(comment)
+                    .extracting("commentContent.content")
+                    .isEqualTo("change comment");
             }
         }
     }

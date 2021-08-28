@@ -1,8 +1,10 @@
 package com.spring.blog.comment.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.comment.application.CommentService;
+import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
@@ -12,6 +14,7 @@ import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
@@ -24,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
 @DisplayName("CommentService 통합 테스트")
@@ -149,5 +153,51 @@ class CommentServiceIntegrationTest {
             .usingRecursiveComparison()
             .ignoringFields("id", "createdDate")
             .isEqualTo(expected);
+    }
+
+    @DisplayName("특정 Comment의 내용 수정한다.")
+    @Test
+    void editComment_ContentChanged_Success() {
+        // given
+        User user = new User("kevin", "image");
+        Post post = new Post("hi", "there", user);
+        Comment comment = new Comment("hi", post, user);
+        comment.updateAsRoot();
+        userRepository.save(user);
+        postRepository.save(post);
+        commentRepository.save(comment);
+        CommentEditRequestDto commentEditRequestDto =
+            new CommentEditRequestDto(comment.getId(), user.getId(), "edit comment");
+
+        // when
+        CommentResponseDto commentResponseDto = commentService.editComment(commentEditRequestDto);
+
+        // then
+        assertThat(commentResponseDto)
+            .extracting("content")
+            .isEqualTo("edit comment");
+    }
+
+    @DisplayName("타인이 작성한 Comment 수정에 실패한다.")
+    @Test
+    void editComment_OtherUserComment_Failure() {
+        // given
+        User user = new User("kevin", "image");
+        User other = new User("foo", "image");
+        Post post = new Post("hi", "there", user);
+        Comment comment = new Comment("hi", post, user);
+        comment.updateAsRoot();
+        userRepository.saveAll(Arrays.asList(user, other));
+        postRepository.save(post);
+        commentRepository.save(comment);
+        CommentEditRequestDto commentEditRequestDto =
+            new CommentEditRequestDto(comment.getId(), other.getId(), "edit comment");
+
+        // when, then
+        assertThatCode(() -> commentService.editComment(commentEditRequestDto))
+            .isInstanceOf(CannotEditCommentException.class)
+            .hasMessage("댓글을 수정할 수 없습니다.")
+            .hasFieldOrPropertyWithValue("errorCode", "C0004")
+            .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
     }
 }

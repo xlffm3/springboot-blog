@@ -3,6 +3,7 @@ package com.spring.blog.comment.domain;
 import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.date.BaseDate;
 import com.spring.blog.comment.domain.hierarchy.Hierarchy;
+import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
 import java.time.LocalDateTime;
@@ -74,6 +75,13 @@ public class Comment {
 
     public void updateAsRoot() {
         hierarchy.updateAsRoot(this);
+    }
+
+    public void editContent(String content, User user) {
+        if (!this.user.equals(user)) {
+            throw new CannotEditCommentException();
+        }
+        this.commentContent = new CommentContent(content);
     }
 
     public Long getId() {
