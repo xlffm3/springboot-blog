@@ -1,5 +1,6 @@
 package com.spring.blog.post.domain;
 
+import com.spring.blog.exception.post.CannotDeletePostException;
 import com.spring.blog.post.domain.content.PostContent;
 import com.spring.blog.post.domain.date.BaseDate;
 import com.spring.blog.post.domain.image.Images;
@@ -7,6 +8,7 @@ import com.spring.blog.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -38,7 +40,11 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
     private Long viewCounts;
+
+    @Column(nullable = false)
+    private Boolean isDeleted;
 
     @Embedded
     private BaseDate baseDate;
@@ -61,10 +67,17 @@ public class Post {
         this.user = user;
         this.viewCounts = DEFAULT_VIEW_COUNTS;
         this.baseDate = new BaseDate();
+        this.isDeleted = false;
     }
 
     public void addImages(List<String> imageUrls) {
         images.add(imageUrls, this);
+    }
+
+    public void delete(User user) {
+        if (!this.user.equals(user)) {
+            throw new CannotDeletePostException();
+        }
     }
 
     public void updateViewCounts() {

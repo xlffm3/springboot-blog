@@ -20,16 +20,20 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
 
     @Override
     public Optional<Post> findWithAuthorById(Long id) {
-        Post post = selectPostInnerFetchJoinUser()
-            .where(QPost.post.id.eq(id))
+        QPost post = QPost.post;
+        Post findPost = selectPostInnerFetchJoinUser()
+            .where(post.id.eq(id)
+                .and(post.isDeleted.eq(false)))
             .fetchFirst();
-        return Optional.ofNullable(post);
+        return Optional.ofNullable(findPost);
     }
 
     @Override
     public List<Post> findPostsOrderByDateDesc(Pageable pageable) {
+        QPost post = QPost.post;
         return selectPostInnerFetchJoinUser()
-            .orderBy(QPost.post.baseDate.createdDate.desc())
+            .where(post.isDeleted.eq(false))
+            .orderBy(post.baseDate.createdDate.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();

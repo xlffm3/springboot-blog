@@ -3,7 +3,7 @@ package com.spring.blog.comment.domain;
 import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.date.BaseDate;
 import com.spring.blog.comment.domain.hierarchy.Hierarchy;
-import com.spring.blog.exception.comment.CannotDeleteException;
+import com.spring.blog.exception.comment.CannotDeleteCommentException;
 import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
@@ -66,23 +66,12 @@ public class Comment {
         Post post,
         User user
     ) {
-        this(id, commentContent, hierarchy, post, user, false);
-    }
-
-    public Comment(
-        Long id,
-        CommentContent commentContent,
-        Hierarchy hierarchy,
-        Post post,
-        User user,
-        Boolean isDeleted
-    ) {
         this.id = id;
         this.commentContent = commentContent;
         this.hierarchy = hierarchy;
         this.post = post;
         this.user = user;
-        this.isDeleted = isDeleted;
+        this.isDeleted = false;
         this.baseDate = new BaseDate();
     }
 
@@ -103,7 +92,7 @@ public class Comment {
 
     public void delete(User user) {
         if (!this.user.equals(user)) {
-            throw new CannotDeleteException();
+            throw new CannotDeleteCommentException();
         }
         this.isDeleted = true;
     }
