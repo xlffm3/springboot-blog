@@ -2,6 +2,7 @@ import {renderLoginSection, addLogoClickEvent} from './module/header-module.js';
 import {parseDate} from "./module/string-parser.js";
 import {renderPageNavigation} from "./module/navigator-module.js";
 import {activateButtonsSection} from "./module/button-module.js";
+import {isLogin} from "./module/login-module.js";
 
 const DEFAULT_SIZE_PER_PAGE = 10;
 const DEFAULT_PAGE_BLOCK_COUNTS = 10;
@@ -76,21 +77,35 @@ function renderCommentRow(response) {
     const commentHtml = document.querySelector('#template-comment-row-template')
     .innerHTML.replaceAll('{comment-id}', comment.id)
     .replaceAll('{content}', comment.content)
-    .replace('{author}', comment.author)
+    .replaceAll('{author}', comment.author)
     .replace('{created}', parseDate(comment.createdDate));
     $table.insertAdjacentHTML('beforeend', commentHtml);
 
     const $comment = document.getElementById(comment.id);
-    const margin = (Number(comment.depth) - 1) * 15
+    const margin = (Number(comment.depth) - 1) * 20
     $comment.style.marginLeft = margin + "px";
+
+    if (isLoginUserComment(comment)) {
+      document.getElementById('comment-edit-btn-' + comment.id)
+          .style.visibility = "visible";
+    }
   });
-  activateReplyRequest();
+  if (isLogin()) {
+    const replyButtons =
+        document.getElementsByClassName('comment-reply-btn-hidden');
+    Array.from(replyButtons).forEach(btn => btn.style.visibility = "visible");
+    activateReplyRequest();
+    activateEditRequest();
+  }
+}
+
+function isLoginUserComment(comment) {
+  return isLogin() && comment.author === localStorage.getItem('userName');
 }
 
 function activateReplyRequest() {
-  const replyButtons = document.querySelectorAll('.comment-reply-btn');
-  Array.from(replyButtons)
-  .forEach(replyButton => {
+  const replyButtons = document.querySelectorAll('.comment-reply-btn-submit');
+  Array.from(replyButtons).forEach(replyButton => {
     replyButton.addEventListener('click', e => {
       const form = replyButton.closest('form');
       requestToReplyComment(form);
@@ -99,8 +114,8 @@ function activateReplyRequest() {
 }
 
 async function requestToReplyComment(form) {
-  const parentCommentId = form.querySelector('#comment-id').value;
-  const commentContent = form.querySelector('#comment-content').value;
+  const parentCommentId = form.querySelector('#comment-reply-id').value;
+  const commentContent = form.querySelector('#comment-reply-content').value;
   const postId = sessionStorage.getItem('post-id');
   const token = localStorage.getItem('token');
   const url = '/api/posts/' + postId + '/comments/' + parentCommentId
@@ -108,6 +123,32 @@ async function requestToReplyComment(form) {
   const json = JSON.stringify({content: commentContent});
 
   await axios.post(url, json, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  }).then(response => reRenderCommentSection())
+  .catch(error => alert(error));
+}
+
+function activateEditRequest() {
+  const editButtons = document.querySelectorAll('.comment-edit-btn-submit');
+  Array.from(editButtons).forEach(editButton => {
+    editButton.addEventListener('click', e => {
+      const form = editButton.closest('form');
+      requestToEditComment(form);
+    });
+  });
+}
+
+async function requestToEditComment(form) {
+  const commentId = form.querySelector('#comment-edit-id').value;
+  const commentContent = form.querySelector('#comment-edit-content').value;
+  const token = localStorage.getItem('token');
+  const url = '/api/comments/' + commentId;
+  const json = JSON.stringify({content: commentContent});
+
+  await axios.put(url, json, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token

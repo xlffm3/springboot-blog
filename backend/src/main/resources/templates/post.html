@@ -54,20 +54,34 @@
             <small>
               {created}
             </small>
-            <small>
+            <small class="comment-reply-btn-hidden" style="visibility: hidden">
               <a href="#" class="comment-reply-btn" data-toggle="collapse"
                  data-target=".multi-collapse-reply-{comment-id}">답글 쓰기</a>
+            </small>
+            <small id="comment-edit-btn-{comment-id}" class="comment-edit-btn-hidden"
+                   style="visibility: hidden">
+              <a href="#" class="comment-edit-btn" data-toggle="collapse"
+                 data-target=".multi-collapse-edit-{comment-id}">수정</a>
             </small>
           </h5>
           <p class="collapse multi-collapse-{comment-id} show">{content}</p>
           <form class="collapse multi-collapse-reply-{comment-id}">
             <div class="form-group">
-              <textarea class="form-control" id="comment-content" rows="3"></textarea>
+              <textarea class="form-control" id="comment-reply-content" rows="3"></textarea>
             </div>
-            <input type="hidden" id="comment-id" value="{comment-id}">
-            <input type="hidden" id="comment-author" value="{author}">
+            <input type="hidden" id="comment-reply-id" value="{comment-id}">
+            <input type="hidden" id="comment-reply-author" value="{author}">
             <input class="btn btn-info comment-clear-btn" type="reset" role="button" value="취소">
-            <button type="button" class="btn btn-info comment-reply-btn">등록</button>
+            <button type="button" class="btn btn-info comment-reply-btn-submit">등록</button>
+          </form>
+          <form class="collapse multi-collapse-edit-{comment-id}">
+            <div class="form-group">
+              <textarea class="form-control" id="comment-edit-content" rows="3">{content}</textarea>
+            </div>
+            <input type="hidden" id="comment-edit-id" value="{comment-id}">
+            <input type="hidden" id="comment-edit-author" value="{author}">
+            <input class="btn btn-info comment-clear-btn" type="reset" role="button" value="취소">
+            <button type="button" class="btn btn-info comment-edit-btn-submit">수정</button>
           </form>
         </div>
       </li>
