@@ -3,6 +3,7 @@ package com.spring.blog.comment.presentation;
 import com.spring.blog.authentication.domain.Authenticated;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.comment.application.CommentService;
+import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -76,5 +78,18 @@ public class CommentController {
         CommentListResponse commentListResponse =
             CommentListResponse.from(commentListResponseDto);
         return ResponseEntity.ok(commentListResponse);
+    }
+
+    @PutMapping("comments/{commentId}")
+    public ResponseEntity<CommentResponse> edit(
+        @PathVariable Long commentId,
+        @Authenticated AppUser appUser,
+        @RequestBody CommentWriteRequest commentWriteRequest
+    ) {
+        CommentEditRequestDto commentEditRequestDto =
+            new CommentEditRequestDto(commentId, appUser.getId(), commentWriteRequest.getContent());
+        CommentResponseDto commentResponseDto = commentService.editComment(commentEditRequestDto);
+        CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
+        return ResponseEntity.ok(commentResponse);
     }
 }
