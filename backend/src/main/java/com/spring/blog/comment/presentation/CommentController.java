@@ -3,6 +3,7 @@ package com.spring.blog.comment.presentation;
 import com.spring.blog.authentication.domain.Authenticated;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.comment.application.CommentService;
+import com.spring.blog.comment.application.dto.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
@@ -13,6 +14,7 @@ import com.spring.blog.comment.presentation.dto.CommentListResponse;
 import com.spring.blog.comment.presentation.dto.CommentResponse;
 import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,5 +93,17 @@ public class CommentController {
         CommentResponseDto commentResponseDto = commentService.editComment(commentEditRequestDto);
         CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
         return ResponseEntity.ok(commentResponse);
+    }
+
+    @DeleteMapping("comments/{commentId}")
+    public ResponseEntity<Void> delete(
+        @PathVariable Long commentId,
+        @Authenticated AppUser appUser
+    ) {
+        CommentDeleteRequestDto commentDeleteRequestDto =
+            new CommentDeleteRequestDto(commentId, appUser.getId());
+        commentService.deleteComment(commentDeleteRequestDto);
+        return ResponseEntity.noContent()
+            .build();
     }
 }
