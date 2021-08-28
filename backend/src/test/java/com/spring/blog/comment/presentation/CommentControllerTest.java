@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.comment.application.CommentService;
+import com.spring.blog.comment.application.dto.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -63,7 +66,8 @@ class CommentControllerTest {
         mockMvc.perform(post("/api/posts/{postId}/comments", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
     }
@@ -109,7 +113,8 @@ class CommentControllerTest {
         mockMvc.perform(post("/api/posts/{postId}/comments/{commentId}/reply", "1", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
     }
@@ -159,7 +164,8 @@ class CommentControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .content(requestBody))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
     }
@@ -190,7 +196,43 @@ class CommentControllerTest {
             .andExpect(jsonPath("$.content").value("comment hi"))
             .andExpect(jsonPath("$.depth").value("2"));
 
+        verify(oAuthService, times(1)).validateToken("token");
+        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(commentService, times(1))
+            .editComment(any(CommentEditRequestDto.class));
+    }
+
+    @DisplayName("비로그인 유저는 댓글을 삭제할 수 없다.")
+    @Test
+    void delete_GuestUser_Failure() throws Exception {
+        // given
+        given(oAuthService.validateToken(any())).willReturn(false);
+
+        // when, then
+        mockMvc.perform(delete("/api/comments/{commentId}", "1"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.errorCode").value("A0001"));
+
         verify(oAuthService, times(1)).validateToken(any());
+    }
+
+    @DisplayName("로그인 유저는 댓글을 수정할 수 있다.")
+    @Test
+    void delete_GuestUser_Success() throws Exception {
+        // given
+        given(oAuthService.validateToken("token")).willReturn(true);
+        given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
+        Mockito.doNothing().when(commentService).deleteComment(any(CommentDeleteRequestDto.class));
+
+        // when, then
+        mockMvc.perform(delete("/api/comments/{commentId}", "1")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+            .andExpect(status().isNoContent());
+
+        verify(oAuthService, times(1)).validateToken("token");
+        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(commentService, times(1))
+            .deleteComment(any(CommentDeleteRequestDto.class));
     }
 
     @DisplayName("게시물에 달린 Comment를 페이지네이션으로 조회한다.")

@@ -12,7 +12,13 @@ public interface CustomCommentRepository {
 
     Optional<Comment> findByIdWithAuthor(Long commentId);
 
-    Optional<Comment> findByIdIdWithRootComment(Long commentId);
+    Optional<Comment> findByIdWithRootComment(Long commentId);
+
+    Optional<Comment> findByIdWithRootCommentAndAuthor(Long commentId);
 
     void adjustHierarchyOrders(Comment newComment);
+
+    void deleteChildComments(Comment parentComment);
+
+    Long countCommentByPost(Post post);
 }

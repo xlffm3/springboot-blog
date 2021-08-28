@@ -3,10 +3,12 @@ package com.spring.blog.comment.domain;
 import com.spring.blog.comment.domain.content.CommentContent;
 import com.spring.blog.comment.domain.date.BaseDate;
 import com.spring.blog.comment.domain.hierarchy.Hierarchy;
+import com.spring.blog.exception.comment.CannotDeleteException;
 import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
 import java.time.LocalDateTime;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -40,6 +42,9 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
+    private Boolean isDeleted;
+
     @Embedded
     private BaseDate baseDate;
 
@@ -61,11 +66,23 @@ public class Comment {
         Post post,
         User user
     ) {
+        this(id, commentContent, hierarchy, post, user, false);
+    }
+
+    public Comment(
+        Long id,
+        CommentContent commentContent,
+        Hierarchy hierarchy,
+        Post post,
+        User user,
+        Boolean isDeleted
+    ) {
         this.id = id;
         this.commentContent = commentContent;
         this.hierarchy = hierarchy;
         this.post = post;
         this.user = user;
+        this.isDeleted = isDeleted;
         this.baseDate = new BaseDate();
     }
 
@@ -82,6 +99,13 @@ public class Comment {
             throw new CannotEditCommentException();
         }
         this.commentContent = new CommentContent(content);
+    }
+
+    public void delete(User user) {
+        if (!this.user.equals(user)) {
+            throw new CannotDeleteException();
+        }
+        this.isDeleted = true;
     }
 
     public Long getId() {

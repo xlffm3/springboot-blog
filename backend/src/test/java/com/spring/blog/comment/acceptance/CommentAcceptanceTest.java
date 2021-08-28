@@ -143,6 +143,83 @@ class CommentAcceptanceTest extends AcceptanceTest {
             );
     }
 
+    @DisplayName("비로그인 유저는 댓글을 수정할 수 없다.")
+    @Test
+    void edit_GuestUser_Failure() {
+        // given
+        CommentWriteRequest commentWriteRequest =
+            new CommentWriteRequest("hi");
+
+        // when, then
+        webTestClient.put()
+            .uri("/api/comments/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(commentWriteRequest)
+            .exchange()
+            .expectStatus()
+            .isUnauthorized()
+            .expectBody(ApiErrorResponse.class)
+            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
+    }
+
+    @DisplayName("로그인 유저는 댓글을 수정할 수 있다.")
+    @Test
+    void edit_LoginUser_Failure() {
+        // given
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
+        Long commentId = api_댓글_작성_요청_ID_회수(token, "first comment", postId);
+        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("change comment");
+
+        // when, then
+        webTestClient.put()
+            .uri("/api/comments/{commentId}", commentId)
+            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
+            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(commentWriteRequest)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(CommentResponse.class)
+            .value(commentResponse ->
+                assertThat(commentResponse)
+                    .extracting("content")
+                    .isEqualTo("change comment")
+            );
+    }
+
+    @DisplayName("비로그인 유저는 댓글을 삭제할 수 없다.")
+    @Test
+    void delete_GuestUser_Failure() {
+        // given, when, then
+        webTestClient.put()
+            .uri("/api/comments/1")
+            .exchange()
+            .expectStatus()
+            .isUnauthorized()
+            .expectBody(ApiErrorResponse.class)
+            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
+    }
+
+    @DisplayName("로그인 유저는 댓글을 삭제할 수 있다.")
+    @Test
+    void delete_LoginUser_Success() {
+        // given
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_테스트용_게시물_작성_ID_회수(token);
+        Long commentId = api_댓글_작성_요청_ID_회수(token, "first comment", postId);
+
+        // when, then
+        webTestClient.delete()
+            .uri("/api/comments/{commentId}", commentId)
+            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
+            .exchange()
+            .expectStatus()
+            .isNoContent();
+    }
+
     @DisplayName("대댓글 작성 요청")
     private ResponseSpec api_대댓글_작성_요청(
         String token,
@@ -172,51 +249,5 @@ class CommentAcceptanceTest extends AcceptanceTest {
             .returnResult()
             .getResponseBody()
             .getId();
-    }
-
-    @DisplayName("비로그인 유저는 댓글을 수정할 수 없다.")
-    @Test
-    void edit_GuestUser_Failure() {
-        // given
-        CommentWriteRequest commentWriteRequest =
-            new CommentWriteRequest("hi");
-
-        // when, then
-        webTestClient.put()
-            .uri("/api/comments/1")
-            .contentType(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(commentWriteRequest)
-            .exchange()
-            .expectStatus()
-            .isUnauthorized()
-            .expectBody(ApiErrorResponse.class)
-            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
-    }
-
-    @DisplayName("로그인 유저는 댓글을 수정할 수 있다.")
-    @Test
-    void edit_LoginUser_Failure() {
-        // given
-        String token = api_로그인_요청_및_토큰_반환("kevin");
-        String postId = api_테스트용_게시물_작성_ID_회수(token);
-        Long commentId = api_댓글_작성_요청_ID_회수(token, "first comment", postId);
-        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("change comment");
-        // when, then
-        webTestClient.put()
-            .uri("/api/comments/{commentId}", commentId)
-            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-            .contentType(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(commentWriteRequest)
-            .exchange()
-            .expectStatus()
-            .isOk()
-            .expectBody(CommentResponse.class)
-            .value(commentResponse ->
-                assertThat(commentResponse)
-                    .extracting("content")
-                    .isEqualTo("change comment")
-            );
     }
 }

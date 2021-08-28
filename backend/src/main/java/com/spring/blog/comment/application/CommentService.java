@@ -1,5 +1,6 @@
 package com.spring.blog.comment.application;
 
+import com.spring.blog.comment.application.dto.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
@@ -58,7 +59,7 @@ public class CommentService {
         Post post = postRepository.findById(commentReplyRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
         Comment parentComment =
-            commentRepository.findByIdIdWithRootComment(commentReplyRequestDto.getCommentId())
+            commentRepository.findByIdWithRootComment(commentReplyRequestDto.getCommentId())
                 .orElseThrow(CommentNotFoundException::new);
         Comment comment = new Comment(commentReplyRequestDto.getContent(), post, user);
         parentComment.updateChildCommentHierarchy(comment);
@@ -97,5 +98,16 @@ public class CommentService {
             .orElseThrow(UserNotFoundException::new);
         comment.editContent(commentEditRequestDto.getContent(), user);
         return CommentResponseDto.from(comment);
+    }
+
+    @Transactional
+    public void deleteComment(CommentDeleteRequestDto commentDeleteRequestDto) {
+        Comment comment = commentRepository
+                .findByIdWithRootCommentAndAuthor(commentDeleteRequestDto.getCommentId())
+                .orElseThrow(CommentNotFoundException::new);
+        User user = userRepository.findById(commentDeleteRequestDto.getUserId())
+            .orElseThrow(UserNotFoundException::new);
+        comment.delete(user);
+        commentRepository.deleteChildComments(comment);
     }
 }

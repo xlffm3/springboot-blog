@@ -9,6 +9,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.spring.blog.comment.application.dto.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
@@ -286,7 +287,7 @@ class CommentServiceTest {
 
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.findById(1L)).willReturn(Optional.of(post));
-                given(commentRepository.findByIdIdWithRootComment(1L)).willReturn(Optional.empty());
+                given(commentRepository.findByIdWithRootComment(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
@@ -297,7 +298,7 @@ class CommentServiceTest {
 
                 verify(userRepository, times(1)).findById(1L);
                 verify(postRepository, times(1)).findById(1L);
-                verify(commentRepository, times(1)).findByIdIdWithRootComment(1L);
+                verify(commentRepository, times(1)).findByIdWithRootComment(1L);
             }
         }
 
@@ -322,7 +323,7 @@ class CommentServiceTest {
 
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(postRepository.findById(1L)).willReturn(Optional.of(post));
-                given(commentRepository.findByIdIdWithRootComment(1L)).willReturn(Optional.of(parentComment));
+                given(commentRepository.findByIdWithRootComment(1L)).willReturn(Optional.of(parentComment));
                 given(commentRepository.save(any(Comment.class))).willReturn(childComment);
 
                 // when, then
@@ -336,7 +337,7 @@ class CommentServiceTest {
 
                 verify(userRepository, times(1)).findById(1L);
                 verify(postRepository, times(1)).findById(1L);
-                verify(commentRepository, times(1)).findByIdIdWithRootComment(1L);
+                verify(commentRepository, times(1)).findByIdWithRootComment(1L);
                 verify(commentRepository, times(1)).adjustHierarchyOrders(any(Comment.class));
                 verify(commentRepository, times(1)).save(any(Comment.class));
             }
@@ -427,6 +428,97 @@ class CommentServiceTest {
                     .isEqualTo("edit content");
 
                 verify(commentRepository, times(1)).findByIdWithAuthor(1L);
+                verify(userRepository, times(1)).findById(1L);
+            }
+        }
+    }
+
+    @DisplayName("deleteComment 메서드는")
+    @Nested
+    class Describe_deleteComment {
+
+        @DisplayName("삭제하려는 댓글이 존재하지 않을 때")
+        @Nested
+        class Context_comment_not_found {
+
+            @DisplayName("예외를 발생시킨다.")
+            @Test
+            void it_throws_CommentNotFoundException() {
+                // given
+                CommentDeleteRequestDto commentDeleteRequestDto =
+                    new CommentDeleteRequestDto(1L, 1L);
+                given(commentRepository.findByIdWithRootCommentAndAuthor(1L))
+                    .willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.deleteComment(commentDeleteRequestDto))
+                    .isInstanceOf(CommentNotFoundException.class)
+                    .hasMessage("댓글을 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(commentRepository, times(1))
+                    .findByIdWithRootCommentAndAuthor(1L);
+            }
+        }
+
+        @DisplayName("유저가 존재하지 않을 때")
+        @Nested
+        class Context_user_not_found {
+
+            @DisplayName("예외를 발생시킨다.")
+            @Test
+            void it_throws_UserNotFoundException() {
+                // given
+                CommentDeleteRequestDto commentDeleteRequestDto =
+                    new CommentDeleteRequestDto(1L, 1L);
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+                Comment comment = new Comment("comment", post, user);
+                given(commentRepository.findByIdWithRootCommentAndAuthor(1L))
+                    .willReturn(Optional.of(comment));
+                given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> commentService.deleteComment(commentDeleteRequestDto))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessage("유저를 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "U0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(commentRepository, times(1))
+                    .findByIdWithRootCommentAndAuthor(1L);
+                verify(userRepository, times(1)).findById(1L);
+            }
+        }
+
+        @DisplayName("삭제하려는 댓글 및 작성자가 정상적으로 조회되면")
+        @Nested
+        class Context_comment_and_user_found {
+
+            @DisplayName("댓글이 삭제된다.")
+            @Test
+            void it_deletes_comment() {
+                // given
+                CommentDeleteRequestDto commentDeleteRequestDto =
+                    new CommentDeleteRequestDto(1L, 1L);
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+                Comment comment = new Comment("comment", post, user);
+                given(commentRepository.findByIdWithRootCommentAndAuthor(1L))
+                    .willReturn(Optional.of(comment));
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+                // when
+                commentService.deleteComment(commentDeleteRequestDto);
+
+                // then
+                assertThat(comment)
+                    .extracting("isDeleted")
+                    .isEqualTo(true);
+
+                verify(commentRepository, times(1))
+                    .findByIdWithRootCommentAndAuthor(1L);
                 verify(userRepository, times(1)).findById(1L);
             }
         }
