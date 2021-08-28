@@ -87,7 +87,9 @@ function renderCommentRow(response) {
 
     if (isLoginUserComment(comment)) {
       document.getElementById('comment-edit-btn-' + comment.id)
-          .style.visibility = "visible";
+          .style.visibility = 'visible';
+      document.getElementById('comment-delete-btn-' + comment.id)
+          .style.visibility = 'visible';
     }
   });
   if (isLogin()) {
@@ -96,6 +98,7 @@ function renderCommentRow(response) {
     Array.from(replyButtons).forEach(btn => btn.style.visibility = "visible");
     activateReplyRequest();
     activateEditRequest();
+    activateDeleteRequest();
   }
 }
 
@@ -155,6 +158,29 @@ async function requestToEditComment(form) {
     }
   }).then(response => reRenderCommentSection())
   .catch(error => alert(error));
+}
+
+function activateDeleteRequest() {
+  const deleteButtons = document.querySelectorAll('.comment-delete-btn');
+  Array.from(deleteButtons).forEach(deleteButton => {
+    deleteButton.addEventListener('click', e => {
+      const comment = deleteButton.closest('li');
+      requestToDeleteComment(comment);
+    });
+  });
+}
+
+async function requestToDeleteComment(comment) {
+  const token = localStorage.getItem('token');
+  const url = '/api/comments/' + comment.id;
+  await axios.delete(url, {
+    headers: {
+      'Authorization': 'Bearer ' + token
+    }
+  }).then(response => {
+    alert('댓글이 삭제되었습니다.');
+    reRenderCommentSection();
+  }).catch(error => alert(error));
 }
 
 function activateCommentWriteSection() {
