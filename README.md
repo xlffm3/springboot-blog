@@ -40,7 +40,7 @@
 
 ### Logging
 
-* Logback
+* Log4j2
 * AWS CloudWatch
 
 ### Database
