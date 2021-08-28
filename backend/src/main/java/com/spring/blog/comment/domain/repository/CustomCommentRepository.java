@@ -15,4 +15,8 @@ public interface CustomCommentRepository {
     Optional<Comment> findByIdIdWithRootComment(Long commentId);
 
     void adjustHierarchyOrders(Comment newComment);
+
+    void deleteChildComments(Comment parentComment);
+
+    Long countCommentByPost(Post post);
 }

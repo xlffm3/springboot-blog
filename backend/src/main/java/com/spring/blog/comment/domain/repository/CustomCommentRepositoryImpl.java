@@ -24,9 +24,9 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
         return jpaQueryFactory.selectFrom(comment)
             .innerJoin(comment.user)
             .fetchJoin()
-            .where(comment.post.eq(post))
-            .orderBy(
-                comment.hierarchy.rootComment.id.asc(),
+            .where(comment.post.eq(post)
+                .and(comment.isDeleted.eq(false)))
+            .orderBy(comment.hierarchy.rootComment.id.asc(),
                 comment.hierarchy.leftNode.asc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -39,7 +39,8 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
         Comment findComment = jpaQueryFactory.selectFrom(comment)
             .innerJoin(comment.user)
             .fetchJoin()
-            .where(comment.id.eq(commentId))
+            .where(comment.id.eq(commentId)
+                .and(comment.isDeleted.eq(false)))
             .fetchOne();
         return Optional.ofNullable(findComment);
     }
@@ -50,7 +51,8 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
         Comment findComment = jpaQueryFactory.selectFrom(comment)
             .innerJoin(comment.hierarchy.rootComment)
             .fetchJoin()
-            .where(comment.id.eq(commentId))
+            .where(comment.id.eq(commentId)
+                .and(comment.isDeleted.eq(false)))
             .fetchOne();
         return Optional.ofNullable(findComment);
     }
@@ -62,14 +64,37 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
             .set(comment.hierarchy.leftNode, comment.hierarchy.leftNode.add(2))
             .where(comment.hierarchy.leftNode.goe(newComment.getRightNode())
                 .and(comment.hierarchy.rootComment.eq(newComment.getRootComment()))
-                .and(comment.ne(newComment)))
+                .and(comment.ne(newComment))
+                .and(comment.isDeleted.eq(false)))
             .execute();
 
         jpaQueryFactory.update(comment)
             .set(comment.hierarchy.rightNode, comment.hierarchy.rightNode.add(2))
             .where(comment.hierarchy.rightNode.goe(newComment.getLeftNode())
                 .and(comment.hierarchy.rootComment.eq(newComment.getRootComment()))
-                .and(comment.ne(newComment)))
+                .and(comment.ne(newComment))
+                .and(comment.isDeleted.eq(false)))
+            .execute();
+    }
+
+    @Override
+    public Long countCommentByPost(Post post) {
+        QComment comment = QComment.comment;
+        return jpaQueryFactory.selectFrom(comment)
+            .where(comment.post.eq(post)
+                .and(comment.isDeleted.eq(false)))
+            .fetchCount();
+    }
+
+    @Override
+    public void deleteChildComments(Comment parentComment) {
+        QComment comment = QComment.comment;
+        jpaQueryFactory.update(comment)
+            .set(comment.isDeleted, true)
+            .where(comment.hierarchy.leftNode.gt(parentComment.getLeftNode())
+                .and(comment.hierarchy.rightNode.lt(parentComment.getRightNode())
+                    .and(comment.hierarchy.rootComment.eq(parentComment.getRootComment())
+                        .and(comment.isDeleted.eq(false)))))
             .execute();
     }
 }

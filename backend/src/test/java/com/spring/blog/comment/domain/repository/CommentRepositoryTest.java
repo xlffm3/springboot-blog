@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.configuration.JpaTestConfiguration;
+import com.spring.blog.exception.comment.CommentNotFoundException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
@@ -74,7 +75,7 @@ class CommentRepositoryTest {
         flushAndClear();
 
         // when
-        Long counts = commentRepository.countCommentByPost(post);
+        Long counts = customCommentRepository.countCommentByPost(post);
 
         // then
         assertThat(counts).isEqualTo(2);
@@ -237,6 +238,46 @@ class CommentRepositoryTest {
                 assertThat(comments)
                     .extracting("commentContent.content")
                     .containsExactly("1", "c1", "c3", "c4", "c2", "2", "3", "c5");
+            }
+        }
+    }
+
+    @DisplayName("deleteChildComments 메서드는")
+    @Nested
+    class Describe_deleteChildComments {
+
+        @DisplayName("주어진 부모 댓글에 대해")
+        @Nested
+        class Context_parent_comment {
+
+            @DisplayName("부모 댓글의 하위 댓글들을 전부 삭제한다.")
+            @Test
+            void it_removes_all_child_comments() {
+                // given
+                User user = new User("kevin", "image");
+                Post post = new Post("hi", "there", user);
+                userRepository.save(user);
+                postRepository.save(post);
+
+                Comment comment1 = new Comment("1", post, user);
+                comment1.updateAsRoot();
+                commentRepository.save(comment1);
+                flushAndClear();
+
+                Comment child1 = new Comment("c1", post, user);
+                Comment child2 = new Comment("c2", post, user);
+
+                addChild(comment1.getId(), child1);
+                addChild(comment1.getId(), child2);
+
+                Comment parentComment = commentRepository.findById(comment1.getId())
+                    .orElseThrow(CommentNotFoundException::new);
+
+                // when
+                customCommentRepository.deleteChildComments(parentComment);
+
+                // then
+                assertThat(customCommentRepository.countCommentByPost(post)).isEqualTo(1);
             }
         }
     }
