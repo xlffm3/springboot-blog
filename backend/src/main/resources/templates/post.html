@@ -63,6 +63,10 @@
               <a href="#" class="comment-edit-btn" data-toggle="collapse"
                  data-target=".multi-collapse-edit-{comment-id}">수정</a>
             </small>
+            <small id="comment-delete-btn-{comment-id}" class="comment-delete-btn-hidden"
+                   style="visibility: hidden">
+              <a href="#" id="comment-delete-btn-submit" class="comment-delete-btn">삭제</a>
+            </small>
           </h5>
           <p class="collapse multi-collapse-{comment-id} show">{content}</p>
           <form class="collapse multi-collapse-reply-{comment-id}">
