@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
+import com.spring.blog.exception.comment.CannotDeleteException;
 import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
@@ -149,6 +150,55 @@ class CommentTest {
                 assertThat(comment)
                     .extracting("commentContent.content")
                     .isEqualTo("change comment");
+            }
+        }
+    }
+
+    @DisplayName("delete 메서드는")
+    @Nested
+    class Describe_delete {
+
+        @DisplayName("작성자와 제거 시도자가 다르다면")
+        @Nested
+        class Context_writer_and_deleter_different {
+
+            @DisplayName("예외가 발생한다.")
+            @Test
+            void it_throws_CannotDeleteCommentException() {
+                // given
+                User writer = new User(1L, "kevin", "image.url");
+                User deleter = new User(2L, "ginger", "image.url");
+                Post post = new Post("title", "content", writer);
+                Comment comment = new Comment("comment", post, writer);
+
+                // when, then
+                assertThatCode(() -> comment.delete(deleter))
+                    .isInstanceOf(CannotDeleteException.class)
+                    .hasMessage("댓글을 삭제할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0005")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        @DisplayName("작성자와 제거 시도자가 동일하면")
+        @Nested
+        class Context_writer_and_deleter_same {
+
+            @DisplayName("댓글이 Soft Delete된다.")
+            @Test
+            void it_deletes_comment() {
+                // given
+                User writer = new User(1L, "kevin", "image.url");
+                Post post = new Post("title", "content", writer);
+                Comment comment = new Comment("comment", post, writer);
+
+                // when
+                comment.delete(writer);
+
+                // then
+                assertThat(comment)
+                    .extracting("isDeleted")
+                    .isEqualTo(true);
             }
         }
     }

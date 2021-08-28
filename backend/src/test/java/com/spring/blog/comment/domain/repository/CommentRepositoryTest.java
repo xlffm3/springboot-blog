@@ -270,7 +270,8 @@ class CommentRepositoryTest {
                 addChild(comment1.getId(), child1);
                 addChild(comment1.getId(), child2);
 
-                Comment parentComment = commentRepository.findById(comment1.getId())
+                Comment parentComment = commentRepository
+                    .findByIdWithRootCommentAndAuthor(comment1.getId())
                     .orElseThrow(CommentNotFoundException::new);
 
                 // when
@@ -283,7 +284,7 @@ class CommentRepositoryTest {
     }
 
     private void addChild(Long parentId, Comment child) {
-        Comment parent = commentRepository.findByIdIdWithRootComment(parentId)
+        Comment parent = commentRepository.findByIdWithRootComment(parentId)
             .orElseThrow(IllegalAccessError::new);
         parent.updateChildCommentHierarchy(child);
         commentRepository.save(child);

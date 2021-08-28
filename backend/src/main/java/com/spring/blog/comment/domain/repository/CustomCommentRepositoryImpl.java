@@ -46,10 +46,24 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
     }
 
     @Override
-    public Optional<Comment> findByIdIdWithRootComment(Long commentId) {
+    public Optional<Comment> findByIdWithRootComment(Long commentId) {
         QComment comment = QComment.comment;
         Comment findComment = jpaQueryFactory.selectFrom(comment)
             .innerJoin(comment.hierarchy.rootComment)
+            .fetchJoin()
+            .where(comment.id.eq(commentId)
+                .and(comment.isDeleted.eq(false)))
+            .fetchOne();
+        return Optional.ofNullable(findComment);
+    }
+
+    @Override
+    public Optional<Comment> findByIdWithRootCommentAndAuthor(Long commentId) {
+        QComment comment = QComment.comment;
+        Comment findComment = jpaQueryFactory.selectFrom(comment)
+            .innerJoin(comment.hierarchy.rootComment)
+            .fetchJoin()
+            .innerJoin(comment.user)
             .fetchJoin()
             .where(comment.id.eq(commentId)
                 .and(comment.isDeleted.eq(false)))
