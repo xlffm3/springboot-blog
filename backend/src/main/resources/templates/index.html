@@ -65,6 +65,24 @@
       <li class="page-item"><a id="next" class="page-link">Next</a></li>
     </script>
   </ul>
+  <div class="text-center">
+    <div style="float:none; margin:0 auto">
+      <form>
+        <label>
+          <select id="select-box" name="type">
+            <option value="title">제목</option>
+            <option value="name">글쓴이</option>
+            <option value="content">내용</option>
+          </select>
+        </label>
+        <label>
+          <input id="input-box" type="text" name="search" size="40" required="required"/>
+        </label>
+        <button id="search-btn">검색</button>
+        <button id="search-reset-btn">필터 초기화</button>
+      </form>
+    </div>
+  </div>
 
   <section id="button-section">
     <script id="template-post-write-button" type="text/template">

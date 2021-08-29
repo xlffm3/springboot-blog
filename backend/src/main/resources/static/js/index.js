@@ -17,7 +17,9 @@ async function renderBoardSection() {
     params: {
       page: page,
       size: DEFAULT_SIZE_PER_PAGE,
-      pageBlockCounts: DEFAULT_PAGE_BLOCK_COUNTS
+      pageBlockCounts: DEFAULT_PAGE_BLOCK_COUNTS,
+      searchType: sessionStorage.getItem('searchType'),
+      keyword: sessionStorage.getItem('keyword')
     }
   }).then(response => {
     renderPostRow(response);
@@ -55,7 +57,32 @@ function reRenderBoardSection() {
   renderBoardSection();
 }
 
+function activateSearchButton() {
+  const $searchButton = document.getElementById('search-btn');
+  $searchButton.addEventListener('click', ev => {
+    const selectBox = document.getElementById('select-box');
+    const keyword = document.getElementById('input-box').value;
+    const searchType = selectBox.options[selectBox.selectedIndex].value;
+    if (keyword === null || searchType === null) {
+      return;
+    }
+    sessionStorage.setItem('keyword', keyword);
+    sessionStorage.setItem('searchType', searchType);
+    sessionStorage.removeItem('page-post');
+    reRenderBoardSection();
+  });
+
+  const $resetButton = document.getElementById('search-reset-btn');
+  $resetButton.addEventListener('click', ev => {
+    sessionStorage.removeItem('keyword');
+    sessionStorage.removeItem('searchType');
+    sessionStorage.removeItem('page-post');
+    reRenderBoardSection();
+  });
+}
+
 renderLoginSection();
 addLogoClickEvent();
 renderBoardSection();
 activateButtonsSection();
+activateSearchButton();
