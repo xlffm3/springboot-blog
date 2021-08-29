@@ -1,8 +1,8 @@
 import {addLogoClickEvent, renderLoginSection} from "./module/header-module.js";
+import {isLogin} from "./module/login-module.js";
 
 function validateState() {
-  const token = localStorage.getItem('token');
-  if (token === null) {
+  if (!isLogin()) {
     alert('유효하지 않은 접근입니다.');
     window.location.replace('/');
   }

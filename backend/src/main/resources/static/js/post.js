@@ -30,11 +30,11 @@ async function renderPostSection() {
     document.getElementById('view-counts')
         .innerText += dto.viewCounts;
 
-    const content = document.getElementById('content');
+    const $content = document.getElementById('content');
     const imageHtml = document.querySelector('#template-image')
         .innerHTML;
     Array.from(dto.imageUrls).forEach(url => {
-      content.insertAdjacentHTML('afterend',
+      $content.insertAdjacentHTML('afterend',
           imageHtml.replace('{url}', url));
     })
     activateButtonsSection();
@@ -183,8 +183,7 @@ async function requestToDeleteComment(comment) {
 }
 
 function activateCommentWriteSection() {
-  const token = localStorage.getItem('token');
-  if (token === null) {
+  if (!isLogin()) {
     return;
   }
   const commentFormHtml =

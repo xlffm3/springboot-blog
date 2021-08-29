@@ -1,6 +1,7 @@
+import {isLogin} from "./login-module.js";
+
 export function activateButtonsSection() {
-  const token = localStorage.getItem('token');
-  if (token === null) {
+  if (!isLogin()) {
     return;
   }
   const $postButtonSection = document.getElementById('button-section');
@@ -8,25 +9,26 @@ export function activateButtonsSection() {
       document.querySelector('#template-post-write-button').innerHTML;
   $postButtonSection.insertAdjacentHTML('beforeend', postWriteButtonHtml);
 
-  const userName = localStorage.getItem('userName');
   const authorName = document.getElementById('author-name');
   if (authorName === null) {
     return;
   }
-  const parsedName = authorName.innerText.split(':')[1].trim();
-  if (userName === parsedName) {
-    const postEditButtonHtml =
-        document.querySelector('#template-post-edit-button').innerHTML;
-    $postButtonSection.insertAdjacentHTML('beforeend', postEditButtonHtml);
-    const postDeleteButtonHtml =
-        document.querySelector('#template-post-delete-button').innerHTML;
-    $postButtonSection.insertAdjacentHTML('beforeend', postDeleteButtonHtml);
 
-    document.getElementById('delete-submit-btn')
-    .addEventListener('click', e => {
-        requestToDeletePost();
-    });
+  const userName = localStorage.getItem('userName');
+  const parsedName = authorName.innerText.split(':')[1].trim();
+  if (userName !== parsedName) {
+    return;
   }
+
+  const postEditButtonHtml =
+      document.querySelector('#template-post-edit-button').innerHTML;
+  const postDeleteButtonHtml =
+      document.querySelector('#template-post-delete-button').innerHTML;
+  $postButtonSection.insertAdjacentHTML('beforeend', postEditButtonHtml);
+  $postButtonSection.insertAdjacentHTML('beforeend', postDeleteButtonHtml);
+
+  document.getElementById('delete-submit-btn')
+  .addEventListener('click', e => requestToDeletePost());
 }
 
 async function requestToDeletePost() {
@@ -43,5 +45,4 @@ async function requestToDeletePost() {
     window.location.replace('/');
   })
   .catch(error => alert(error));
-
 }
