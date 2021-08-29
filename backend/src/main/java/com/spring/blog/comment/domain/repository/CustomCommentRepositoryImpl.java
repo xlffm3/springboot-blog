@@ -1,124 +1,131 @@
 package com.spring.blog.comment.domain.repository;
 
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.QComment;
 import com.spring.blog.post.domain.Post;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+@RequiredArgsConstructor
 @Repository
 public class CustomCommentRepositoryImpl implements CustomCommentRepository {
 
+    private static final QComment QCOMMENT = QComment.comment;
+
     private final JPAQueryFactory jpaQueryFactory;
 
-    public CustomCommentRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
-        this.jpaQueryFactory = jpaQueryFactory;
-    }
-
     @Override
-    public List<Comment> findCommentsOrderByHierarchyAndDateDesc(Pageable pageable, Post post) {
-        QComment comment = QComment.comment;
-        return jpaQueryFactory.selectFrom(comment)
-            .innerJoin(comment.user)
-            .fetchJoin()
-            .where(comment.post.eq(post)
-                .and(comment.isDeleted.eq(false)))
-            .orderBy(comment.hierarchy.rootComment.id.asc(),
-                comment.hierarchy.leftNode.asc())
+    public List<Comment> findCommentsOrderByHierarchy(Pageable pageable, Post post) {
+        return selectCommentInnerFetchJoinUser()
+            .where(isActiveCommentOf(post))
+            .orderBy(QCOMMENT.hierarchy.rootComment.id.asc(),
+                QCOMMENT.hierarchy.leftNode.asc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
     }
 
     @Override
-    public Optional<Comment> findByIdWithAuthor(Long commentId) {
-        QComment comment = QComment.comment;
-        Comment findComment = jpaQueryFactory.selectFrom(comment)
-            .innerJoin(comment.user)
-            .fetchJoin()
-            .where(comment.id.eq(commentId)
-                .and(comment.isDeleted.eq(false)))
+    public Optional<Comment> findByIdWithAuthor(Long id) {
+        Comment comment = selectCommentInnerFetchJoinUser()
+            .where(isActiveComment(id))
             .fetchOne();
-        return Optional.ofNullable(findComment);
+        return Optional.ofNullable(comment);
     }
 
     @Override
-    public Optional<Comment> findByIdWithRootComment(Long commentId) {
-        QComment comment = QComment.comment;
-        Comment findComment = jpaQueryFactory.selectFrom(comment)
-            .innerJoin(comment.hierarchy.rootComment)
+    public Optional<Comment> findByIdWithRootComment(Long id) {
+        Comment comment = jpaQueryFactory.selectFrom(QCOMMENT)
+            .innerJoin(QCOMMENT.hierarchy.rootComment)
             .fetchJoin()
-            .where(comment.id.eq(commentId)
-                .and(comment.isDeleted.eq(false)))
+            .where(isActiveComment(id))
             .fetchOne();
-        return Optional.ofNullable(findComment);
+        return Optional.ofNullable(comment);
     }
 
     @Override
-    public Optional<Comment> findByIdWithRootCommentAndAuthor(Long commentId) {
-        QComment comment = QComment.comment;
-        Comment findComment = jpaQueryFactory.selectFrom(comment)
-            .innerJoin(comment.hierarchy.rootComment)
+    public Optional<Comment> findByIdWithRootCommentAndAuthor(Long id) {
+        Comment comment = selectCommentInnerFetchJoinUser()
+            .innerJoin(QCOMMENT.hierarchy.rootComment)
             .fetchJoin()
-            .innerJoin(comment.user)
-            .fetchJoin()
-            .where(comment.id.eq(commentId)
-                .and(comment.isDeleted.eq(false)))
+            .where(isActiveComment(id))
             .fetchOne();
-        return Optional.ofNullable(findComment);
+        return Optional.ofNullable(comment);
     }
 
     @Override
     public void adjustHierarchyOrders(Comment newComment) {
-        QComment comment = QComment.comment;
-        jpaQueryFactory.update(comment)
-            .set(comment.hierarchy.leftNode, comment.hierarchy.leftNode.add(2))
-            .where(comment.hierarchy.leftNode.goe(newComment.getRightNode())
-                .and(comment.hierarchy.rootComment.eq(newComment.getRootComment()))
-                .and(comment.ne(newComment))
-                .and(comment.isDeleted.eq(false)))
+        jpaQueryFactory.update(QCOMMENT)
+            .set(QCOMMENT.hierarchy.leftNode, QCOMMENT.hierarchy.leftNode.add(2))
+            .where(QCOMMENT.hierarchy.leftNode.goe(newComment.getRightNode())
+                .and(isActiveCommentInSameGroupExceptNewComment(newComment)))
             .execute();
 
-        jpaQueryFactory.update(comment)
-            .set(comment.hierarchy.rightNode, comment.hierarchy.rightNode.add(2))
-            .where(comment.hierarchy.rightNode.goe(newComment.getLeftNode())
-                .and(comment.hierarchy.rootComment.eq(newComment.getRootComment()))
-                .and(comment.ne(newComment))
-                .and(comment.isDeleted.eq(false)))
+        jpaQueryFactory.update(QCOMMENT)
+            .set(QCOMMENT.hierarchy.rightNode, QCOMMENT.hierarchy.rightNode.add(2))
+            .where(QCOMMENT.hierarchy.rightNode.goe(newComment.getLeftNode())
+                .and(isActiveCommentInSameGroupExceptNewComment(newComment)))
             .execute();
     }
 
     @Override
-    public Long countCommentByPost(Post post) {
-        QComment comment = QComment.comment;
-        return jpaQueryFactory.selectFrom(comment)
-            .where(comment.post.eq(post)
-                .and(comment.isDeleted.eq(false)))
+    public Long countCommentsByPost(Post post) {
+        return jpaQueryFactory.selectFrom(QCOMMENT)
+            .where(isActiveCommentOf(post))
             .fetchCount();
     }
 
     @Override
     public void deleteChildComments(Comment parentComment) {
-        QComment comment = QComment.comment;
-        jpaQueryFactory.update(comment)
-            .set(comment.isDeleted, true)
-            .where(comment.hierarchy.leftNode.gt(parentComment.getLeftNode())
-                .and(comment.hierarchy.rightNode.lt(parentComment.getRightNode())
-                    .and(comment.hierarchy.rootComment.eq(parentComment.getRootComment())
-                        .and(comment.isDeleted.eq(false)))))
+        deleteComment()
+            .where(QCOMMENT.hierarchy.leftNode.gt(parentComment.getLeftNode())
+                .and(QCOMMENT.hierarchy.rightNode.lt(parentComment.getRightNode())
+                    .and(QCOMMENT.hierarchy.rootComment.eq(parentComment.getRootComment())
+                        .and(isActiveComment()))))
             .execute();
     }
 
     @Override
     public void deleteAllByPost(Post post) {
-        QComment comment = QComment.comment;
-        jpaQueryFactory.update(comment)
-            .set(comment.isDeleted, true)
-            .where(comment.post.eq(post)
-                .and(comment.isDeleted.eq(false)))
+        deleteComment()
+            .where(isActiveCommentOf(post))
             .execute();
+    }
+
+    private JPAQuery<Comment> selectCommentInnerFetchJoinUser() {
+        return jpaQueryFactory.selectFrom(QCOMMENT)
+            .innerJoin(QCOMMENT.user)
+            .fetchJoin();
+    }
+
+    private JPAUpdateClause deleteComment() {
+        return jpaQueryFactory.update(QCOMMENT)
+            .set(QCOMMENT.isDeleted, true);
+    }
+
+    private Predicate isActiveCommentInSameGroupExceptNewComment(Comment newComment) {
+        return QCOMMENT.hierarchy.rootComment.eq(newComment.getRootComment())
+            .and(QCOMMENT.ne(newComment))
+            .and(isActiveComment());
+    }
+
+    private BooleanExpression isActiveCommentOf(Post post) {
+        return QCOMMENT.post.eq(post).and(isActiveComment());
+    }
+
+    private BooleanExpression isActiveComment(Long id) {
+        return QCOMMENT.id.eq(id).and(isActiveComment());
+    }
+
+    private BooleanExpression isActiveComment() {
+        return QCOMMENT.isDeleted.eq(false);
     }
 }

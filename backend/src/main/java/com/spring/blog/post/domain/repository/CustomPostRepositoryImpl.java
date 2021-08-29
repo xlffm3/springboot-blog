@@ -20,6 +20,14 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
+    public Optional<Post> findActivePostById(Long id) {
+        Post post = jpaQueryFactory.selectFrom(QPOST)
+            .where(isActivePost(id))
+            .fetchFirst();
+        return Optional.ofNullable(post);
+    }
+
+    @Override
     public Optional<Post> findByIdWithAuthor(Long id) {
         Post post = selectPostInnerFetchJoinUser()
             .where(isActivePost(id))

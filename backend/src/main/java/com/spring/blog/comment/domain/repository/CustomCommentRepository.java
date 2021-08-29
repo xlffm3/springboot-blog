@@ -8,19 +8,19 @@ import org.springframework.data.domain.Pageable;
 
 public interface CustomCommentRepository {
 
-    List<Comment> findCommentsOrderByHierarchyAndDateDesc(Pageable pageable, Post post);
+    List<Comment> findCommentsOrderByHierarchy(Pageable pageable, Post post);
 
-    Optional<Comment> findByIdWithAuthor(Long commentId);
+    Optional<Comment> findByIdWithAuthor(Long id);
 
-    Optional<Comment> findByIdWithRootComment(Long commentId);
+    Optional<Comment> findByIdWithRootComment(Long id);
 
-    Optional<Comment> findByIdWithRootCommentAndAuthor(Long commentId);
+    Optional<Comment> findByIdWithRootCommentAndAuthor(Long id);
 
     void adjustHierarchyOrders(Comment newComment);
 
     void deleteChildComments(Comment parentComment);
 
-    Long countCommentByPost(Post post);
+    Long countCommentsByPost(Post post);
 
     void deleteAllByPost(Post post);
 }

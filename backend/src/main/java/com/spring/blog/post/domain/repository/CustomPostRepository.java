@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 
 public interface CustomPostRepository {
 
+    Optional<Post> findActivePostById(Long id);
+
     Optional<Post> findByIdWithAuthor(Long id);
 
     Optional<Post> findByIdWithAuthorAndImages(Long id);

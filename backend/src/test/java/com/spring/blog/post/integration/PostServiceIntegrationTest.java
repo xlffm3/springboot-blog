@@ -185,7 +185,7 @@ class PostServiceIntegrationTest extends IntegrationTest {
         postService.deletePost(postDeleteRequestDto);
 
         // then
-        assertThat(commentRepository.findById(comment.getId())).isEmpty();
-        assertThat(postRepository.findById(post.getId())).isEmpty();
+        assertThat(postRepository.findActivePostById(post.getId())).isEmpty();
+        assertThat(commentRepository.findByIdWithAuthor(comment.getId())).isEmpty();
     }
 }

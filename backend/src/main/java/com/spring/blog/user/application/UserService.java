@@ -16,7 +16,7 @@ public class UserService {
 
     @Transactional
     public void withdraw(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findActiveUserById(id)
             .orElseThrow(UserNotFoundException::new);
         user.withdraw();
     }

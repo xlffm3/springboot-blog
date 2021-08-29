@@ -13,6 +13,7 @@ import com.spring.blog.comment.application.dto.request.CommentWriteRequestDto;
 import com.spring.blog.comment.presentation.dto.response.CommentListResponse;
 import com.spring.blog.comment.presentation.dto.response.CommentResponse;
 import com.spring.blog.comment.presentation.dto.request.CommentWriteRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,15 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
 public class CommentController {
 
     private final CommentService commentService;
-
-    public CommentController(CommentService commentService) {
-        this.commentService = commentService;
-    }
 
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<CommentResponse> write(
@@ -40,8 +38,11 @@ public class CommentController {
         @Authenticated AppUser appUser,
         @RequestBody CommentWriteRequest commentWriteRequest
     ) {
-        CommentWriteRequestDto commentWriteRequestDto =
-            new CommentWriteRequestDto(postId, appUser.getId(), commentWriteRequest.getContent());
+        CommentWriteRequestDto commentWriteRequestDto = CommentWriteRequestDto.builder()
+            .postId(postId)
+            .userId(appUser.getId())
+            .content(commentWriteRequest.getContent())
+            .build();
         CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
         CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
         return ResponseEntity.ok(commentResponse);
@@ -54,13 +55,12 @@ public class CommentController {
         @Authenticated AppUser appUser,
         @RequestBody CommentWriteRequest commentWriteRequest
     ) {
-        CommentReplyRequestDto commentReplyRequestDto =
-            new CommentReplyRequestDto(
-                postId,
-                appUser.getId(),
-                commentId,
-                commentWriteRequest.getContent()
-            );
+        CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+            .postId(postId)
+            .userId(appUser.getId())
+            .commentId(commentId)
+            .content(commentWriteRequest.getContent())
+            .build();
         CommentResponseDto commentResponseDto = commentService.replyComment(commentReplyRequestDto);
         CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
         return ResponseEntity.ok(commentResponse);
@@ -73,8 +73,12 @@ public class CommentController {
         @RequestParam Long size,
         @RequestParam Long pageBlockCounts
     ) {
-        CommentListRequestDto commentListRequestDto =
-            new CommentListRequestDto(postId, page, size, pageBlockCounts);
+        CommentListRequestDto commentListRequestDto = CommentListRequestDto.builder()
+            .postId(postId)
+            .page(page)
+            .size(size)
+            .pageBlockCounts(pageBlockCounts)
+            .build();
         CommentListResponseDto commentListResponseDto =
             commentService.readCommentList(commentListRequestDto);
         CommentListResponse commentListResponse =
@@ -88,8 +92,11 @@ public class CommentController {
         @Authenticated AppUser appUser,
         @RequestBody CommentWriteRequest commentWriteRequest
     ) {
-        CommentEditRequestDto commentEditRequestDto =
-            new CommentEditRequestDto(commentId, appUser.getId(), commentWriteRequest.getContent());
+        CommentEditRequestDto commentEditRequestDto = CommentEditRequestDto.builder()
+            .commentId(commentId)
+            .userId(appUser.getId())
+            .content(commentWriteRequest.getContent())
+            .build();
         CommentResponseDto commentResponseDto = commentService.editComment(commentEditRequestDto);
         CommentResponse commentResponse = CommentResponse.from(commentResponseDto);
         return ResponseEntity.ok(commentResponse);
@@ -100,8 +107,10 @@ public class CommentController {
         @PathVariable Long commentId,
         @Authenticated AppUser appUser
     ) {
-        CommentDeleteRequestDto commentDeleteRequestDto =
-            new CommentDeleteRequestDto(commentId, appUser.getId());
+        CommentDeleteRequestDto commentDeleteRequestDto = CommentDeleteRequestDto.builder()
+            .commentId(commentId)
+            .userId(appUser.getId())
+            .build();
         commentService.deleteComment(commentDeleteRequestDto);
         return ResponseEntity.noContent()
             .build();

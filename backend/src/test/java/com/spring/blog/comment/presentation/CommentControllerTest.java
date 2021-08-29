@@ -78,8 +78,13 @@ class CommentControllerTest {
         // given
         String requestBody =
             objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
-        CommentResponseDto commentResponseDto =
-            new CommentResponseDto(1L, "kevin", "comment hi", 1L, LocalDateTime.now());
+        CommentResponseDto commentResponseDto = CommentResponseDto.builder()
+            .id(1L)
+            .author("kevin")
+            .content("comment hi")
+            .depth(1L)
+            .createdDate(LocalDateTime.now())
+            .build();
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
@@ -125,8 +130,13 @@ class CommentControllerTest {
         // given
         String requestBody =
             objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
-        CommentResponseDto commentResponseDto =
-            new CommentResponseDto(2L, "kevin", "comment hi", 2L, LocalDateTime.now());
+        CommentResponseDto commentResponseDto = CommentResponseDto.builder()
+            .id(2L)
+            .author("kevin")
+            .content("comment hi")
+            .depth(2L)
+            .createdDate(LocalDateTime.now())
+            .build();
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
@@ -176,8 +186,13 @@ class CommentControllerTest {
         // given
         String requestBody =
             objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
-        CommentResponseDto commentResponseDto =
-            new CommentResponseDto(2L, "kevin", "comment hi", 2L, LocalDateTime.now());
+        CommentResponseDto commentResponseDto = CommentResponseDto.builder()
+            .id(2L)
+            .author("kevin")
+            .content("comment hi")
+            .depth(2L)
+            .createdDate(LocalDateTime.now())
+            .build();
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
