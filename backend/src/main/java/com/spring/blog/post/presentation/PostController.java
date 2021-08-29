@@ -5,21 +5,22 @@ import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.request.PostListRequestDto;
+import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import com.spring.blog.post.application.dto.response.PostResponseDto;
-import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
+import com.spring.blog.post.presentation.dto.PostListRequest;
+import com.spring.blog.post.presentation.dto.request.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.response.PostListResponse;
 import com.spring.blog.post.presentation.dto.response.PostResponse;
-import com.spring.blog.post.presentation.dto.request.PostWriteRequest;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
@@ -50,14 +51,14 @@ public class PostController {
 
     @GetMapping("/posts")
     public ResponseEntity<PostListResponse> readList(
-        @RequestParam Long page,
-        @RequestParam Long size,
-        @RequestParam Long pageBlockCounts
+        @ModelAttribute PostListRequest postListRequest
     ) {
         PostListRequestDto postListRequestDto = PostListRequestDto.builder()
-            .page(page)
-            .size(size)
-            .pageBlockCounts(pageBlockCounts)
+            .page(postListRequest.getPage())
+            .size(postListRequest.getSize())
+            .pageBlockCounts(postListRequest.getPageBlockCounts())
+            .searchType(postListRequest.getSearchType())
+            .keyword(postListRequest.getKeyword())
             .build();
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
         PostListResponse postListResponse = PostListResponse.from(postListResponseDto);

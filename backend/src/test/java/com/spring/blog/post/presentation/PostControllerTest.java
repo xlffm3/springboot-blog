@@ -134,7 +134,7 @@ class PostControllerTest {
         verify(postService, times(1)).readById(1L);
     }
 
-    @DisplayName("복수의 게시물 목록을 페이지네이션으로 조회한다.")
+    @DisplayName("복수의 게시물 목록을 페이지네이션으로 최신순 조회한다.")
     @Test
     void readList_OrderByDateDesc_Success() throws Exception {
         // given
@@ -153,6 +153,32 @@ class PostControllerTest {
         // when
         mockMvc.perform(
             get("/api/posts?page={page}&size={size}&pageBlockCounts={block}", "0", "3", "5"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(expectedResponseBody));
+
+        // then
+        verify(postService, times(1)).readPostList(any(PostListRequestDto.class));
+    }
+
+    @DisplayName("복수의 게시물 목록을 검색 조건을 포함한 페이지네이션으로 최신순 조회한다.")
+    @Test
+    void readList_SearchCondition_Success() throws Exception {
+        // given
+        List<Post> mockPosts = Arrays.asList(
+            new Post(1L, "a3", "b3", new User("kevin3", "image")),
+            new Post(2L, "a2", "b2", new User("kevin2", "image")),
+            new Post(3L, "a", "b", new User("kevin", "image"))
+        );
+        PageMaker pageMaker = new PageMaker(0, 3, 5, 3);
+        PostListResponseDto postListResponseDto = PostListResponseDto.from(mockPosts, pageMaker);
+        PostListResponse postListResponse = PostListResponse.from(postListResponseDto);
+        String expectedResponseBody = objectMapper.writeValueAsString(postListResponse);
+        given(postService.readPostList(any(PostListRequestDto.class)))
+            .willReturn(postListResponseDto);
+
+        // when
+        mockMvc.perform(
+            get("/api/posts?page={page}&size={size}&pageBlockCounts={block}&searchType={searchType}&keyword={keyword}", "0", "3", "5", "content", "b"))
             .andExpect(status().isOk())
             .andExpect(content().string(expectedResponseBody));
 

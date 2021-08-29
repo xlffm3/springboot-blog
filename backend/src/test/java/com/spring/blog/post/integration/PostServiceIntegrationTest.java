@@ -131,7 +131,7 @@ class PostServiceIntegrationTest extends IntegrationTest {
             .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
     }
 
-    @DisplayName("게시물 목록을 페이지네이션으로 최신순으로 조회한다.")
+    @DisplayName("게시물 목록을 검색 조건 없이 페이지네이션으로 최신순으로 조회한다.")
     @Test
     void readPostList_OrderByDateDesc_ThreePosts() {
         // given
@@ -147,8 +147,52 @@ class PostServiceIntegrationTest extends IntegrationTest {
             new Post("a3", "b", users.get(2))
         );
         postRepository.saveAll(posts);
-        PostListRequestDto postListRequestDto =
-            new PostListRequestDto(0L, 3L, 3L);
+        PostListRequestDto postListRequestDto = PostListRequestDto.builder()
+            .page(0L)
+            .size(3L)
+            .pageBlockCounts(3L)
+            .build();
+
+        // when
+        PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
+
+        // then
+        assertThat(postListResponseDto.getSimplePostResponseDtos())
+            .extracting("title", "author")
+            .containsExactly(
+                tuple("a3", "kevin3"),
+                tuple("a2", "kevin2"),
+                tuple("a1", "kevin")
+            );
+        assertThat(postListResponseDto)
+            .extracting("startPage", "endPage", "next", "prev")
+            .containsExactly(1, 1, false, false);
+    }
+
+    @DisplayName("게시물 목록을 검색 조건으로도 최신순 조회할 수 있다.")
+    @Test
+    void readPostList_SearchCondition_ThreePosts() {
+        // given
+        List<User> users = Arrays.asList(
+            new User("kevin", "hi"),
+            new User("kevin2", "hi2"),
+            new User("kevin3", "hi3")
+        );
+        userRepository.saveAll(users);
+        List<Post> posts = Arrays.asList(
+            new Post("a1", "b", users.get(0)),
+            new Post("a2", "b", users.get(1)),
+            new Post("a3", "b", users.get(2)),
+            new Post("b4", "bb", users.get(0))
+        );
+        postRepository.saveAll(posts);
+        PostListRequestDto postListRequestDto = PostListRequestDto.builder()
+            .page(0L)
+            .size(5L)
+            .pageBlockCounts(3L)
+            .searchType("title")
+            .keyword("a")
+            .build();
 
         // when
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);

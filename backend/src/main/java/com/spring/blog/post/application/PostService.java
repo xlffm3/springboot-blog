@@ -11,6 +11,7 @@ import com.spring.blog.post.application.dto.response.PostResponseDto;
 import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.domain.SearchCondition;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
@@ -54,17 +55,22 @@ public class PostService {
             Math.toIntExact(postListRequestDto.getPage()),
             Math.toIntExact(postListRequestDto.getSize())
         );
-        List<Post> posts = postRepository.findPostsOrderByDateDesc(pageable);
-        PageMaker pageMaker = generatePageMaker(postListRequestDto);
+        SearchCondition searchCondition =
+            new SearchCondition(postListRequestDto.getSearchType(), postListRequestDto.getKeyword());
+        List<Post> posts = postRepository.findPostsOrderByDateDesc(pageable, searchCondition);
+        PageMaker pageMaker = generatePageMaker(postListRequestDto, searchCondition);
         return PostListResponseDto.from(posts, pageMaker);
     }
 
-    private PageMaker generatePageMaker(PostListRequestDto postListRequestDto) {
+    private PageMaker generatePageMaker(
+        PostListRequestDto postListRequestDto,
+        SearchCondition searchCondition
+    ) {
         return new PageMaker(
             Math.toIntExact(postListRequestDto.getPage()),
             Math.toIntExact(postListRequestDto.getSize()),
             Math.toIntExact(postListRequestDto.getPageBlockCounts()),
-            Math.toIntExact(postRepository.count())
+            Math.toIntExact(postRepository.countActivePosts(searchCondition))
         );
     }
 

@@ -113,13 +113,13 @@ class PostAcceptanceTest extends AcceptanceTest {
             );
     }
 
-    @DisplayName("게시물 목록을 페이지네이션으로 최신순 조회한다.")
+    @DisplayName("게시물 목록을 검색 조건 없이 페이지네이션으로 최신순 조회한다.")
     @Test
     void readList_OrderByDateDesc_Success() {
         // given
         String token = api_로그인_요청_및_토큰_반환("kevin");
         for (int i = 0; i < 15; i++) {
-            api_테스트용_게시물_작성(token);
+            api_게시물_작성("title", "content" + i, token);
         }
 
         // when, then
@@ -132,12 +132,91 @@ class PostAcceptanceTest extends AcceptanceTest {
             .expectBody(PostListResponse.class)
             .value(postListResponse -> {
                 assertThat(postListResponse.getSimplePostResponses())
-                    .extracting("id")
-                    .containsExactly(6L, 5L, 4L);
+                    .extracting("content")
+                    .containsExactly("content5", "content4", "content3");
                 assertThat(postListResponse)
                     .extracting("startPage", "endPage", "prev", "next")
                     .containsExactly(4, 5, true, false);
             });
+    }
+
+    @DisplayName("게시물 목록을 이름 검색 조건으로 최신순 조회한다.")
+    @Test
+    void readList_SearchByName_Success() {
+        // given
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String token2 = api_로그인_요청_및_토큰_반환("other");
+        api_게시물_작성("title1", "1", token);
+        api_게시물_작성("title1", "2", token);
+        api_게시물_작성("title1", "3", token);
+        api_게시물_작성("title1", "hi", token2);
+
+        // when, then
+        webTestClient.get()
+            .uri("/api/posts?page={page}&size={size}&pageBlockCounts={num}&searchType={searchType}&keyword={keyword}",
+                0, 5, 5, "name", "kevin")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(PostListResponse.class)
+            .value(response ->
+                assertThat(response.getSimplePostResponses())
+                    .extracting("content")
+                    .containsExactly("3", "2", "1")
+            );
+    }
+
+    @DisplayName("게시물 목록을 제목 검색 조건으로 최신순 조회한다.")
+    @Test
+    void readList_SearchByTitle_Success() {
+        // given
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        api_게시물_작성("title1", "1", token);
+        api_게시물_작성("title2", "2", token);
+        api_게시물_작성("kk", "3", token);
+        api_게시물_작성("kk", "hi", token);
+
+        // when, then
+        webTestClient.get()
+            .uri("/api/posts?page={page}&size={size}&pageBlockCounts={num}&searchType={searchType}&keyword={keyword}",
+                0, 5, 5, "title", "title")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(PostListResponse.class)
+            .value(response ->
+                assertThat(response.getSimplePostResponses())
+                    .extracting("content")
+                    .containsExactly("2", "1")
+            );
+    }
+
+    @DisplayName("게시물 목록을 내용 검색 조건으로 최신순 조회한다.")
+    @Test
+    void readList_SearchByContent_Success() {
+        // given
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        api_게시물_작성("title1", "3kk", token);
+        api_게시물_작성("title2", "333", token);
+        api_게시물_작성("kk", "3", token);
+        api_게시물_작성("kk", "hi", token);
+
+        // when, then
+        webTestClient.get()
+            .uri("/api/posts?page={page}&size={size}&pageBlockCounts={num}&searchType={searchType}&keyword={keyword}",
+                0, 5, 5, "content", "3")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(PostListResponse.class)
+            .value(response ->
+                assertThat(response.getSimplePostResponses())
+                    .extracting("content")
+                    .containsExactly("3", "333", "3kk")
+            );
     }
 
     @DisplayName("비로그인 유저는 게시물 삭제가 불가능하다.")

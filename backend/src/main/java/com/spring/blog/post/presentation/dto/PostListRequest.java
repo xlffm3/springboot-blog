@@ -1,16 +1,15 @@
-package com.spring.blog.post.application.dto.request;
+package com.spring.blog.post.presentation.dto;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
 @Getter
-@Builder
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class PostListRequestDto {
+@NoArgsConstructor
+public class PostListRequest {
 
     private Long page;
     private Long size;
