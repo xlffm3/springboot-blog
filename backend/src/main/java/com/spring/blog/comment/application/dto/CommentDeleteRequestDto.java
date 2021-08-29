@@ -5,6 +5,9 @@ public class CommentDeleteRequestDto {
     private Long commentId;
     private Long userId;
 
+    private CommentDeleteRequestDto() {
+    }
+
     public CommentDeleteRequestDto(Long commentId, Long userId) {
         this.commentId = commentId;
         this.userId = userId;

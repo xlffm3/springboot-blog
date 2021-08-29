@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.comment.application.CommentService;
+import com.spring.blog.comment.application.dto.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.CommentListRequestDto;
 import com.spring.blog.comment.application.dto.CommentListResponseDto;
@@ -14,6 +15,7 @@ import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.exception.comment.CannotDeleteCommentException;
 import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
@@ -198,6 +200,52 @@ class CommentServiceIntegrationTest {
             .isInstanceOf(CannotEditCommentException.class)
             .hasMessage("댓글을 수정할 수 없습니다.")
             .hasFieldOrPropertyWithValue("errorCode", "C0004")
+            .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
+    }
+
+    @DisplayName("특정 Comment와 하위 Comment를 삭제한다.")
+    @Test
+    void deleteComment_MyComment_Success() {
+        // given
+        User user = new User("kevin", "image");
+        Post post = new Post("hi", "there", user);
+        Comment comment = new Comment("hi", post, user);
+        comment.updateAsRoot();
+        userRepository.save(user);
+        postRepository.save(post);
+        commentRepository.save(comment);
+        Long c1 = replyComment("c1", comment.getId(), post, user);
+        CommentDeleteRequestDto commentDeleteRequestDto =
+            new CommentDeleteRequestDto(comment.getId(), user.getId());
+
+        // when
+        commentService.deleteComment(commentDeleteRequestDto);
+
+        // then
+        assertThat(commentRepository.findById(comment.getId())).isEmpty();
+        assertThat(commentRepository.findById(c1)).isEmpty();
+    }
+
+    @DisplayName("타인이 작성한 Comment 수정에 실패한다.")
+    @Test
+    void deleteComment_OtherUserComment_Failure() {
+        // given
+        User user = new User("kevin", "image");
+        User other = new User("foo", "image");
+        Post post = new Post("hi", "there", user);
+        Comment comment = new Comment("hi", post, user);
+        comment.updateAsRoot();
+        userRepository.saveAll(Arrays.asList(user, other));
+        postRepository.save(post);
+        commentRepository.save(comment);
+        CommentDeleteRequestDto commentDeleteRequestDto =
+            new CommentDeleteRequestDto(comment.getId(), other.getId());
+
+        // when, then
+        assertThatCode(() -> commentService.deleteComment(commentDeleteRequestDto))
+            .isInstanceOf(CannotDeleteCommentException.class)
+            .hasMessage("댓글을 삭제할 수 없습니다.")
+            .hasFieldOrPropertyWithValue("errorCode", "C0005")
             .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
     }
 }

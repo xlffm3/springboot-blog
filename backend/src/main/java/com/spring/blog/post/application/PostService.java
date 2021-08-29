@@ -1,8 +1,10 @@
 package com.spring.blog.post.application;
 
+import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.PageMaker;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
+import com.spring.blog.post.application.dto.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
@@ -24,15 +26,18 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
     private final FileStorage fileStorage;
 
     public PostService(
         PostRepository postRepository,
         UserRepository userRepository,
+        CommentRepository commentRepository,
         FileStorage fileStorage
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.commentRepository = commentRepository;
         this.fileStorage = fileStorage;
     }
 
@@ -71,5 +76,15 @@ public class PostService {
             Math.toIntExact(postListRequestDto.getPageBlockCounts()),
             Math.toIntExact(postRepository.count())
         );
+    }
+
+    @Transactional
+    public void deletePost(PostDeleteRequestDto postDeleteRequestDto) {
+        Post post = postRepository.findWithAuthorById(postDeleteRequestDto.getPostId())
+            .orElseThrow(PostNotFoundException::new);
+        User user = userRepository.findById(postDeleteRequestDto.getUserId())
+            .orElseThrow(UserNotFoundException::new);
+        post.delete(user);
+        commentRepository.deleteAllByPost(post);
     }
 }

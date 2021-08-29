@@ -78,6 +78,7 @@ public class Post {
         if (!this.user.equals(user)) {
             throw new CannotDeletePostException();
         }
+        this.isDeleted = true;
     }
 
     public void updateViewCounts() {
