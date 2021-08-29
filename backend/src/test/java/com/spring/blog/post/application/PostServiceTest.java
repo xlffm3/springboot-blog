@@ -19,6 +19,7 @@ import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import com.spring.blog.post.application.dto.response.PostResponseDto;
 import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.domain.SearchCondition;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
@@ -202,7 +203,7 @@ class PostServiceTest {
         @Nested
         class Context_given_pagination {
 
-            @DisplayName("Post를 최신순으로 페이지네이션하며, 페이지 정보를 함께 반환한다.")
+            @DisplayName("Post를 최신순 및 검색 조건으로 페이지네이션하며, 페이지 정보를 함께 반환한다.")
             @Test
             void it_returns_posts_with_pagination_information() {
                 // given
@@ -210,15 +211,17 @@ class PostServiceTest {
                     .page(1L)
                     .size(5L)
                     .pageBlockCounts(3L)
+                    .searchType("title")
+                    .keyword("a")
                     .build();
                 List<Post> mockPosts = Arrays.asList(
                     new Post("a3", "b3", new User("kevin3", "image")),
                     new Post("a2", "b2", new User("kevin2", "image")),
                     new Post("a", "b", new User("kevin", "image"))
                 );
-                given(postRepository.findPostsOrderByDateDesc(any(Pageable.class)))
+                given(postRepository.findPostsOrderByDateDesc(any(Pageable.class), any(SearchCondition.class)))
                     .willReturn(mockPosts);
-                given(postRepository.count()).willReturn(23L);
+                given(postRepository.countActivePosts(any(SearchCondition.class))).willReturn(23L);
 
                 // when
                 PostListResponseDto postListResponseDto =
@@ -237,8 +240,8 @@ class PostServiceTest {
                     );
 
                 verify(postRepository, times(1))
-                    .findPostsOrderByDateDesc(any(Pageable.class));
-                verify(postRepository, times(1)).count();
+                    .findPostsOrderByDateDesc(any(Pageable.class), any(SearchCondition.class));
+                verify(postRepository, times(1)).countActivePosts(any(SearchCondition.class));
             }
         }
     }

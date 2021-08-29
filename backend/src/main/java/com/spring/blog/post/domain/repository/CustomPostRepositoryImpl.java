@@ -1,10 +1,13 @@
 package com.spring.blog.post.domain.repository;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.QPost;
+import com.spring.blog.post.domain.SearchCondition;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -47,13 +50,42 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     }
 
     @Override
-    public List<Post> findPostsOrderByDateDesc(Pageable pageable) {
+    public List<Post> findPostsOrderByDateDesc(
+        Pageable pageable,
+        SearchCondition searchCondition
+    ) {
         return selectPostInnerFetchJoinUser()
-            .where(isActivePost())
+            .where(isActivePostUnderSearchCondition(searchCondition))
             .orderBy(QPOST.baseDate.createdDate.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
+    }
+
+    @Override
+    public Long countActivePosts(SearchCondition searchCondition) {
+        return jpaQueryFactory.selectFrom(QPOST)
+            .where(isActivePostUnderSearchCondition(searchCondition))
+            .fetchCount();
+    }
+
+    private Predicate isActivePostUnderSearchCondition(SearchCondition searchCondition) {
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        booleanBuilder.and(isActivePost());
+        if (!searchCondition.isCustomSearchCondition()) {
+            return booleanBuilder;
+        }
+        String keyword = searchCondition.getKeyword();
+        if (searchCondition.isForTitle()) {
+            booleanBuilder.and(QPOST.postContent.title.containsIgnoreCase(keyword));
+        }
+        if (searchCondition.isForName()) {
+            booleanBuilder.and(QPOST.user.name.containsIgnoreCase(keyword));
+        }
+        if (searchCondition.isForContent()) {
+            booleanBuilder.and(QPOST.postContent.content.containsIgnoreCase(keyword));
+        }
+        return booleanBuilder;
     }
 
     private JPAQuery<Post> selectPostInnerFetchJoinUser() {
