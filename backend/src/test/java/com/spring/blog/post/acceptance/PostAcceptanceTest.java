@@ -126,7 +126,7 @@ class PostAcceptanceTest extends AcceptanceTest {
             .isOk()
             .expectBody(PostListResponse.class)
             .value(postListResponse -> {
-                assertThat(postListResponse.getPostResponses())
+                assertThat(postListResponse.getSimplePostResponses())
                     .extracting("id")
                     .containsExactly(6L, 5L, 4L);
                 assertThat(postListResponse)

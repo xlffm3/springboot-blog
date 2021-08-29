@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 public class PostListResponse {
 
-    private List<PostResponse> postResponses;
+    private List<SimplePostResponse> simplePostResponses;
     private int startPage;
     private int endPage;
     private boolean prev;
@@ -16,13 +16,13 @@ public class PostListResponse {
     }
 
     public PostListResponse(
-        List<PostResponse> postResponses,
+        List<SimplePostResponse> simplePostResponses,
         int startPage,
         int endPage,
         boolean prev,
         boolean next
     ) {
-        this.postResponses = postResponses;
+        this.simplePostResponses = simplePostResponses;
         this.startPage = startPage;
         this.endPage = endPage;
         this.prev = prev;
@@ -30,12 +30,12 @@ public class PostListResponse {
     }
 
     public static PostListResponse from(PostListResponseDto postListResponseDto) {
-        List<PostResponse> collect = postListResponseDto.getPostResponseDtos()
+        List<SimplePostResponse> simplePostResponses = postListResponseDto.getSimplePostResponseDtos()
             .stream()
-            .map(PostResponse::from)
+            .map(SimplePostResponse::from)
             .collect(Collectors.toList());
         return new PostListResponse(
-            collect,
+            simplePostResponses,
             postListResponseDto.getStartPage(),
             postListResponseDto.getEndPage(),
             postListResponseDto.isPrev(),
@@ -43,8 +43,8 @@ public class PostListResponse {
         );
     }
 
-    public List<PostResponse> getPostResponses() {
-        return postResponses;
+    public List<SimplePostResponse> getSimplePostResponses() {
+        return simplePostResponses;
     }
 
     public int getStartPage() {

@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class PostListResponseDto {
 
-    private List<PostResponseDto> postResponseDtos;
+    private List<SimplePostResponseDto> simplePostResponseDtos;
     private int startPage;
     private int endPage;
     private boolean prev;
@@ -17,13 +17,13 @@ public class PostListResponseDto {
     }
 
     public PostListResponseDto(
-        List<PostResponseDto> postResponseDtos,
+        List<SimplePostResponseDto> simplePostResponseDtos,
         int startPage,
         int endPage,
         boolean prev,
         boolean next
     ) {
-        this.postResponseDtos = postResponseDtos;
+        this.simplePostResponseDtos = simplePostResponseDtos;
         this.startPage = startPage;
         this.endPage = endPage;
         this.prev = prev;
@@ -31,8 +31,8 @@ public class PostListResponseDto {
     }
 
     public static PostListResponseDto from(List<Post> posts, PageMaker pageMaker) {
-        List<PostResponseDto> postResponseDtos = posts.stream()
-            .map(PostResponseDto::from)
+        List<SimplePostResponseDto> postResponseDtos = posts.stream()
+            .map(SimplePostResponseDto::from)
             .collect(Collectors.toList());
         return new PostListResponseDto(
             postResponseDtos,
@@ -43,8 +43,8 @@ public class PostListResponseDto {
         );
     }
 
-    public List<PostResponseDto> getPostResponseDtos() {
-        return postResponseDtos;
+    public List<SimplePostResponseDto> getSimplePostResponseDtos() {
+        return simplePostResponseDtos;
     }
 
     public int getStartPage() {

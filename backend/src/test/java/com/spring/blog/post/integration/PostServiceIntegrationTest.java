@@ -167,7 +167,7 @@ class PostServiceIntegrationTest {
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
 
         // then
-        assertThat(postListResponseDto.getPostResponseDtos())
+        assertThat(postListResponseDto.getSimplePostResponseDtos())
             .extracting("title", "author")
             .containsExactly(
                 tuple("a3", "kevin3"),

@@ -221,7 +221,7 @@ class PostServiceTest {
                 assertThat(postListResponseDto)
                     .extracting("startPage", "endPage", "next", "prev")
                     .containsExactly(1, 3, true, false);
-                assertThat(postListResponseDto.getPostResponseDtos())
+                assertThat(postListResponseDto.getSimplePostResponseDtos())
                     .extracting("title", "author")
                     .containsExactly(
                         tuple("a3", "kevin3"),
