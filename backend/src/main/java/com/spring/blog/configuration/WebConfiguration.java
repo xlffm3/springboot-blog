@@ -4,20 +4,18 @@ import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.presentation.interceptor.AuthenticationInterceptor;
 import com.spring.blog.authentication.presentation.resolver.AuthenticationPrincipalArgumentResolver;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+@RequiredArgsConstructor
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
     private final OAuthService oAuthService;
-
-    public WebConfiguration(OAuthService oAuthService) {
-        this.oAuthService = oAuthService;
-    }
 
     @Bean
     public AuthenticationInterceptor authenticationInterceptor() {
