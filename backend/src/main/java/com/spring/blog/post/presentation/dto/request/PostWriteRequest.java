@@ -1,33 +1,20 @@
 package com.spring.blog.post.presentation.dto.request;
 
-import java.io.Serializable;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
-public class PostWriteRequest implements Serializable {
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class PostWriteRequest {
 
     private String title;
     private String content;
     private List<MultipartFile> files;
-
-    private PostWriteRequest() {
-    }
-
-    public PostWriteRequest(String title, String content, List<MultipartFile> files) {
-        this.title = title;
-        this.content = content;
-        this.files = files;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public List<MultipartFile> getFiles() {
-        return files;
-    }
 }

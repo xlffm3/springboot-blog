@@ -1,20 +1,17 @@
 package com.spring.blog.post.application.dto.request;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PostDeleteRequestDto {
 
     private Long postId;
     private Long userId;
-
-    public PostDeleteRequestDto(Long postId, Long userId) {
-        this.postId = postId;
-        this.userId = userId;
-    }
-
-    public Long getPostId() {
-        return postId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
 }

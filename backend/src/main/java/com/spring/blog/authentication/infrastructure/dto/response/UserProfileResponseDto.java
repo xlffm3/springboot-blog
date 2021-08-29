@@ -1,7 +1,16 @@
 package com.spring.blog.authentication.infrastructure.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserProfileResponseDto {
 
     @JsonProperty("login")
@@ -9,20 +18,4 @@ public class UserProfileResponseDto {
 
     @JsonProperty("avatar_url")
     private String profileImageUrl;
-
-    private UserProfileResponseDto() {
-    }
-
-    public UserProfileResponseDto(String name, String profileImageUrl) {
-        this.name = name;
-        this.profileImageUrl = profileImageUrl;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getProfileImageUrl() {
-        return profileImageUrl;
-    }
 }

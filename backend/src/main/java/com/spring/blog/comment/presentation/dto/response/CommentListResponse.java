@@ -3,7 +3,16 @@ package com.spring.blog.comment.presentation.dto.response;
 import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentListResponse {
 
     private List<CommentResponse> commentResponses;
@@ -11,23 +20,6 @@ public class CommentListResponse {
     private int endPage;
     private boolean prev;
     private boolean next;
-
-    private CommentListResponse() {
-    }
-
-    public CommentListResponse(
-        List<CommentResponse> commentResponses,
-        int startPage,
-        int endPage,
-        boolean prev,
-        boolean next
-    ) {
-        this.commentResponses = commentResponses;
-        this.startPage = startPage;
-        this.endPage = endPage;
-        this.prev = prev;
-        this.next = next;
-    }
 
     public static CommentListResponse from(CommentListResponseDto commentListResponseDto) {
         List<CommentResponse> commentResponses = commentListResponseDto.getCommentResponseDtos()
@@ -41,25 +33,5 @@ public class CommentListResponse {
             commentListResponseDto.isPrev(),
             commentListResponseDto.isNext()
         );
-    }
-
-    public List<CommentResponse> getCommentResponses() {
-        return commentResponses;
-    }
-
-    public int getStartPage() {
-        return startPage;
-    }
-
-    public int getEndPage() {
-        return endPage;
-    }
-
-    public boolean getPrev() {
-        return prev;
-    }
-
-    public boolean getNext() {
-        return next;
     }
 }

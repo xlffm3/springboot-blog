@@ -2,7 +2,16 @@ package com.spring.blog.comment.presentation.dto.response;
 
 import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentResponse {
 
     private Long id;
@@ -10,23 +19,6 @@ public class CommentResponse {
     private String content;
     private Long depth;
     private LocalDateTime createdDate;
-
-    private CommentResponse() {
-    }
-
-    public CommentResponse(
-        Long id,
-        String author,
-        String content,
-        Long depth,
-        LocalDateTime createdDate
-    ) {
-        this.id = id;
-        this.author = author;
-        this.content = content;
-        this.depth = depth;
-        this.createdDate = createdDate;
-    }
 
     public static CommentResponse from(CommentResponseDto commentResponseDto) {
         return new CommentResponse(
@@ -36,25 +28,5 @@ public class CommentResponse {
             commentResponseDto.getDepth(),
             commentResponseDto.getCreatedDate()
         );
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public Long getDepth() {
-        return depth;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
     }
 }

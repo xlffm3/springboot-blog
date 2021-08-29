@@ -1,7 +1,16 @@
 package com.spring.blog.authentication.infrastructure.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AccessTokenResponseDto {
 
     @JsonProperty("access_token")
@@ -12,25 +21,4 @@ public class AccessTokenResponseDto {
 
     @JsonProperty("scope")
     private String scope;
-
-    private AccessTokenResponseDto() {
-    }
-
-    public AccessTokenResponseDto(String accessToken, String tokenType, String scope) {
-        this.accessToken = accessToken;
-        this.tokenType = tokenType;
-        this.scope = scope;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public String getTokenType() {
-        return tokenType;
-    }
-
-    public String getScope() {
-        return scope;
-    }
 }

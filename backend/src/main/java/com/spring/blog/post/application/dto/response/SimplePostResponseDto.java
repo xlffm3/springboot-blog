@@ -2,7 +2,16 @@ package com.spring.blog.post.application.dto.response;
 
 import com.spring.blog.post.domain.Post;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SimplePostResponseDto {
 
     private Long id;
@@ -12,27 +21,6 @@ public class SimplePostResponseDto {
     private Long viewCounts;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
-
-    private SimplePostResponseDto() {
-    }
-
-    public SimplePostResponseDto(
-        Long id,
-        String title,
-        String content,
-        String author,
-        Long viewCounts,
-        LocalDateTime createdDate,
-        LocalDateTime modifiedDate
-    ) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.author = author;
-        this.viewCounts = viewCounts;
-        this.createdDate = createdDate;
-        this.modifiedDate = modifiedDate;
-    }
 
     public static SimplePostResponseDto from(Post post) {
         return new SimplePostResponseDto(
@@ -44,33 +32,5 @@ public class SimplePostResponseDto {
             post.getCreatedDate(),
             post.getModifiedDate()
         );
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public Long getViewCounts() {
-        return viewCounts;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public LocalDateTime getModifiedDate() {
-        return modifiedDate;
     }
 }

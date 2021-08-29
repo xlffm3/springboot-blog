@@ -1,4 +1,4 @@
-package com.spring.blog.page;
+package com.spring.blog.page.presentation;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
