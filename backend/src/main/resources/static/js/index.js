@@ -28,7 +28,7 @@ async function renderBoardSection() {
 function renderPostRow(response) {
   const $table = document.getElementById('tbody');
 
-  response.data.postResponses.forEach(post => {
+  response.data.simplePostResponses.forEach(post => {
     const postRowHtml =
         document.querySelector('#template-post-row-template')
         .innerHTML.replace('{post-id}', post.id)

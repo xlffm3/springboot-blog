@@ -1,4 +1,4 @@
-package com.spring.blog.authentication.presentation.dto;
+package com.spring.blog.comment.application.dto.request;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OAuthLoginUrlResponse {
+public class CommentListRequestDto {
 
-    private String url;
+    private Long postId;
+    private Long page;
+    private Long size;
+    private Long pageBlockCounts;
 }

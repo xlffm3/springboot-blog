@@ -1,10 +1,19 @@
-package com.spring.blog.comment.application.dto;
+package com.spring.blog.comment.application.dto.response;
 
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.common.PageMaker;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentListResponseDto {
 
     private List<CommentResponseDto> commentResponseDtos;
@@ -12,23 +21,6 @@ public class CommentListResponseDto {
     private int endPage;
     private boolean prev;
     private boolean next;
-
-    private CommentListResponseDto() {
-    }
-
-    public CommentListResponseDto(
-        List<CommentResponseDto> commentResponseDtos,
-        int startPage,
-        int endPage,
-        boolean prev,
-        boolean next
-    ) {
-        this.commentResponseDtos = commentResponseDtos;
-        this.startPage = startPage;
-        this.endPage = endPage;
-        this.prev = prev;
-        this.next = next;
-    }
 
     public static CommentListResponseDto from(List<Comment> comments, PageMaker pageMaker) {
         List<CommentResponseDto> commentResponseDtos = comments.stream()
@@ -41,25 +33,5 @@ public class CommentListResponseDto {
             pageMaker.isPrev(),
             pageMaker.isNext()
         );
-    }
-
-    public List<CommentResponseDto> getCommentResponseDtos() {
-        return commentResponseDtos;
-    }
-
-    public int getStartPage() {
-        return startPage;
-    }
-
-    public int getEndPage() {
-        return endPage;
-    }
-
-    public boolean isPrev() {
-        return prev;
-    }
-
-    public boolean isNext() {
-        return next;
     }
 }

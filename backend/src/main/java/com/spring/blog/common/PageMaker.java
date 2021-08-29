@@ -1,14 +1,17 @@
 package com.spring.blog.common;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PageMaker {
 
     private int startPage;
     private int endPage;
     private boolean prev;
     private boolean next;
-
-    private PageMaker() {
-    }
 
     /*
     JPA 쿼리의 경우 Page Index가 0부터 시작하지만 페이지 계산시에는 1부터 들어간다.
@@ -27,21 +30,5 @@ public class PageMaker {
 
         prev = startPage != 1;
         next = endPage * size < totalItemCounts;
-    }
-
-    public int getStartPage() {
-        return startPage;
-    }
-
-    public int getEndPage() {
-        return endPage;
-    }
-
-    public boolean isPrev() {
-        return prev;
-    }
-
-    public boolean isNext() {
-        return next;
     }
 }

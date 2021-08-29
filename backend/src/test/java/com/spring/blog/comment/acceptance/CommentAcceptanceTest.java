@@ -3,9 +3,9 @@ package com.spring.blog.comment.acceptance;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
-import com.spring.blog.comment.presentation.dto.CommentListResponse;
-import com.spring.blog.comment.presentation.dto.CommentResponse;
-import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
+import com.spring.blog.comment.presentation.dto.response.CommentListResponse;
+import com.spring.blog.comment.presentation.dto.response.CommentResponse;
+import com.spring.blog.comment.presentation.dto.request.CommentWriteRequest;
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
 import org.junit.jupiter.api.DisplayName;

@@ -12,11 +12,11 @@ import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
-import com.spring.blog.post.application.dto.PostDeleteRequestDto;
-import com.spring.blog.post.application.dto.PostListRequestDto;
-import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
+import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
+import com.spring.blog.post.application.dto.request.PostListRequestDto;
+import com.spring.blog.post.application.dto.response.PostListResponseDto;
+import com.spring.blog.post.application.dto.response.PostResponseDto;
+import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
@@ -167,7 +167,7 @@ class PostServiceIntegrationTest {
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
 
         // then
-        assertThat(postListResponseDto.getPostResponseDtos())
+        assertThat(postListResponseDto.getSimplePostResponseDtos())
             .extracting("title", "author")
             .containsExactly(
                 tuple("a3", "kevin3"),

@@ -12,11 +12,11 @@ import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.FileFactory;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
-import com.spring.blog.post.application.dto.PostDeleteRequestDto;
-import com.spring.blog.post.application.dto.PostListRequestDto;
-import com.spring.blog.post.application.dto.PostListResponseDto;
-import com.spring.blog.post.application.dto.PostResponseDto;
-import com.spring.blog.post.application.dto.PostWriteRequestDto;
+import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
+import com.spring.blog.post.application.dto.request.PostListRequestDto;
+import com.spring.blog.post.application.dto.response.PostListResponseDto;
+import com.spring.blog.post.application.dto.response.PostResponseDto;
+import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
@@ -221,7 +221,7 @@ class PostServiceTest {
                 assertThat(postListResponseDto)
                     .extracting("startPage", "endPage", "next", "prev")
                     .containsExactly(1, 3, true, false);
-                assertThat(postListResponseDto.getPostResponseDtos())
+                assertThat(postListResponseDto.getSimplePostResponseDtos())
                     .extracting("title", "author")
                     .containsExactly(
                         tuple("a3", "kevin3"),
