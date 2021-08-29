@@ -38,11 +38,11 @@ public class CustomPostRepositoryImpl implements CustomPostRepository {
     @Override
     public Optional<Post> findByIdWithAuthorAndImages(Long id) {
         Post post = selectPostInnerFetchJoinUser()
-            .distinct()
             .leftJoin(QPOST.images.images)
             .fetchJoin()
             .where(isActivePost(id))
-            .fetchFirst();
+            .distinct()
+            .fetchOne();
         return Optional.ofNullable(post);
     }
 
