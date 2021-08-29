@@ -21,4 +21,6 @@ public interface CustomCommentRepository {
     void deleteChildComments(Comment parentComment);
 
     Long countCommentByPost(Post post);
+
+    void deleteAllByPost(Post post);
 }

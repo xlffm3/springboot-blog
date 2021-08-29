@@ -134,4 +134,33 @@ class PostAcceptanceTest extends AcceptanceTest {
                     .containsExactly(4, 5, true, false);
             });
     }
+
+    @DisplayName("비로그인 유저는 게시물 삭제가 불가능하다.")
+    @Test
+    void delete_GuestUser_Failure() {
+        // given, when, then
+        webTestClient.delete()
+            .uri("/api/posts/1")
+            .exchange()
+            .expectStatus()
+            .isUnauthorized()
+            .expectBody(ApiErrorResponse.class)
+            .value(response -> assertThat(response.getErrorCode()).isEqualTo("A0001"));
+    }
+
+    @DisplayName("로그인 유저는 게시물을 삭제할 수 있다.")
+    @Test
+    void delete_LoginUser_Failure() {
+        // given
+        String token = api_로그인_요청_및_토큰_반환("kevin");
+        String postId = api_게시물_작성_ID_회수("hi", "there", token);
+
+        // when, then
+        webTestClient.delete()
+            .uri("/api/posts/{postId}", postId)
+            .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
+            .exchange()
+            .expectStatus()
+            .isNoContent();
+    }
 }

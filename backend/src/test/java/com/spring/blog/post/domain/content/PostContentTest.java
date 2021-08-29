@@ -54,7 +54,7 @@ class PostContentTest {
                 assertThatCode(() -> new PostContent(title, "content"))
                     .isInstanceOf(PostTitleException.class)
                     .hasMessage("게시글 제목은 공백이거나 100자를 초과할 수 없습니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "P0001")
+                    .hasFieldOrPropertyWithValue("errorCode", "P0003")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }
@@ -73,7 +73,7 @@ class PostContentTest {
                 assertThatCode(() -> new PostContent(title, "content"))
                     .isInstanceOf(PostTitleException.class)
                     .hasMessage("게시글 제목은 공백이거나 100자를 초과할 수 없습니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "P0001")
+                    .hasFieldOrPropertyWithValue("errorCode", "P0003")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }

@@ -3,6 +3,7 @@ package com.spring.blog.post.presentation;
 import com.spring.blog.authentication.domain.Authenticated;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.post.application.PostService;
+import com.spring.blog.post.application.dto.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
@@ -12,6 +13,7 @@ import com.spring.blog.post.presentation.dto.PostResponse;
 import com.spring.blog.post.presentation.dto.PostWriteRequest;
 import java.net.URI;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,10 +62,21 @@ public class PostController {
         return ResponseEntity.ok(postListResponse);
     }
 
-    @GetMapping("/posts/{id}")
-    public ResponseEntity<PostResponse> read(@PathVariable Long id) {
-        PostResponseDto postResponseDto = postService.readById(id);
+    @GetMapping("/posts/{postId}")
+    public ResponseEntity<PostResponse> read(@PathVariable Long postId) {
+        PostResponseDto postResponseDto = postService.readById(postId);
         PostResponse postResponse = PostResponse.from(postResponseDto);
         return ResponseEntity.ok(postResponse);
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<Void> delete(
+        @PathVariable Long postId,
+        @Authenticated AppUser appUser
+    ) {
+        PostDeleteRequestDto postDeleteRequestDto = new PostDeleteRequestDto(postId, appUser.getId());
+        postService.deletePost(postDeleteRequestDto);
+        return ResponseEntity.noContent()
+            .build();
     }
 }

@@ -111,4 +111,14 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
                         .and(comment.isDeleted.eq(false)))))
             .execute();
     }
+
+    @Override
+    public void deleteAllByPost(Post post) {
+        QComment comment = QComment.comment;
+        jpaQueryFactory.update(comment)
+            .set(comment.isDeleted, true)
+            .where(comment.post.eq(post)
+                .and(comment.isDeleted.eq(false)))
+            .execute();
+    }
 }

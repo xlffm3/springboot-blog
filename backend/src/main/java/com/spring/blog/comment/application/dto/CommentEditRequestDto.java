@@ -6,6 +6,9 @@ public class CommentEditRequestDto {
     private Long userId;
     private String content;
 
+    private CommentEditRequestDto() {
+    }
+
     public CommentEditRequestDto(Long commentId, Long userId, String content) {
         this.commentId = commentId;
         this.userId = userId;

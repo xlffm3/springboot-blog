@@ -8,9 +8,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.FileFactory;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
+import com.spring.blog.post.application.dto.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -50,6 +53,9 @@ class PostServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private CommentRepository commentRepository;
+
+    @Mock
     private FileStorage fileStorage;
 
     @DisplayName("write 메서드는")
@@ -64,7 +70,8 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title", "content", new ArrayList<>());
+                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title",
+                    "content", new ArrayList<>());
                 given(userRepository.findById(1L)).willReturn(Optional.empty());
 
                 // when, then
@@ -225,6 +232,89 @@ class PostServiceTest {
                 verify(postRepository, times(1))
                     .findPostsOrderByDateDesc(any(Pageable.class));
                 verify(postRepository, times(1)).count();
+            }
+        }
+    }
+
+    @DisplayName("deletePost 메서드는")
+    @Nested
+    class Describe_deletePost {
+
+        @DisplayName("Post가 존재하지 않을 때")
+        @Nested
+        class Context_post_not_found {
+
+            @DisplayName("예외를 발생시킨다.")
+            @Test
+            void it_throws_PostNotFoundException() {
+                // given
+                PostDeleteRequestDto postDeleteRequestDto =
+                    new PostDeleteRequestDto(1L, 1L);
+                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> postService.deletePost(postDeleteRequestDto))
+                    .isInstanceOf(PostNotFoundException.class)
+                    .hasMessage("게시글을 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "P0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(postRepository, times(1)).findWithAuthorById(1L);
+            }
+        }
+
+        @DisplayName("유저가 존재하지 않을 때")
+        @Nested
+        class Context_user_different {
+
+            @DisplayName("예외를 발생시킨다.")
+            @Test
+            void it_throws_UserNotFoundException() {
+                // given
+                PostDeleteRequestDto postDeleteRequestDto =
+                    new PostDeleteRequestDto(1L, 1L);
+                Post post = new Post("title", "content", null);
+                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.of(post));
+                given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+                // when, then
+                assertThatCode(() -> postService.deletePost(postDeleteRequestDto))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessage("유저를 조회할 수 없습니다.")
+                    .hasFieldOrPropertyWithValue("errorCode", "U0001")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
+
+                verify(postRepository, times(1)).findWithAuthorById(1L);
+                verify(userRepository, times(1)).findById(1L);
+            }
+        }
+
+        @DisplayName("정상적인 요청인 경우")
+        @Nested
+        class Context_valid_request {
+
+            @DisplayName("게시물과 댓글들을 모두 삭제한다.")
+            @Test
+            void it_throws_UserNotFoundException() {
+                // given
+                PostDeleteRequestDto postDeleteRequestDto =
+                    new PostDeleteRequestDto(1L, 1L);
+                User user = new User(1L, "kevin", "image");
+                Post post = new Post("title", "content", user);
+                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.of(post));
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                Mockito.doNothing().when(commentRepository).deleteAllByPost(post);
+
+                // when
+                postService.deletePost(postDeleteRequestDto);
+
+                assertThat(post)
+                    .extracting("isDeleted")
+                    .isEqualTo(true);
+
+                verify(postRepository, times(1)).findWithAuthorById(1L);
+                verify(userRepository, times(1)).findById(1L);
+                verify(commentRepository, times(1)).deleteAllByPost(post);
             }
         }
     }

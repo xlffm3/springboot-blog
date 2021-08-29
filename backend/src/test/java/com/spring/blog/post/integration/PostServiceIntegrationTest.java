@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.tuple;
 
+import com.spring.blog.comment.domain.Comment;
+import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.common.FileFactory;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
+import com.spring.blog.post.application.dto.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.PostListRequestDto;
 import com.spring.blog.post.application.dto.PostListResponseDto;
 import com.spring.blog.post.application.dto.PostResponseDto;
@@ -46,6 +49,9 @@ class PostServiceIntegrationTest {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Autowired
     private DatabaseCleaner databaseCleaner;
@@ -159,7 +165,6 @@ class PostServiceIntegrationTest {
 
         // when
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
-        System.out.println(postRepository.count());
 
         // then
         assertThat(postListResponseDto.getPostResponseDtos())
@@ -172,5 +177,25 @@ class PostServiceIntegrationTest {
         assertThat(postListResponseDto)
             .extracting("startPage", "endPage", "next", "prev")
             .containsExactly(1, 1, false, false);
+    }
+
+    @DisplayName("게시물과 댓글들을 모두 삭제한다.")
+    @Test
+    void deletePost_ValidRequest_True() {
+        // given
+        User user = userRepository.save(new User("kevin", "image"));
+        Post post = postRepository.save(new Post("title", "content", user));
+        Comment comment = new Comment("comment", post, user);
+        comment.updateAsRoot();
+        commentRepository.save(comment);
+        PostDeleteRequestDto postDeleteRequestDto =
+            new PostDeleteRequestDto(post.getId(), user.getId());
+
+        // when
+        postService.deletePost(postDeleteRequestDto);
+
+        // then
+        assertThat(commentRepository.findById(comment.getId())).isEmpty();
+        assertThat(postRepository.findById(post.getId())).isEmpty();
     }
 }

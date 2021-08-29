@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.spring.blog.exception.comment.CannotAddChildCommentException;
-import com.spring.blog.exception.comment.CannotDeleteException;
+import com.spring.blog.exception.comment.CannotDeleteCommentException;
 import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
@@ -173,7 +173,7 @@ class CommentTest {
 
                 // when, then
                 assertThatCode(() -> comment.delete(deleter))
-                    .isInstanceOf(CannotDeleteException.class)
+                    .isInstanceOf(CannotDeleteCommentException.class)
                     .hasMessage("댓글을 삭제할 수 없습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "C0005")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);

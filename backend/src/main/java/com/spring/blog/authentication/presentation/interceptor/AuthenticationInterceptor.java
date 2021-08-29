@@ -14,6 +14,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private static final Pattern COMMENT_IGNORE_PATTERN = Pattern.compile("/api/posts/.*/comments");
+    private static final Pattern POST_IGNORE_PATTERN = Pattern.compile("/api/posts/.*");
 
     private final OAuthService oAuthService;
 
@@ -65,15 +66,13 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     }
 
     private boolean isAbleToIgnoreAuthorization(HttpServletRequest request) {
-        boolean isReadingPosts = request.getMethod().equalsIgnoreCase(HttpMethod.GET.toString())
-            && request.getRequestURI().equals("/api/posts");
-        boolean isReadingComments = request.getMethod().equalsIgnoreCase(HttpMethod.GET.toString())
-            && COMMENT_IGNORE_PATTERN.matcher(request.getRequestURI()).matches();
-        return isReadingPosts || isReadingComments;
-    }
-
-    private boolean isPostListReadRequest(HttpServletRequest request) {
-        return request.getMethod().equalsIgnoreCase(HttpMethod.GET.toString())
-            && request.getRequestURI().equals("/api/posts");
+        String requestURI = request.getRequestURI();
+        boolean isGetMapping = request.getMethod().equalsIgnoreCase(HttpMethod.GET.toString());
+        boolean isReadingPosts = isGetMapping && requestURI.equals("/api/posts");
+        boolean isReadingComments = isGetMapping
+            && COMMENT_IGNORE_PATTERN.matcher(requestURI).matches();
+        boolean isReadingPost = isGetMapping
+            && POST_IGNORE_PATTERN.matcher(requestURI).matches();
+        return isReadingPosts || isReadingComments || isReadingPost;
     }
 }
