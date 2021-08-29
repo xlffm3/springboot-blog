@@ -1,12 +1,12 @@
 package com.spring.blog.comment.application;
 
-import com.spring.blog.comment.application.dto.CommentDeleteRequestDto;
-import com.spring.blog.comment.application.dto.CommentEditRequestDto;
-import com.spring.blog.comment.application.dto.CommentListRequestDto;
-import com.spring.blog.comment.application.dto.CommentListResponseDto;
-import com.spring.blog.comment.application.dto.CommentReplyRequestDto;
-import com.spring.blog.comment.application.dto.CommentResponseDto;
-import com.spring.blog.comment.application.dto.CommentWriteRequestDto;
+import com.spring.blog.comment.application.dto.request.CommentDeleteRequestDto;
+import com.spring.blog.comment.application.dto.request.CommentEditRequestDto;
+import com.spring.blog.comment.application.dto.request.CommentListRequestDto;
+import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.request.CommentReplyRequestDto;
+import com.spring.blog.comment.application.dto.response.CommentResponseDto;
+import com.spring.blog.comment.application.dto.request.CommentWriteRequestDto;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.PageMaker;

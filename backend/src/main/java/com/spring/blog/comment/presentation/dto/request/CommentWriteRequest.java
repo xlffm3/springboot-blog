@@ -1,4 +1,4 @@
-package com.spring.blog.comment.presentation.dto;
+package com.spring.blog.comment.presentation.dto.request;
 
 public class CommentWriteRequest {
 

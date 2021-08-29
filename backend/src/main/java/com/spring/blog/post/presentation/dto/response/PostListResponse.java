@@ -1,6 +1,6 @@
-package com.spring.blog.post.presentation.dto;
+package com.spring.blog.post.presentation.dto.response;
 
-import com.spring.blog.post.application.dto.PostListResponseDto;
+import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import java.util.List;
 import java.util.stream.Collectors;
 

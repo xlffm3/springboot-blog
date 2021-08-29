@@ -1,4 +1,4 @@
-package com.spring.blog.authentication.infrastructure.dto;
+package com.spring.blog.authentication.infrastructure.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -1,4 +1,4 @@
-package com.spring.blog.comment.application.dto;
+package com.spring.blog.comment.application.dto.request;
 
 public class CommentDeleteRequestDto {
 

@@ -1,6 +1,6 @@
-package com.spring.blog.comment.presentation.dto;
+package com.spring.blog.comment.presentation.dto.response;
 
-import com.spring.blog.comment.application.dto.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
 import java.util.List;
 import java.util.stream.Collectors;
 

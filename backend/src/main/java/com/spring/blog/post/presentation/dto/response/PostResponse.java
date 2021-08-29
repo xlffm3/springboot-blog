@@ -1,10 +1,10 @@
-package com.spring.blog.post.application.dto;
+package com.spring.blog.post.presentation.dto.response;
 
-import com.spring.blog.post.domain.Post;
+import com.spring.blog.post.application.dto.response.PostResponseDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class PostResponseDto {
+public class PostResponse {
 
     private Long id;
     private String title;
@@ -15,10 +15,11 @@ public class PostResponseDto {
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
 
-    private PostResponseDto() {
+
+    private PostResponse() {
     }
 
-    public PostResponseDto(
+    public PostResponse(
         Long id,
         String title,
         String content,
@@ -38,16 +39,16 @@ public class PostResponseDto {
         this.modifiedDate = modifiedDate;
     }
 
-    public static PostResponseDto from(Post post) {
-        return new PostResponseDto(
-            post.getId(),
-            post.getTitle(),
-            post.getContent(),
-            post.getImageUrls(),
-            post.getAuthorName(),
-            post.getViewCounts(),
-            post.getCreatedDate(),
-            post.getModifiedDate()
+    public static PostResponse from(PostResponseDto postResponseDto) {
+        return new PostResponse(
+            postResponseDto.getId(),
+            postResponseDto.getTitle(),
+            postResponseDto.getContent(),
+            postResponseDto.getUrls(),
+            postResponseDto.getAuthor(),
+            postResponseDto.getViewCounts(),
+            postResponseDto.getCreatedDate(),
+            postResponseDto.getModifiedDate()
         );
     }
 

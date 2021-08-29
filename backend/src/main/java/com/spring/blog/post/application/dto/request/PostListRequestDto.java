@@ -1,4 +1,4 @@
-package com.spring.blog.post.application.dto;
+package com.spring.blog.post.application.dto.request;
 
 public class PostListRequestDto {
 

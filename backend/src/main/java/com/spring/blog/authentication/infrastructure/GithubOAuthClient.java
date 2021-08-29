@@ -2,9 +2,9 @@ package com.spring.blog.authentication.infrastructure;
 
 import com.spring.blog.authentication.domain.OAuthClient;
 import com.spring.blog.authentication.domain.user.UserProfile;
-import com.spring.blog.authentication.infrastructure.dto.AccessTokenRequestDto;
-import com.spring.blog.authentication.infrastructure.dto.AccessTokenResponseDto;
-import com.spring.blog.authentication.infrastructure.dto.UserProfileResponseDto;
+import com.spring.blog.authentication.infrastructure.dto.request.AccessTokenRequestDto;
+import com.spring.blog.authentication.infrastructure.dto.response.AccessTokenResponseDto;
+import com.spring.blog.authentication.infrastructure.dto.response.UserProfileResponseDto;
 import com.spring.blog.exception.platform.PlatformHttpErrorException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;

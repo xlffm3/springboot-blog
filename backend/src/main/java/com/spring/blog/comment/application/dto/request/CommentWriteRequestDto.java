@@ -1,19 +1,17 @@
-package com.spring.blog.comment.application.dto;
+package com.spring.blog.comment.application.dto.request;
 
-public class CommentReplyRequestDto {
+public class CommentWriteRequestDto {
 
     private Long postId;
     private Long userId;
-    private Long commentId;
     private String content;
 
-    private CommentReplyRequestDto() {
+    private CommentWriteRequestDto() {
     }
 
-    public CommentReplyRequestDto(Long postId, Long userId, Long commentId, String content) {
+    public CommentWriteRequestDto(Long postId, Long userId, String content) {
         this.postId = postId;
         this.userId = userId;
-        this.commentId = commentId;
         this.content = content;
     }
 
@@ -23,10 +21,6 @@ public class CommentReplyRequestDto {
 
     public Long getUserId() {
         return userId;
-    }
-
-    public Long getCommentId() {
-        return commentId;
     }
 
     public String getContent() {

@@ -1,4 +1,4 @@
-package com.spring.blog.post.application.dto;
+package com.spring.blog.post.application.dto.request;
 
 import java.util.List;
 import org.springframework.web.multipart.MultipartFile;

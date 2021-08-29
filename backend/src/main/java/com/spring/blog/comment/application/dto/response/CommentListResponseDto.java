@@ -1,4 +1,4 @@
-package com.spring.blog.comment.application.dto;
+package com.spring.blog.comment.application.dto.response;
 
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.common.PageMaker;

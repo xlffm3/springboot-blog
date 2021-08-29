@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
-import com.spring.blog.post.presentation.dto.PostListResponse;
-import com.spring.blog.post.presentation.dto.PostResponse;
+import com.spring.blog.post.presentation.dto.response.PostListResponse;
+import com.spring.blog.post.presentation.dto.response.PostResponse;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

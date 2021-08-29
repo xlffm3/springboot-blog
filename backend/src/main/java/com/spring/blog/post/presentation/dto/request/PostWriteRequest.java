@@ -1,4 +1,4 @@
-package com.spring.blog.post.presentation.dto;
+package com.spring.blog.post.presentation.dto.request;
 
 import java.io.Serializable;
 import java.util.List;

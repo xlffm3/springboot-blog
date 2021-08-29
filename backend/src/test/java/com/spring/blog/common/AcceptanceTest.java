@@ -1,8 +1,8 @@
 package com.spring.blog.common;
 
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
-import com.spring.blog.comment.presentation.dto.CommentResponse;
-import com.spring.blog.comment.presentation.dto.CommentWriteRequest;
+import com.spring.blog.comment.presentation.dto.response.CommentResponse;
+import com.spring.blog.comment.presentation.dto.request.CommentWriteRequest;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import java.io.IOException;
 import java.util.List;

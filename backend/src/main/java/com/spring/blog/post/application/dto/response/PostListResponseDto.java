@@ -1,4 +1,4 @@
-package com.spring.blog.post.application.dto;
+package com.spring.blog.post.application.dto.response;
 
 import com.spring.blog.common.PageMaker;
 import com.spring.blog.post.domain.Post;
