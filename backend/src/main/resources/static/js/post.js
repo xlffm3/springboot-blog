@@ -37,7 +37,6 @@ async function renderPostSection() {
       content.insertAdjacentHTML('afterend',
           imageHtml.replace('{url}', url));
     })
-
     activateButtonsSection();
   });
 }
