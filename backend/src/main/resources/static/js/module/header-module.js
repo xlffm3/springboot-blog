@@ -25,14 +25,32 @@ function renderUserInformationSection() {
   .innerHTML.replace('{userName}', localStorage.getItem('userName'));
   $loginSection.insertAdjacentHTML('beforeend', userInformationHtml);
 
-  const logoutHtml = document.querySelector('#template-logout')
+  const logoutAndWithdrawHtml = document.querySelector('#template-logout-withdraw')
       .innerHTML;
-  $loginSection.insertAdjacentHTML('beforeend', logoutHtml);
+  $loginSection.insertAdjacentHTML('beforeend', logoutAndWithdrawHtml);
   const $logoutBox = document.getElementById('logout-box');
   $logoutBox.addEventListener('click', e => {
     localStorage.clear();
     location.reload();
   });
+  const $withdrawBox = document.getElementById('withdraw-box');
+  $withdrawBox.addEventListener('click', e => {
+    alert('회원탈퇴를 하더라도 게시물 및 댓글은 삭제되지 않습니다.');
+    requestToWithdraw();
+  });
+}
+
+async function requestToWithdraw() {
+  const token = localStorage.getItem('token');
+  const url = '/api/users/withdraw';
+  await axios.delete(url, {
+    headers: {
+      'Authorization': 'Bearer ' + token
+    }
+  }).then(response => {
+    localStorage.clear();
+    location.reload();
+  }).catch(error => alert(error));
 }
 
 export function addLogoClickEvent() {
