@@ -42,7 +42,7 @@ class UserServiceTest {
                 given(userRepository.findById(1L)).willReturn(Optional.empty());
 
                 // when, then
-                assertThatCode(() -> userService.withdarw(1L))
+                assertThatCode(() -> userService.withdraw(1L))
                     .isInstanceOf(UserNotFoundException.class)
                     .hasMessage("유저를 조회할 수 없습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
@@ -62,7 +62,7 @@ class UserServiceTest {
                 given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
                 // when
-                userService.withdarw(1L);
+                userService.withdraw(1L);
 
                 // then
                 assertThat(user)

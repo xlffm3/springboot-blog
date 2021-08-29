@@ -47,7 +47,6 @@ class UserControllerTest {
         verify(oAuthService, times(1)).validateToken(any());
     }
 
-
     @DisplayName("로그인 유저는 회원 탈퇴를 할 수 있다.")
     @Test
     void withdraw_LoginUser_Success() throws Exception {
@@ -55,7 +54,7 @@ class UserControllerTest {
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token"))
             .willReturn(new LoginUser(1L, "kevin"));
-        Mockito.doNothing().when(userService).withdarw(1L);
+        Mockito.doNothing().when(userService).withdraw(1L);
 
         // when, then
         mockMvc.perform(delete("/api/users/withdraw")
@@ -64,6 +63,6 @@ class UserControllerTest {
 
         verify(oAuthService, times(1)).validateToken("token");
         verify(oAuthService, times(1)).findRequestUserByToken("token");
-        verify(userService, times(1)).withdarw(1L);
+        verify(userService, times(1)).withdraw(1L);
     }
 }
