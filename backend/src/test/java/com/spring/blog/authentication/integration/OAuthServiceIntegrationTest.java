@@ -7,39 +7,22 @@ import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
-import com.spring.blog.common.DatabaseCleaner;
-import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.common.IntegrationTest;
 import com.spring.blog.exception.authentication.InvalidTokenException;
 import com.spring.blog.user.domain.repoistory.UserRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 
 @DisplayName("OAuthService 통합 테스트")
-@ActiveProfiles("test")
-@Import(InfrastructureTestConfiguration.class)
-@SpringBootTest(webEnvironment = WebEnvironment.NONE)
-class OAuthServiceIntegrationTest {
+class OAuthServiceIntegrationTest extends IntegrationTest {
 
     @Autowired
     private OAuthService oAuthService;
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private DatabaseCleaner databaseCleaner;
-
-    @AfterEach
-    void tearDown() {
-        databaseCleaner.execute();
-    }
 
     @DisplayName("Github Login Url을 요청한다.")
     @Test
@@ -63,6 +46,7 @@ class OAuthServiceIntegrationTest {
         oAuthService.createToken(code);
 
         // then
+        assertThat(before).isFalse();
         assertThat(userRepository.findByName(code)).isNotEmpty();
     }
 

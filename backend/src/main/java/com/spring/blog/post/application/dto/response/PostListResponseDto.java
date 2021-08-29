@@ -23,15 +23,15 @@ public class PostListResponseDto {
     private boolean next;
 
     public static PostListResponseDto from(List<Post> posts, PageMaker pageMaker) {
-        List<SimplePostResponseDto> postResponseDtos = posts.stream()
+        List<SimplePostResponseDto> simplePostResponseDtos = posts.stream()
             .map(SimplePostResponseDto::from)
             .collect(Collectors.toList());
-        return new PostListResponseDto(
-            postResponseDtos,
-            pageMaker.getStartPage(),
-            pageMaker.getEndPage(),
-            pageMaker.isPrev(),
-            pageMaker.isNext()
-        );
+        return PostListResponseDto.builder()
+            .simplePostResponseDtos(simplePostResponseDtos)
+            .startPage(pageMaker.getStartPage())
+            .endPage(pageMaker.getEndPage())
+            .prev(pageMaker.isPrev())
+            .next(pageMaker.isNext())
+            .build();
     }
 }

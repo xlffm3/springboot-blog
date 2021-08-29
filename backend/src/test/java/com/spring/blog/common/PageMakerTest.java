@@ -20,23 +20,25 @@ class PageMakerTest {
             @DisplayName("0번째 페이지의 경우, 시작 페이지는 1이며 페이지 블락 5개에 다음 버튼이 활성화된다.")
             @Test
             void it_returns_five_page_and_next_activated() {
+                // given, when
                 PageMaker pageMaker = new PageMaker(0, 5, 5, 30);
 
-                assertThat(pageMaker.getStartPage()).isOne();
-                assertThat(pageMaker.getEndPage()).isEqualTo(5);
-                assertThat(pageMaker.isPrev()).isFalse();
-                assertThat(pageMaker.isNext()).isTrue();
+                // then
+                assertThat(pageMaker)
+                    .extracting("startPage", "endPage", "prev", "next")
+                    .containsExactly(1, 5, false, true);
             }
 
             @DisplayName("5번째 페이지의 경우, 시작 페이지는 6이며 페이지 블락 1개에 이전 버튼이 활성화된다.")
             @Test
             void it_returns_one_page_and_prev_activated() {
+                // given, when
                 PageMaker pageMaker = new PageMaker(5, 5, 5, 30);
 
-                assertThat(pageMaker.getStartPage()).isEqualTo(6);
-                assertThat(pageMaker.getEndPage()).isEqualTo(6);
-                assertThat(pageMaker.isPrev()).isTrue();
-                assertThat(pageMaker.isNext()).isFalse();
+                // then
+                assertThat(pageMaker)
+                    .extracting("startPage", "endPage", "prev", "next")
+                    .containsExactly(6, 6, true, false);
             }
         }
 
@@ -47,12 +49,13 @@ class PageMakerTest {
             @DisplayName("0번째 페이지의 경우, 시작 페이지는 1이며 총 페이지 블락 10개에 다음 버튼은 없다.")
             @Test
             void it_returns_five_page_and_next_activated() {
+                // given, when
                 PageMaker pageMaker = new PageMaker(0, 3, 10, 30);
 
-                assertThat(pageMaker.getStartPage()).isOne();
-                assertThat(pageMaker.getEndPage()).isEqualTo(10);
-                assertThat(pageMaker.isPrev()).isFalse();
-                assertThat(pageMaker.isNext()).isFalse();
+                // then
+                assertThat(pageMaker)
+                    .extracting("startPage", "endPage", "prev", "next")
+                    .containsExactly(1, 10, false, false);
             }
         }
 
@@ -63,12 +66,13 @@ class PageMakerTest {
             @DisplayName("7번째 페이지의 경우, 시작 페이지는 8이며 총 페이지 블락 3개에 다음 버튼은 없다.")
             @Test
             void it_returns_five_page_and_next_activated() {
+                // given, when
                 PageMaker pageMaker = new PageMaker(7, 3, 7, 30);
 
-                assertThat(pageMaker.getStartPage()).isEqualTo(8);
-                assertThat(pageMaker.getEndPage()).isEqualTo(10);
-                assertThat(pageMaker.isPrev()).isTrue();
-                assertThat(pageMaker.isNext()).isFalse();
+                // then
+                assertThat(pageMaker)
+                    .extracting("startPage", "endPage", "prev", "next")
+                    .containsExactly(8, 10, true, false);
             }
         }
     }

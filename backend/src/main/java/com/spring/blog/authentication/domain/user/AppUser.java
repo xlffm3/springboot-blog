@@ -2,8 +2,8 @@ package com.spring.blog.authentication.domain.user;
 
 public abstract class AppUser {
 
-    private Long id;
-    private String name;
+    private final Long id;
+    private final String name;
 
     protected AppUser(Long id, String name) {
         this.id = id;

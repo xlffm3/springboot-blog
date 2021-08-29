@@ -33,7 +33,7 @@ async function renderPostSection() {
     const content = document.getElementById('content');
     const imageHtml = document.querySelector('#template-image')
         .innerHTML;
-    Array.from(dto.urls).forEach(url => {
+    Array.from(dto.imageUrls).forEach(url => {
       content.insertAdjacentHTML('afterend',
           imageHtml.replace('{url}', url));
     })

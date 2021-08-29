@@ -75,7 +75,7 @@ class CommentRepositoryTest {
         flushAndClear();
 
         // when
-        Long counts = customCommentRepository.countCommentByPost(post);
+        Long counts = customCommentRepository.countCommentsByPost(post);
 
         // then
         assertThat(counts).isEqualTo(2);
@@ -145,7 +145,7 @@ class CommentRepositoryTest {
         }
     }
 
-    @DisplayName("findCommentsOrderByHierarchyAndDateDesc 메서드는")
+    @DisplayName("findCommentsOrderByHierarchy 메서드는")
     @Nested
     class Describe_findCommentsOrderByHierarchyAndDateDesc {
 
@@ -175,7 +175,7 @@ class CommentRepositoryTest {
                 // when
                 Pageable pageable = PageRequest.of(0, 5);
                 List<Comment> comments = customCommentRepository
-                    .findCommentsOrderByHierarchyAndDateDesc(pageable, post);
+                    .findCommentsOrderByHierarchy(pageable, post);
 
                 // then
                 assertThat(comments)
@@ -232,7 +232,7 @@ class CommentRepositoryTest {
                 // when
                 Pageable pageable = PageRequest.of(0, 10);
                 List<Comment> comments = customCommentRepository
-                    .findCommentsOrderByHierarchyAndDateDesc(pageable, post);
+                    .findCommentsOrderByHierarchy(pageable, post);
 
                 // then
                 assertThat(comments)
@@ -278,7 +278,7 @@ class CommentRepositoryTest {
                 customCommentRepository.deleteChildComments(parentComment);
 
                 // then
-                assertThat(customCommentRepository.countCommentByPost(post)).isEqualTo(1);
+                assertThat(customCommentRepository.countCommentsByPost(post)).isEqualTo(1);
             }
         }
     }

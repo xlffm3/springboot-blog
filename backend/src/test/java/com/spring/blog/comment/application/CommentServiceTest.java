@@ -65,9 +65,13 @@ class CommentServiceTest {
             @Test
             void it_throws_PostNotFoundException() {
                 // given
-                CommentListRequestDto commentListRequestDto =
-                    new CommentListRequestDto(1L, 1L, 3L, 5L);
-                given(postRepository.findById(1L)).willReturn(Optional.empty());
+                CommentListRequestDto commentListRequestDto = CommentListRequestDto.builder()
+                    .postId(1L)
+                    .page(1L)
+                    .size(3L)
+                    .pageBlockCounts(5L)
+                    .build();
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.readCommentList(commentListRequestDto))
@@ -76,7 +80,7 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "P0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(postRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
             }
         }
 
@@ -90,8 +94,12 @@ class CommentServiceTest {
                 // given
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post(1L, "title", "content", user);
-                CommentListRequestDto commentListRequestDto =
-                    new CommentListRequestDto(1L, 1L, 3L, 5L);
+                CommentListRequestDto commentListRequestDto = CommentListRequestDto.builder()
+                    .postId(1L)
+                    .page(1L)
+                    .size(3L)
+                    .pageBlockCounts(5L)
+                    .build();
                 Comment comment1 = new Comment("1", post, user);
                 comment1.updateAsRoot();
                 Comment comment2 = new Comment("2", post, user);
@@ -99,11 +107,11 @@ class CommentServiceTest {
                 Comment comment3 = new Comment("3", post, user);
                 comment3.updateAsRoot();
 
-                given(postRepository.findById(1L)).willReturn(Optional.of(post));
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.of(post));
                 given(commentRepository
-                    .findCommentsOrderByHierarchyAndDateDesc(any(Pageable.class), eq(post)))
+                    .findCommentsOrderByHierarchy(any(Pageable.class), eq(post)))
                     .willReturn(Arrays.asList(comment1, comment2, comment3));
-                given(commentRepository.countCommentByPost(eq(post))).willReturn(15L);
+                given(commentRepository.countCommentsByPost(eq(post))).willReturn(15L);
 
                 // when
                 CommentListResponseDto commentListResponseDto =
@@ -121,11 +129,11 @@ class CommentServiceTest {
                         tuple("kevin", "3")
                     );
 
-                verify(postRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
                 verify(commentRepository, times(1))
-                    .findCommentsOrderByHierarchyAndDateDesc(any(Pageable.class), eq(post));
+                    .findCommentsOrderByHierarchy(any(Pageable.class), eq(post));
                 verify(commentRepository, times(1))
-                    .countCommentByPost(eq(post));
+                    .countCommentsByPost(eq(post));
             }
         }
     }
@@ -142,9 +150,12 @@ class CommentServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                CommentWriteRequestDto commentWriteRequestDto =
-                    new CommentWriteRequestDto(1L, 1L, "kevin");
-                given(userRepository.findById(1L)).willReturn(Optional.empty());
+                CommentWriteRequestDto commentWriteRequestDto = CommentWriteRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .content("kevin")
+                    .build();
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.writeComment(commentWriteRequestDto))
@@ -153,7 +164,7 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
 
@@ -165,11 +176,14 @@ class CommentServiceTest {
             @Test
             void it_throws_PostNotFoundException() {
                 // given
-                CommentWriteRequestDto commentWriteRequestDto =
-                    new CommentWriteRequestDto(1L, 1L, "kevin");
+                CommentWriteRequestDto commentWriteRequestDto = CommentWriteRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .content("kevin")
+                    .build();
                 User user = new User(1L, "kevin", "image");
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
-                given(postRepository.findById(1L)).willReturn(Optional.empty());
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.writeComment(commentWriteRequestDto))
@@ -178,8 +192,8 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "P0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(userRepository, times(1)).findById(1L);
-                verify(postRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
             }
         }
 
@@ -191,15 +205,22 @@ class CommentServiceTest {
             @Test
             void it_saves_comment() {
                 // given
-                CommentWriteRequestDto commentWriteRequestDto =
-                    new CommentWriteRequestDto(1L, 1L, "kevin");
+                CommentWriteRequestDto commentWriteRequestDto = CommentWriteRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .content("kevin")
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment comment = new Comment(1L, "comment", post, user);
-                CommentResponseDto expected =
-                    new CommentResponseDto(1L, "kevin", "comment", 1L, null);
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
-                given(postRepository.findById(1L)).willReturn(Optional.of(post));
+                CommentResponseDto expected = CommentResponseDto.builder()
+                    .id(1L)
+                    .author("kevin")
+                    .content("comment")
+                    .depth(1L)
+                    .build();
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.of(post));
                 given(commentRepository.save(any(Comment.class))).willReturn(comment);
 
                 // when
@@ -212,8 +233,8 @@ class CommentServiceTest {
                     .ignoringFields("createdDate")
                     .isEqualTo(expected);
 
-                verify(userRepository, times(1)).findById(1L);
-                verify(postRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
                 verify(commentRepository, times(1)).save(any(Comment.class));
             }
         }
@@ -231,9 +252,13 @@ class CommentServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                CommentReplyRequestDto commentReplyRequestDto =
-                    new CommentReplyRequestDto(1L, 1L, 1L,"ahah");
-                given(userRepository.findById(1L)).willReturn(Optional.empty());
+                CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .commentId(1L)
+                    .content("ahah")
+                    .build();
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
@@ -242,7 +267,7 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
 
@@ -254,11 +279,15 @@ class CommentServiceTest {
             @Test
             void it_throws_PostNotFoundException() {
                 // given
-                CommentReplyRequestDto commentReplyRequestDto =
-                    new CommentReplyRequestDto(1L, 1L, 1L,"hahaha");
+                CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .commentId(1L)
+                    .content("hahaha")
+                    .build();
                 User user = new User(1L, "kevin", "image");
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
-                given(postRepository.findById(1L)).willReturn(Optional.empty());
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.replyComment(commentReplyRequestDto))
@@ -267,8 +296,8 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "P0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(userRepository, times(1)).findById(1L);
-                verify(postRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
             }
         }
 
@@ -280,13 +309,17 @@ class CommentServiceTest {
             @Test
             void it_throws_CommentNotFoundException() {
                 // given
-                CommentReplyRequestDto commentReplyRequestDto =
-                    new CommentReplyRequestDto(1L, 1L, 1L,"hahaha");
+                CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .commentId(1L)
+                    .content("hahaha")
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
 
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
-                given(postRepository.findById(1L)).willReturn(Optional.of(post));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.of(post));
                 given(commentRepository.findByIdWithRootComment(1L)).willReturn(Optional.empty());
 
                 // when, then
@@ -296,8 +329,8 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "C0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(userRepository, times(1)).findById(1L);
-                verify(postRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
                 verify(commentRepository, times(1)).findByIdWithRootComment(1L);
             }
         }
@@ -310,19 +343,27 @@ class CommentServiceTest {
             @Test
             void it_saves_child_comment() {
                 // given
-                CommentReplyRequestDto commentReplyRequestDto =
-                    new CommentReplyRequestDto(1L, 1L, 1L,"hahaha");
+                CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .commentId(1L)
+                    .content("hahaha")
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment parentComment = new Comment(1L, "comment", post, user);
                 Comment childComment = new Comment(2L, "hahaha", post, user);
-                CommentResponseDto expected =
-                    new CommentResponseDto(2L, "kevin", "hahaha", 2L, null);
+                CommentResponseDto expected = CommentResponseDto.builder()
+                    .id(2L)
+                    .author("kevin")
+                    .content("hahaha")
+                    .depth(2L)
+                    .build();
                 parentComment.updateAsRoot();
                 parentComment.updateChildCommentHierarchy(childComment);
 
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
-                given(postRepository.findById(1L)).willReturn(Optional.of(post));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findActivePostById(1L)).willReturn(Optional.of(post));
                 given(commentRepository.findByIdWithRootComment(1L)).willReturn(Optional.of(parentComment));
                 given(commentRepository.save(any(Comment.class))).willReturn(childComment);
 
@@ -335,8 +376,8 @@ class CommentServiceTest {
                     .ignoringFields("id", "createdDate")
                     .isEqualTo(expected);
 
-                verify(userRepository, times(1)).findById(1L);
-                verify(postRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
+                verify(postRepository, times(1)).findActivePostById(1L);
                 verify(commentRepository, times(1)).findByIdWithRootComment(1L);
                 verify(commentRepository, times(1)).adjustHierarchyOrders(any(Comment.class));
                 verify(commentRepository, times(1)).save(any(Comment.class));
@@ -356,8 +397,11 @@ class CommentServiceTest {
             @Test
             void it_throws_CommentNotFoundException() {
                 // given
-                CommentEditRequestDto commentEditRequestDto =
-                    new CommentEditRequestDto(1L, 1L, "edit content");
+                CommentEditRequestDto commentEditRequestDto = CommentEditRequestDto.builder()
+                    .commentId(1L)
+                    .userId(1L)
+                    .content("edit content")
+                    .build();
                 given(commentRepository.findByIdWithAuthor(1L))
                     .willReturn(Optional.empty());
 
@@ -380,14 +424,17 @@ class CommentServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                CommentEditRequestDto commentEditRequestDto =
-                    new CommentEditRequestDto(1L, 1L, "edit content");
+                CommentEditRequestDto commentEditRequestDto = CommentEditRequestDto.builder()
+                    .commentId(1L)
+                    .userId(1L)
+                    .content("edit content")
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment comment = new Comment("comment", post, user);
                 given(commentRepository.findByIdWithAuthor(1L))
                     .willReturn(Optional.of(comment));
-                given(userRepository.findById(1L)).willReturn(Optional.empty());
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.editComment(commentEditRequestDto))
@@ -397,7 +444,7 @@ class CommentServiceTest {
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
                 verify(commentRepository, times(1)).findByIdWithAuthor(1L);
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
 
@@ -409,14 +456,17 @@ class CommentServiceTest {
             @Test
             void it_edits_comment() {
                 // given
-                CommentEditRequestDto commentEditRequestDto =
-                    new CommentEditRequestDto(1L, 1L, "edit content");
+                CommentEditRequestDto commentEditRequestDto = CommentEditRequestDto.builder()
+                    .commentId(1L)
+                    .userId(1L)
+                    .content("edit content")
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment comment = new Comment("comment", post, user);
                 given(commentRepository.findByIdWithAuthor(1L))
                     .willReturn(Optional.of(comment));
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
 
                 // when
                 CommentResponseDto commentResponseDto =
@@ -428,7 +478,7 @@ class CommentServiceTest {
                     .isEqualTo("edit content");
 
                 verify(commentRepository, times(1)).findByIdWithAuthor(1L);
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
     }
@@ -445,8 +495,10 @@ class CommentServiceTest {
             @Test
             void it_throws_CommentNotFoundException() {
                 // given
-                CommentDeleteRequestDto commentDeleteRequestDto =
-                    new CommentDeleteRequestDto(1L, 1L);
+                CommentDeleteRequestDto commentDeleteRequestDto = CommentDeleteRequestDto.builder()
+                    .commentId(1L)
+                    .userId(1L)
+                    .build();
                 given(commentRepository.findByIdWithRootCommentAndAuthor(1L))
                     .willReturn(Optional.empty());
 
@@ -470,14 +522,16 @@ class CommentServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                CommentDeleteRequestDto commentDeleteRequestDto =
-                    new CommentDeleteRequestDto(1L, 1L);
+                CommentDeleteRequestDto commentDeleteRequestDto = CommentDeleteRequestDto.builder()
+                    .commentId(1L)
+                    .userId(1L)
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment comment = new Comment("comment", post, user);
                 given(commentRepository.findByIdWithRootCommentAndAuthor(1L))
                     .willReturn(Optional.of(comment));
-                given(userRepository.findById(1L)).willReturn(Optional.empty());
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> commentService.deleteComment(commentDeleteRequestDto))
@@ -488,7 +542,7 @@ class CommentServiceTest {
 
                 verify(commentRepository, times(1))
                     .findByIdWithRootCommentAndAuthor(1L);
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
 
@@ -500,14 +554,16 @@ class CommentServiceTest {
             @Test
             void it_deletes_comment() {
                 // given
-                CommentDeleteRequestDto commentDeleteRequestDto =
-                    new CommentDeleteRequestDto(1L, 1L);
+                CommentDeleteRequestDto commentDeleteRequestDto = CommentDeleteRequestDto.builder()
+                    .commentId(1L)
+                    .userId(1L)
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
                 Comment comment = new Comment("comment", post, user);
                 given(commentRepository.findByIdWithRootCommentAndAuthor(1L))
                     .willReturn(Optional.of(comment));
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
 
                 // when
                 commentService.deleteComment(commentDeleteRequestDto);
@@ -519,7 +575,7 @@ class CommentServiceTest {
 
                 verify(commentRepository, times(1))
                     .findByIdWithRootCommentAndAuthor(1L);
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
     }

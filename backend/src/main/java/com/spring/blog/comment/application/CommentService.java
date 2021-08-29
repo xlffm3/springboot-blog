@@ -18,11 +18,13 @@ import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class CommentService {
@@ -31,21 +33,11 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public CommentService(
-        CommentRepository commentRepository,
-        PostRepository postRepository,
-        UserRepository userRepository
-    ) {
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
-        this.userRepository = userRepository;
-    }
-
     @Transactional
     public CommentResponseDto writeComment(CommentWriteRequestDto commentWriteRequestDto) {
-        User user = userRepository.findById(commentWriteRequestDto.getUserId())
+        User user = userRepository.findActiveUserById(commentWriteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
-        Post post = postRepository.findById(commentWriteRequestDto.getPostId())
+        Post post = postRepository.findActivePostById(commentWriteRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
         Comment comment = new Comment(commentWriteRequestDto.getContent(), post, user);
         comment.updateAsRoot();
@@ -54,9 +46,9 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDto replyComment(CommentReplyRequestDto commentReplyRequestDto) {
-        User user = userRepository.findById(commentReplyRequestDto.getUserId())
+        User user = userRepository.findActiveUserById(commentReplyRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
-        Post post = postRepository.findById(commentReplyRequestDto.getPostId())
+        Post post = postRepository.findActivePostById(commentReplyRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
         Comment parentComment =
             commentRepository.findByIdWithRootComment(commentReplyRequestDto.getCommentId())
@@ -69,14 +61,14 @@ public class CommentService {
     }
 
     public CommentListResponseDto readCommentList(CommentListRequestDto commentListRequestDto) {
-        Post post = postRepository.findById(commentListRequestDto.getPostId())
+        Post post = postRepository.findActivePostById(commentListRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
         Pageable pageable = PageRequest.of(
             Math.toIntExact(commentListRequestDto.getPage()),
             Math.toIntExact(commentListRequestDto.getSize())
         );
         List<Comment> comments =
-            commentRepository.findCommentsOrderByHierarchyAndDateDesc(pageable, post);
+            commentRepository.findCommentsOrderByHierarchy(pageable, post);
         PageMaker pageMaker = generatePageMaker(commentListRequestDto, post);
         return CommentListResponseDto.from(comments, pageMaker);
     }
@@ -86,7 +78,7 @@ public class CommentService {
             Math.toIntExact(commentListRequestDto.getPage()),
             Math.toIntExact(commentListRequestDto.getSize()),
             Math.toIntExact(commentListRequestDto.getPageBlockCounts()),
-            Math.toIntExact(commentRepository.countCommentByPost(post))
+            Math.toIntExact(commentRepository.countCommentsByPost(post))
         );
     }
 
@@ -94,7 +86,7 @@ public class CommentService {
     public CommentResponseDto editComment(CommentEditRequestDto commentEditRequestDto) {
         Comment comment = commentRepository.findByIdWithAuthor(commentEditRequestDto.getCommentId())
             .orElseThrow(CommentNotFoundException::new);
-        User user = userRepository.findById(commentEditRequestDto.getUserId())
+        User user = userRepository.findActiveUserById(commentEditRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         comment.editContent(commentEditRequestDto.getContent(), user);
         return CommentResponseDto.from(comment);
@@ -105,7 +97,7 @@ public class CommentService {
         Comment comment = commentRepository
                 .findByIdWithRootCommentAndAuthor(commentDeleteRequestDto.getCommentId())
                 .orElseThrow(CommentNotFoundException::new);
-        User user = userRepository.findById(commentDeleteRequestDto.getUserId())
+        User user = userRepository.findActiveUserById(commentDeleteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         comment.delete(user);
         commentRepository.deleteChildComments(comment);

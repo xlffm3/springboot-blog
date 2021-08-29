@@ -6,7 +6,7 @@ public class AnonymousUser extends AppUser {
     private static final String ANONYMOUS_USER_NAME = "ANONYMOUS";
 
     public AnonymousUser() {
-        this(1L, ANONYMOUS_USER_NAME);
+        this(ANONYMOUS_ID, ANONYMOUS_USER_NAME);
     }
 
     public AnonymousUser(Long id, String name) {

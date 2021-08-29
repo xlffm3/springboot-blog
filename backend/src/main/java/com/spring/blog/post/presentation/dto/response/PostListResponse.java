@@ -18,20 +18,21 @@ public class PostListResponse {
     private List<SimplePostResponse> simplePostResponses;
     private int startPage;
     private int endPage;
-    private boolean prev;
-    private boolean next;
+    private Boolean prev;
+    private Boolean next;
 
     public static PostListResponse from(PostListResponseDto postListResponseDto) {
-        List<SimplePostResponse> simplePostResponses = postListResponseDto.getSimplePostResponseDtos()
+        List<SimplePostResponse> simplePostResponses = postListResponseDto
+            .getSimplePostResponseDtos()
             .stream()
             .map(SimplePostResponse::from)
             .collect(Collectors.toList());
-        return new PostListResponse(
-            simplePostResponses,
-            postListResponseDto.getStartPage(),
-            postListResponseDto.getEndPage(),
-            postListResponseDto.isPrev(),
-            postListResponseDto.isNext()
-        );
+        return PostListResponse.builder()
+            .simplePostResponses(simplePostResponses)
+            .startPage(postListResponseDto.getStartPage())
+            .endPage(postListResponseDto.getEndPage())
+            .prev(postListResponseDto.isPrev())
+            .next(postListResponseDto.isNext())
+            .build();
     }
 }

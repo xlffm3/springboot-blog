@@ -43,8 +43,11 @@ public class GithubOAuthClient implements OAuthClient {
 
     @Override
     public String getAccessToken(String code) {
-        AccessTokenRequestDto accessTokenRequestDto =
-            new AccessTokenRequestDto(code, clientId, clientSecret);
+        AccessTokenRequestDto accessTokenRequestDto = AccessTokenRequestDto.builder()
+            .code(code)
+            .clientId(clientId)
+            .clientSecret(clientSecret)
+            .build();
         try {
             return WebClient.create()
                 .post()

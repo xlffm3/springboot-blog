@@ -88,9 +88,14 @@ class PostAcceptanceTest extends AcceptanceTest {
         api_테스트용_게시물_작성(token);
         String postId = api_게시물_작성_ID_회수("hi", "there", token);
         List<String> urls = Arrays.asList("testSuccessImage1.png", "testSuccessImage2.png");
-        PostResponse expectedPostResponse = new PostResponse(
-            Long.parseLong(postId), "hi", "there", urls,"kevin",1L, null, null
-        );
+        PostResponse expectedPostResponse = PostResponse.builder()
+            .id(Long.parseLong(postId))
+            .title("hi")
+            .content("there")
+            .imageUrls(urls)
+            .author("kevin")
+            .viewCounts(1L)
+            .build();
 
         // when, then
         webTestClient.get()

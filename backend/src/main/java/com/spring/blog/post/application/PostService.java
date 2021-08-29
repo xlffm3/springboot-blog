@@ -15,11 +15,13 @@ import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class PostService {
@@ -29,21 +31,9 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final FileStorage fileStorage;
 
-    public PostService(
-        PostRepository postRepository,
-        UserRepository userRepository,
-        CommentRepository commentRepository,
-        FileStorage fileStorage
-    ) {
-        this.postRepository = postRepository;
-        this.userRepository = userRepository;
-        this.commentRepository = commentRepository;
-        this.fileStorage = fileStorage;
-    }
-
     @Transactional
     public PostResponseDto write(PostWriteRequestDto postWriteRequestDto) {
-        User user = userRepository.findById(postWriteRequestDto.getUserId())
+        User user = userRepository.findActiveUserById(postWriteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         Post post = new Post(postWriteRequestDto.getTitle(), postWriteRequestDto.getContent(), user);
         List<String> imageUrls = fileStorage.store(postWriteRequestDto.getFiles(), user.getName());
@@ -53,7 +43,7 @@ public class PostService {
 
     @Transactional
     public PostResponseDto readById(Long id) {
-        Post post = postRepository.findWithAuthorById(id)
+        Post post = postRepository.findByIdWithAuthorAndImages(id)
             .orElseThrow(PostNotFoundException::new);
         post.updateViewCounts();
         return PostResponseDto.from(post);
@@ -80,9 +70,9 @@ public class PostService {
 
     @Transactional
     public void deletePost(PostDeleteRequestDto postDeleteRequestDto) {
-        Post post = postRepository.findWithAuthorById(postDeleteRequestDto.getPostId())
+        Post post = postRepository.findByIdWithAuthor(postDeleteRequestDto.getPostId())
             .orElseThrow(PostNotFoundException::new);
-        User user = userRepository.findById(postDeleteRequestDto.getUserId())
+        User user = userRepository.findActiveUserById(postDeleteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         post.delete(user);
         commentRepository.deleteAllByPost(post);

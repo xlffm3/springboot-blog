@@ -72,7 +72,7 @@ class CommentTest {
                 assertThatCode(() -> lastParent.updateChildCommentHierarchy(lastChild))
                     .isInstanceOf(CannotAddChildCommentException.class)
                     .hasMessage("대댓글을 추가할 수 없습니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "C0002")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0006")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }

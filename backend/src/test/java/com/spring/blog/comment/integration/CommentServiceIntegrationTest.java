@@ -7,14 +7,13 @@ import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.request.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.request.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.request.CommentListRequestDto;
-import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.request.CommentReplyRequestDto;
-import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import com.spring.blog.comment.application.dto.request.CommentWriteRequestDto;
+import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
-import com.spring.blog.common.DatabaseCleaner;
-import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.common.IntegrationTest;
 import com.spring.blog.exception.comment.CannotDeleteCommentException;
 import com.spring.blog.exception.comment.CannotEditCommentException;
 import com.spring.blog.post.domain.Post;
@@ -22,21 +21,13 @@ import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Arrays;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 
 @DisplayName("CommentService 통합 테스트")
-@ActiveProfiles("test")
-@Import(InfrastructureTestConfiguration.class)
-@SpringBootTest(webEnvironment = WebEnvironment.NONE)
-class CommentServiceIntegrationTest {
+class CommentServiceIntegrationTest extends IntegrationTest {
 
     @Autowired
     private CommentService commentService;
@@ -49,14 +40,6 @@ class CommentServiceIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private DatabaseCleaner databaseCleaner;
-
-    @AfterEach
-    void tearDown() {
-        databaseCleaner.execute();
-    }
 
     /*
      Comment1
@@ -72,10 +55,8 @@ class CommentServiceIntegrationTest {
     @Test
     void readCommentList_Pagination_True() {
         // given
-        User user = new User("kevin", "image");
-        Post post = new Post("hi", "there", user);
-        userRepository.save(user);
-        postRepository.save(post);
+        User user = userRepository.save(new User("kevin", "image"));
+        Post post = postRepository.save(new Post("hi", "there", user));
 
         Comment comment1 = new Comment("1", post, user);
         comment1.updateAsRoot();
@@ -91,8 +72,12 @@ class CommentServiceIntegrationTest {
         replyComment("c4", child1Id, post, user);
         replyComment("c5", comment3.getId(), post, user);
 
-        CommentListRequestDto commentListRequestDto =
-            new CommentListRequestDto(post.getId(), 0L, 7L, 5L);
+        CommentListRequestDto commentListRequestDto = CommentListRequestDto.builder()
+            .postId(post.getId())
+            .page(0L)
+            .size(7L)
+            .pageBlockCounts(5L)
+            .build();
 
         // when
         CommentListResponseDto commentListResponseDto =
@@ -105,8 +90,12 @@ class CommentServiceIntegrationTest {
     }
 
     private Long replyComment(String content, Long parentId, Post post, User user) {
-        CommentReplyRequestDto commentReplyRequestDto =
-            new CommentReplyRequestDto(post.getId(), user.getId(), parentId, content);
+        CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+            .postId(post.getId())
+            .userId(user.getId())
+            .commentId(parentId)
+            .content(content)
+            .build();
         return commentService.replyComment(commentReplyRequestDto).getId();
     }
 
@@ -114,13 +103,18 @@ class CommentServiceIntegrationTest {
     @Test
     void writeComment_ToPost_Success() {
         // given
-        User user = new User("kevin", "image");
-        Post post = new Post("hi", "there", user);
-        userRepository.save(user);
-        postRepository.save(post);
-        CommentWriteRequestDto commentWriteRequestDto =
-            new CommentWriteRequestDto(post.getId(), user.getId(), "good");
-        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 1L, null);
+        User user = userRepository.save(new User("kevin", "image"));
+        Post post = postRepository.save(new Post("hi", "there", user));
+        CommentWriteRequestDto commentWriteRequestDto = CommentWriteRequestDto.builder()
+            .postId(post.getId())
+            .userId(user.getId())
+            .content("good")
+            .build();
+        CommentResponseDto expected = CommentResponseDto.builder()
+            .author("kevin")
+            .content("good")
+            .depth(1L)
+            .build();
 
         // when
         CommentResponseDto commentResponseDto = commentService.writeComment(commentWriteRequestDto);
@@ -136,16 +130,22 @@ class CommentServiceIntegrationTest {
     @Test
     void writeComment_ToComment_Success() {
         // given
-        User user = new User("kevin", "image");
-        Post post = new Post("hi", "there", user);
+        User user = userRepository.save(new User("kevin", "image"));
+        Post post = postRepository.save(new Post("hi", "there", user));
         Comment comment = new Comment("hi", post, user);
         comment.updateAsRoot();
-        userRepository.save(user);
-        postRepository.save(post);
         commentRepository.save(comment);
-        CommentReplyRequestDto commentReplyRequestDto =
-            new CommentReplyRequestDto(post.getId(), user.getId(), comment.getId(), "good");
-        CommentResponseDto expected = new CommentResponseDto(null, "kevin", "good", 2L, null);
+        CommentReplyRequestDto commentReplyRequestDto = CommentReplyRequestDto.builder()
+            .postId(post.getId())
+            .userId(user.getId())
+            .commentId(comment.getId())
+            .content("good")
+            .build();
+        CommentResponseDto expected = CommentResponseDto.builder()
+            .author("kevin")
+            .content("good")
+            .depth(2L)
+            .build();
 
         // when
         CommentResponseDto commentResponseDto = commentService.replyComment(commentReplyRequestDto);
@@ -161,15 +161,16 @@ class CommentServiceIntegrationTest {
     @Test
     void editComment_ContentChanged_Success() {
         // given
-        User user = new User("kevin", "image");
-        Post post = new Post("hi", "there", user);
+        User user = userRepository.save(new User("kevin", "image"));
+        Post post = postRepository.save(new Post("hi", "there", user));
         Comment comment = new Comment("hi", post, user);
         comment.updateAsRoot();
-        userRepository.save(user);
-        postRepository.save(post);
         commentRepository.save(comment);
-        CommentEditRequestDto commentEditRequestDto =
-            new CommentEditRequestDto(comment.getId(), user.getId(), "edit comment");
+        CommentEditRequestDto commentEditRequestDto = CommentEditRequestDto.builder()
+            .commentId(comment.getId())
+            .userId(user.getId())
+            .content("edit comment")
+            .build();
 
         // when
         CommentResponseDto commentResponseDto = commentService.editComment(commentEditRequestDto);
@@ -186,14 +187,16 @@ class CommentServiceIntegrationTest {
         // given
         User user = new User("kevin", "image");
         User other = new User("foo", "image");
-        Post post = new Post("hi", "there", user);
+        userRepository.saveAll(Arrays.asList(user, other));
+        Post post = postRepository.save(new Post("hi", "there", user));
         Comment comment = new Comment("hi", post, user);
         comment.updateAsRoot();
-        userRepository.saveAll(Arrays.asList(user, other));
-        postRepository.save(post);
         commentRepository.save(comment);
-        CommentEditRequestDto commentEditRequestDto =
-            new CommentEditRequestDto(comment.getId(), other.getId(), "edit comment");
+        CommentEditRequestDto commentEditRequestDto = CommentEditRequestDto.builder()
+            .commentId(comment.getId())
+            .userId(other.getId())
+            .content("edit comment")
+            .build();
 
         // when, then
         assertThatCode(() -> commentService.editComment(commentEditRequestDto))
@@ -207,39 +210,39 @@ class CommentServiceIntegrationTest {
     @Test
     void deleteComment_MyComment_Success() {
         // given
-        User user = new User("kevin", "image");
-        Post post = new Post("hi", "there", user);
+        User user = userRepository.save(new User("kevin", "image"));
+        Post post = postRepository.save(new Post("hi", "there", user));
         Comment comment = new Comment("hi", post, user);
         comment.updateAsRoot();
-        userRepository.save(user);
-        postRepository.save(post);
         commentRepository.save(comment);
         Long c1 = replyComment("c1", comment.getId(), post, user);
-        CommentDeleteRequestDto commentDeleteRequestDto =
-            new CommentDeleteRequestDto(comment.getId(), user.getId());
+        CommentDeleteRequestDto commentDeleteRequestDto = CommentDeleteRequestDto.builder()
+            .commentId(comment.getId())
+            .userId(user.getId())
+            .build();
 
         // when
         commentService.deleteComment(commentDeleteRequestDto);
 
         // then
-        assertThat(commentRepository.findById(comment.getId())).isEmpty();
-        assertThat(commentRepository.findById(c1)).isEmpty();
+        assertThat(commentRepository.countCommentsByPost(post)).isZero();
     }
 
-    @DisplayName("타인이 작성한 Comment 수정에 실패한다.")
+    @DisplayName("타인이 작성한 Comment 삭제에 실패한다.")
     @Test
     void deleteComment_OtherUserComment_Failure() {
         // given
         User user = new User("kevin", "image");
         User other = new User("foo", "image");
-        Post post = new Post("hi", "there", user);
+        userRepository.saveAll(Arrays.asList(user, other));
+        Post post = postRepository.save(new Post("hi", "there", user));
         Comment comment = new Comment("hi", post, user);
         comment.updateAsRoot();
-        userRepository.saveAll(Arrays.asList(user, other));
-        postRepository.save(post);
         commentRepository.save(comment);
-        CommentDeleteRequestDto commentDeleteRequestDto =
-            new CommentDeleteRequestDto(comment.getId(), other.getId());
+        CommentDeleteRequestDto commentDeleteRequestDto = CommentDeleteRequestDto.builder()
+            .commentId(comment.getId())
+            .userId(other.getId())
+            .build();
 
         // when, then
         assertThatCode(() -> commentService.deleteComment(commentDeleteRequestDto))

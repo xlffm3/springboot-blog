@@ -147,8 +147,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void edit_GuestUser_Failure() {
         // given
-        CommentWriteRequest commentWriteRequest =
-            new CommentWriteRequest("hi");
+        CommentWriteRequest commentWriteRequest = new CommentWriteRequest("hi");
 
         // when, then
         webTestClient.put()
