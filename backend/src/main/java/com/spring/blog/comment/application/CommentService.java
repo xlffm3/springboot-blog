@@ -3,10 +3,10 @@ package com.spring.blog.comment.application;
 import com.spring.blog.comment.application.dto.request.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.request.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.request.CommentListRequestDto;
-import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.request.CommentReplyRequestDto;
-import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import com.spring.blog.comment.application.dto.request.CommentWriteRequestDto;
+import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
 import com.spring.blog.common.PageMaker;
@@ -67,8 +67,7 @@ public class CommentService {
             Math.toIntExact(commentListRequestDto.getPage()),
             Math.toIntExact(commentListRequestDto.getSize())
         );
-        List<Comment> comments =
-            commentRepository.findCommentsOrderByHierarchy(pageable, post);
+        List<Comment> comments = commentRepository.findCommentsOrderByHierarchy(pageable, post);
         PageMaker pageMaker = generatePageMaker(commentListRequestDto, post);
         return CommentListResponseDto.from(comments, pageMaker);
     }
@@ -95,8 +94,8 @@ public class CommentService {
     @Transactional
     public void deleteComment(CommentDeleteRequestDto commentDeleteRequestDto) {
         Comment comment = commentRepository
-                .findByIdWithRootCommentAndAuthor(commentDeleteRequestDto.getCommentId())
-                .orElseThrow(CommentNotFoundException::new);
+            .findByIdWithRootCommentAndAuthor(commentDeleteRequestDto.getCommentId())
+            .orElseThrow(CommentNotFoundException::new);
         User user = userRepository.findActiveUserById(commentDeleteRequestDto.getUserId())
             .orElseThrow(UserNotFoundException::new);
         comment.delete(user);
