@@ -44,8 +44,9 @@ public class OAuthService {
         String accessToken = oAuthClient.getAccessToken(code);
         UserProfile userProfile = oAuthClient.getUserProfile(accessToken);
         String userName = userProfile.getName();
-        userRepository.findByName(userName)
+        User user = userRepository.findByName(userName)
             .orElseGet(registerNewUser(userProfile));
+        user.activate();
         String jwtToken = jwtTokenProvider.createToken(userName);
         return new TokenResponseDto(jwtToken, userName);
     }

@@ -19,6 +19,9 @@ public class User {
 
     private String profileImage;
 
+    @Column(nullable = false)
+    private Boolean isDeleted;
+
     protected User() {
     }
 
@@ -30,6 +33,15 @@ public class User {
         this.id = id;
         this.name = name;
         this.profileImage = profileImage;
+        this.isDeleted = false;
+    }
+
+    public void activate() {
+        this.isDeleted = false;
+    }
+
+    public void withdraw() {
+        this.isDeleted = true;
     }
 
     public Long getId() {

@@ -137,9 +137,11 @@ class OAuthServiceTest {
                 String userName = "kevin";
                 String jwtToken = "jwt.token";
                 UserProfile userProfile = new UserProfile(userName, "image");
+                User user = new User(1L, "kevin", "image");
                 given(oAuthClient.getAccessToken(validCode)).willReturn(validAccessToken);
                 given(oAuthClient.getUserProfile(validAccessToken)).willReturn(userProfile);
                 given(userRepository.findByName(userName)).willReturn(Optional.empty());
+                given(userRepository.save(any(User.class))).willReturn(user);
                 given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
 
                 // when

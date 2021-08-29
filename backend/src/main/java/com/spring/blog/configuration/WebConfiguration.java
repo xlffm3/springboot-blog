@@ -36,7 +36,8 @@ public class WebConfiguration implements WebMvcConfigurer {
             .addPathPatterns("/api/posts/*/comments")
             .addPathPatterns("/api/posts/*/comments/*/reply")
             .addPathPatterns("/api/comments/*")
-            .addPathPatterns("/api/posts/*");
+            .addPathPatterns("/api/posts/*")
+            .addPathPatterns("/api/users/withdraw");
     }
 
     @Override

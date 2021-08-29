@@ -33,7 +33,7 @@ class PostTest {
                 assertThatCode(() -> post.delete(another))
                     .isInstanceOf(CannotDeletePostException.class)
                     .hasMessage("게시물을 삭제할 수 없습니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "P0005")
+                    .hasFieldOrPropertyWithValue("errorCode", "P0004")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }
