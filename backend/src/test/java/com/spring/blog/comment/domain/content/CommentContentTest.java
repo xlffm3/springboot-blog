@@ -32,7 +32,7 @@ class CommentContentTest {
                 assertThatCode(() -> new CommentContent(content))
                     .isInstanceOf(CommentContentException.class)
                     .hasMessage("댓글은 1자 이상 140자 이하만 가능합니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "C0001")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0002")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
 
             }
@@ -52,7 +52,7 @@ class CommentContentTest {
                 assertThatCode(() -> new CommentContent(content))
                     .isInstanceOf(CommentContentException.class)
                     .hasMessage("댓글은 1자 이상 140자 이하만 가능합니다.")
-                    .hasFieldOrPropertyWithValue("errorCode", "C0001")
+                    .hasFieldOrPropertyWithValue("errorCode", "C0002")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }
