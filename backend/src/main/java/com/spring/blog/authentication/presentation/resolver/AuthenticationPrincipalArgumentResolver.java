@@ -3,6 +3,7 @@ package com.spring.blog.authentication.presentation.resolver;
 import com.spring.blog.authentication.application.OAuthService;
 import com.spring.blog.authentication.domain.Authenticated;
 import javax.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -10,13 +11,10 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+@RequiredArgsConstructor
 public class AuthenticationPrincipalArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final OAuthService oAuthService;
-
-    public AuthenticationPrincipalArgumentResolver(OAuthService oAuthService) {
-        this.oAuthService = oAuthService;
-    }
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {

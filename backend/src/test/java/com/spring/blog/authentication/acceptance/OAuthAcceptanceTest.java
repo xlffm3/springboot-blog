@@ -19,6 +19,11 @@ class OAuthAcceptanceTest extends AcceptanceTest {
     @DisplayName("Github Login Url을 요청한다.")
     @Test
     void getGithubAuthorizationUrl_Valid_Success() {
+        // given
+        OAuthLoginUrlResponse expected = OAuthLoginUrlResponse.builder()
+            .url("https://api.github.com/authorize?")
+            .build();
+
         // given, when, then
         webTestClient.get()
             .uri("/api/authorization/github")
@@ -27,9 +32,7 @@ class OAuthAcceptanceTest extends AcceptanceTest {
             .expectStatus()
             .isOk()
             .expectBody(OAuthLoginUrlResponse.class)
-            .value(response ->
-                assertThat(response.getUrl()).isEqualTo("https://api.github.com/authorize?")
-            );
+            .value(response -> assertThat(response).usingRecursiveComparison().isEqualTo(expected));
     }
 
     @DisplayName("Github Login 완료 후 토큰을 생성한다.")

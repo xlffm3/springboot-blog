@@ -12,9 +12,11 @@ import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Objects;
 import java.util.function.Supplier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class OAuthService {
@@ -24,16 +26,6 @@ public class OAuthService {
     private final OAuthClient oAuthClient;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-
-    public OAuthService(
-        OAuthClient oAuthClient,
-        UserRepository userRepository,
-        JwtTokenProvider jwtTokenProvider
-    ) {
-        this.oAuthClient = oAuthClient;
-        this.userRepository = userRepository;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     public String getGithubAuthorizationUrl() {
         return oAuthClient.getLoginUrl();
@@ -48,7 +40,10 @@ public class OAuthService {
             .orElseGet(registerNewUser(userProfile));
         user.activate();
         String jwtToken = jwtTokenProvider.createToken(userName);
-        return new TokenResponseDto(jwtToken, userName);
+        return TokenResponseDto.builder()
+            .token(jwtToken)
+            .userName(userName)
+            .build();
     }
 
     private Supplier<User> registerNewUser(UserProfile userProfile) {

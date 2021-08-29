@@ -7,20 +7,18 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+@RequiredArgsConstructor
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private static final Pattern COMMENT_IGNORE_PATTERN = Pattern.compile("/api/posts/.*/comments");
     private static final Pattern POST_IGNORE_PATTERN = Pattern.compile("/api/posts/.*");
 
     private final OAuthService oAuthService;
-
-    public AuthenticationInterceptor(OAuthService oAuthService) {
-        this.oAuthService = oAuthService;
-    }
 
     @Override
     public boolean preHandle(

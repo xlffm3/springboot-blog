@@ -51,7 +51,7 @@ class OAuthServiceTest {
 
         @DisplayName("요청이 들어올 때")
         @Nested
-        class Context_given_request {
+        class Context_invalid_request {
 
             @DisplayName("Authorization URL을 반환한다.")
             @Test
@@ -146,11 +146,15 @@ class OAuthServiceTest {
 
                 // when
                 TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
+                TokenResponseDto expected = TokenResponseDto.builder()
+                    .token(jwtToken)
+                    .userName(userName)
+                    .build();
 
                 // then
                 assertThat(tokenResponseDto)
                     .usingRecursiveComparison()
-                    .isEqualTo(new TokenResponseDto(jwtToken, userName));
+                    .isEqualTo(expected);
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
@@ -181,11 +185,15 @@ class OAuthServiceTest {
 
                 // when
                 TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
+                TokenResponseDto expected = TokenResponseDto.builder()
+                    .token(jwtToken)
+                    .userName(userName)
+                    .build();
 
                 // then
                 assertThat(tokenResponseDto)
                     .usingRecursiveComparison()
-                    .isEqualTo(new TokenResponseDto(jwtToken, userName));
+                    .isEqualTo(expected);
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
@@ -294,7 +302,7 @@ class OAuthServiceTest {
             void it_returns_appUser() {
                 // given
                 String token = "token";
-                User user = new User("kevin", "image");
+                User user = new User(1L, "kevin", "image");
                 given(jwtTokenProvider.getPayloadByKey(token, "userName"))
                     .willReturn("kevin");
                 given(userRepository.findByName("kevin")).willReturn(Optional.of(user));
@@ -305,7 +313,7 @@ class OAuthServiceTest {
                 // then
                 assertThat(appUser)
                     .usingRecursiveComparison()
-                    .isEqualTo(new LoginUser(null, "kevin"))
+                    .isEqualTo(new LoginUser(1L, "kevin"))
                     .isInstanceOf(LoginUser.class);
 
                 verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
@@ -322,7 +330,6 @@ class OAuthServiceTest {
             void it_throws_UserNotFoundException() {
                 // given
                 String token = "token";
-                User user = new User("kevin", "image");
                 given(jwtTokenProvider.getPayloadByKey(token, "userName"))
                     .willReturn("kevin");
                 given(userRepository.findByName("kevin")).willReturn(Optional.empty());
