@@ -78,9 +78,14 @@ class PostControllerTest {
         // given
         String token = "Bearer token";
         AppUser appUser = new LoginUser(1L, "kevin");
-        PostResponseDto postResponseDto =
-            new PostResponseDto(1L, "title", "content", Arrays.asList("url1", "url2"), "kevin", 0L,
-                null, null);
+        PostResponseDto postResponseDto = PostResponseDto.builder()
+            .id(1L)
+            .title("title")
+            .content("content")
+            .imageUrls(Arrays.asList("url1", "url2"))
+            .author("kevin")
+            .viewCounts(0L)
+            .build();
 
         given(oAuthService.validateToken("token")).willReturn(true);
         given(oAuthService.findRequestUserByToken("token")).willReturn(appUser);
@@ -108,13 +113,17 @@ class PostControllerTest {
     @Test
     void read_SinglePost_Success() throws Exception {
         // given
-        PostResponseDto postResponseDto =
-            new PostResponseDto(1L, "title", "content", Arrays.asList("url1", "url2"), "kevin", 1L,
-                null, null);
+        PostResponseDto postResponseDto = PostResponseDto.builder()
+            .id(1L)
+            .title("title")
+            .content("content")
+            .imageUrls(Arrays.asList("url1", "url2"))
+            .author("kevin")
+            .viewCounts(0L)
+            .build();
         PostResponse postResponse = PostResponse.from(postResponseDto);
-
-        given(postService.readById(1L)).willReturn(postResponseDto);
         String expected = objectMapper.writeValueAsString(postResponse);
+        given(postService.readById(1L)).willReturn(postResponseDto);
 
         // when, then
         mockMvc.perform(get("/api/posts/{id}", "1")

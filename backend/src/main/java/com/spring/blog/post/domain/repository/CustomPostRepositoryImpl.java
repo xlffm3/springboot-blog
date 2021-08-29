@@ -1,47 +1,64 @@
 package com.spring.blog.post.domain.repository;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.QPost;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+@RequiredArgsConstructor
 @Repository
 public class CustomPostRepositoryImpl implements CustomPostRepository {
 
+    private static final QPost QPOST = QPost.post;
+
     private final JPAQueryFactory jpaQueryFactory;
 
-    public CustomPostRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
-        this.jpaQueryFactory = jpaQueryFactory;
+    @Override
+    public Optional<Post> findByIdWithAuthor(Long id) {
+        Post post = selectPostInnerFetchJoinUser()
+            .where(isActivePost(id))
+            .fetchFirst();
+        return Optional.ofNullable(post);
     }
 
     @Override
-    public Optional<Post> findWithAuthorById(Long id) {
-        QPost post = QPost.post;
-        Post findPost = selectPostInnerFetchJoinUser()
-            .where(post.id.eq(id)
-                .and(post.isDeleted.eq(false)))
+    public Optional<Post> findByIdWithAuthorAndImages(Long id) {
+        Post post = selectPostInnerFetchJoinUser()
+            .distinct()
+            .leftJoin(QPOST.images.images)
+            .fetchJoin()
+            .where(isActivePost(id))
             .fetchFirst();
-        return Optional.ofNullable(findPost);
+        return Optional.ofNullable(post);
     }
 
     @Override
     public List<Post> findPostsOrderByDateDesc(Pageable pageable) {
-        QPost post = QPost.post;
         return selectPostInnerFetchJoinUser()
-            .where(post.isDeleted.eq(false))
-            .orderBy(post.baseDate.createdDate.desc())
+            .where(isActivePost())
+            .orderBy(QPOST.baseDate.createdDate.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetch();
     }
 
     private JPAQuery<Post> selectPostInnerFetchJoinUser() {
-        return jpaQueryFactory.selectFrom(QPost.post)
-            .innerJoin(QPost.post.user)
+        return jpaQueryFactory.selectFrom(QPOST)
+            .innerJoin(QPOST.user)
             .fetchJoin();
+    }
+
+    private BooleanExpression isActivePost(Long id) {
+        return QPOST.id.eq(id).and(isActivePost());
+    }
+
+    private BooleanExpression isActivePost() {
+        return QPOST.isDeleted.eq(false);
     }
 }

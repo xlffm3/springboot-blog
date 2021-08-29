@@ -32,7 +32,6 @@ public class S3Storage implements FileStorage {
         if (Objects.isNull(files) || files.isEmpty()) {
             return new ArrayList<>();
         }
-
         try {
             return WebClient.create()
                 .post()

@@ -6,40 +6,31 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import com.spring.blog.comment.domain.Comment;
 import com.spring.blog.comment.domain.repository.CommentRepository;
-import com.spring.blog.common.DatabaseCleaner;
 import com.spring.blog.common.FileFactory;
-import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.common.IntegrationTest;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.request.PostListRequestDto;
+import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import com.spring.blog.post.application.dto.response.PostResponseDto;
-import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.multipart.MultipartFile;
 
 @DisplayName("PostService 통합 테스트")
-@ActiveProfiles("test")
-@Import(InfrastructureTestConfiguration.class)
-@SpringBootTest(webEnvironment = WebEnvironment.NONE)
-class PostServiceIntegrationTest {
+class PostServiceIntegrationTest extends IntegrationTest {
 
     @Autowired
     private PostService postService;
@@ -53,20 +44,16 @@ class PostServiceIntegrationTest {
     @Autowired
     private CommentRepository commentRepository;
 
-    @Autowired
-    private DatabaseCleaner databaseCleaner;
-
-    @AfterEach
-    void tearDown() {
-        databaseCleaner.execute();
-    }
-
     @DisplayName("게시물 작성시 회원이 존재하지 않으면 예외가 발생한다.")
     @Test
     void write_UserNotFound_ExceptionThrown() {
         // given
-        PostWriteRequestDto postWriteRequestDto =
-            new PostWriteRequestDto(32132L, "title", "content", new ArrayList<>());
+        PostWriteRequestDto postWriteRequestDto = PostWriteRequestDto.builder()
+            .userId(31321L)
+            .title("title")
+            .content("content")
+            .files(Collections.emptyList())
+            .build();
 
         // when, then
         assertThatCode(() -> postService.write(postWriteRequestDto))
@@ -82,25 +69,27 @@ class PostServiceIntegrationTest {
         // given
         User savedUser = userRepository.save(new User("kevin", "image"));
         List<MultipartFile> images = FileFactory.getSuccessImageFiles();
-        PostWriteRequestDto postWriteRequestDto =
-            new PostWriteRequestDto(savedUser.getId(), "title", "content", images);
+        PostWriteRequestDto postWriteRequestDto = PostWriteRequestDto.builder()
+            .userId(savedUser.getId())
+            .title("title")
+            .content("content")
+            .files(images)
+            .build();
 
         // when
         PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
-        PostResponseDto expected = new PostResponseDto(
-            null,
-            "title",
-            "content",
-            Arrays.asList("testSuccessImage1.png", "testSuccessImage2.png"),
-            "kevin",
-            0L,
-            null,
-            null
-        );
+        PostResponseDto expected = PostResponseDto.builder()
+            .title("title")
+            .content("content")
+            .author("kevin")
+            .imageUrls(Arrays.asList("testSuccessImage1.png", "testSuccessImage2.png"))
+            .viewCounts(0L)
+            .build();
+
         // then
         assertThat(postResponseDto)
             .usingRecursiveComparison()
-            .ignoringFields("id", "createdDate", "modifiedDate")
+            .ignoringFields("id", "createdDate", "modifiedDate", "viewCounts")
             .isEqualTo(expected);
     }
 
@@ -114,17 +103,15 @@ class PostServiceIntegrationTest {
         postRepository.save(post);
 
         // when
-        PostResponseDto expected = new PostResponseDto(
-            post.getId(),
-            post.getTitle(),
-            post.getContent(),
-            post.getImageUrls(),
-            post.getAuthorName(),
-            post.getViewCounts() + 1,
-            null,
-            null
-        );
         PostResponseDto postResponseDto = postService.readById(post.getId());
+        PostResponseDto expected = PostResponseDto.builder()
+            .id(post.getId())
+            .title(post.getTitle())
+            .content(post.getContent())
+            .author(post.getAuthorName())
+            .imageUrls(post.getImageUrls())
+            .viewCounts(post.getViewCounts() + 1)
+            .build();
 
         // then
         assertThat(postResponseDto)
@@ -188,8 +175,11 @@ class PostServiceIntegrationTest {
         Comment comment = new Comment("comment", post, user);
         comment.updateAsRoot();
         commentRepository.save(comment);
-        PostDeleteRequestDto postDeleteRequestDto =
-            new PostDeleteRequestDto(post.getId(), user.getId());
+        PostDeleteRequestDto postDeleteRequestDto = PostDeleteRequestDto
+            .builder()
+            .postId(post.getId())
+            .userId(user.getId())
+            .build();
 
         // when
         postService.deletePost(postDeleteRequestDto);

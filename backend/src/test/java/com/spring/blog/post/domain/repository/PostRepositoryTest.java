@@ -49,9 +49,9 @@ class PostRepositoryTest {
         customPostRepository = new CustomPostRepositoryImpl(new JPAQueryFactory(entityManager));
     }
 
-    @DisplayName("findWithAuthorById 메서드는")
+    @DisplayName("findByIdWithAuthor 메서드는")
     @Nested
-    class Describe_findWithAuthorById {
+    class Describe_findByIdWithAuthor {
 
         @DisplayName("ID 해당 Post가 존재하지 않는 경우 경우")
         @Nested
@@ -67,7 +67,7 @@ class PostRepositoryTest {
                 flushAndClear();
 
                 // when, then
-                assertThat(customPostRepository.findWithAuthorById(3123L)).isEmpty();
+                assertThat(customPostRepository.findByIdWithAuthor(3123L)).isEmpty();
             }
         }
 
@@ -85,7 +85,7 @@ class PostRepositoryTest {
                 flushAndClear();
 
                 // when
-                Post findPost = customPostRepository.findWithAuthorById(post.getId())
+                Post findPost = customPostRepository.findByIdWithAuthor(post.getId())
                     .orElseThrow(PostNotFoundException::new);
 
                 // then
@@ -154,6 +154,7 @@ class PostRepositoryTest {
                 post.addImages(images);
                 postRepository.save(post);
                 flushAndClear();
+
                 Post findPost = postRepository.findById(post.getId())
                     .orElseThrow(PostNotFoundException::new);
                 List<Image> findImages = entityManager

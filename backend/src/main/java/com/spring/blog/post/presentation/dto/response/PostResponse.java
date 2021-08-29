@@ -18,22 +18,22 @@ public class PostResponse {
     private Long id;
     private String title;
     private String content;
-    private List<String> urls;
+    private List<String> imageUrls;
     private String author;
     private Long viewCounts;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
 
     public static PostResponse from(PostResponseDto postResponseDto) {
-        return new PostResponse(
-            postResponseDto.getId(),
-            postResponseDto.getTitle(),
-            postResponseDto.getContent(),
-            postResponseDto.getUrls(),
-            postResponseDto.getAuthor(),
-            postResponseDto.getViewCounts(),
-            postResponseDto.getCreatedDate(),
-            postResponseDto.getModifiedDate()
-        );
+        return PostResponse.builder()
+            .id(postResponseDto.getId())
+            .title(postResponseDto.getTitle())
+            .content(postResponseDto.getContent())
+            .imageUrls(postResponseDto.getImageUrls())
+            .author(postResponseDto.getAuthor())
+            .viewCounts(postResponseDto.getViewCounts())
+            .createdDate(postResponseDto.getCreatedDate())
+            .modifiedDate(postResponseDto.getModifiedDate())
+            .build();
     }
 }

@@ -14,15 +14,14 @@ import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
 import com.spring.blog.post.application.dto.request.PostListRequestDto;
+import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import com.spring.blog.post.application.dto.response.PostResponseDto;
-import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.repository.PostRepository;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -70,9 +69,13 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(1L, "title",
-                    "content", new ArrayList<>());
-                given(userRepository.findById(1L)).willReturn(Optional.empty());
+                PostWriteRequestDto postWriteRequestDto = PostWriteRequestDto.builder()
+                    .userId(1L)
+                    .title("title")
+                    .content("content")
+                    .files(Collections.emptyList())
+                    .build();
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> postService.write(postWriteRequestDto))
@@ -81,7 +84,7 @@ class PostServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
 
@@ -94,35 +97,38 @@ class PostServiceTest {
             void it_throws_UserNotFoundException() {
                 // given
                 List<MultipartFile> images = FileFactory.getSuccessImageFiles();
-                PostWriteRequestDto postWriteRequestDto =
-                    new PostWriteRequestDto(1L, "title", "content", images);
+                PostWriteRequestDto postWriteRequestDto = PostWriteRequestDto.builder()
+                    .userId(1L)
+                    .title("title")
+                    .content("content")
+                    .files(images)
+                    .build();
                 User user = new User("kevin", "image");
                 Post post = new Post(1L, "title", "content", user);
                 post.addImages(Arrays.asList("url1", "url2"));
 
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
                 given(postRepository.save(any(Post.class))).willReturn(post);
                 given(fileStorage.store(images, "kevin"))
                     .willReturn(Arrays.asList("url1", "url2"));
 
                 // when
                 PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
-                PostResponseDto expected = new PostResponseDto(
-                    post.getId(),
-                    post.getTitle(),
-                    post.getContent(),
-                    Arrays.asList("url1", "url2"),
-                    post.getAuthorName(),
-                    post.getViewCounts(),
-                    null,
-                    null);
+                PostResponseDto expected = PostResponseDto.builder()
+                    .id(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .imageUrls(Arrays.asList("url1", "url2"))
+                    .author(post.getAuthorName())
+                    .viewCounts(post.getViewCounts())
+                    .build();
 
                 // then
                 assertThat(postResponseDto)
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
 
-                verify(userRepository, times(1)).findById(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
                 verify(fileStorage, times(1)).store(images, "kevin");
                 verify(postRepository, times(1)).save(any(Post.class));
             }
@@ -144,27 +150,25 @@ class PostServiceTest {
                 Long id = 13212L;
                 User user = new User(id, "kevin", "image");
                 Post post = new Post(1L, "title", "content", user);
-                given(postRepository.findWithAuthorById(id)).willReturn(Optional.of(post));
+                given(postRepository.findByIdWithAuthorAndImages(id)).willReturn(Optional.of(post));
 
                 // when
-                PostResponseDto expected = new PostResponseDto(
-                    post.getId(),
-                    post.getTitle(),
-                    post.getContent(),
-                    Collections.emptyList(),
-                    post.getAuthorName(),
-                    post.getViewCounts() + 1,
-                    null,
-                    null
-                );
                 PostResponseDto postResponseDto = postService.readById(id);
+                PostResponseDto expected = PostResponseDto.builder()
+                    .id(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .imageUrls(Collections.emptyList())
+                    .author(post.getAuthorName())
+                    .viewCounts(1L)
+                    .build();
 
                 // then
                 assertThat(postResponseDto)
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
 
-                verify(postRepository, times(1)).findWithAuthorById(id);
+                verify(postRepository, times(1)).findByIdWithAuthorAndImages(id);
             }
         }
 
@@ -176,7 +180,7 @@ class PostServiceTest {
             @Test
             void it_throws_PostNotFoundException() {
                 // given
-                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.empty());
+                given(postRepository.findByIdWithAuthorAndImages(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> postService.readById(1L))
@@ -185,7 +189,7 @@ class PostServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "P0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(postRepository, times(1)).findWithAuthorById(1L);
+                verify(postRepository, times(1)).findByIdWithAuthorAndImages(1L);
             }
         }
     }
@@ -202,8 +206,11 @@ class PostServiceTest {
             @Test
             void it_returns_posts_with_pagination_information() {
                 // given
-                PostListRequestDto postListRequestDto =
-                    new PostListRequestDto(1L, 5L, 3L);
+                PostListRequestDto postListRequestDto = PostListRequestDto.builder()
+                    .page(1L)
+                    .size(5L)
+                    .pageBlockCounts(3L)
+                    .build();
                 List<Post> mockPosts = Arrays.asList(
                     new Post("a3", "b3", new User("kevin3", "image")),
                     new Post("a2", "b2", new User("kevin2", "image")),
@@ -248,9 +255,11 @@ class PostServiceTest {
             @Test
             void it_throws_PostNotFoundException() {
                 // given
-                PostDeleteRequestDto postDeleteRequestDto =
-                    new PostDeleteRequestDto(1L, 1L);
-                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.empty());
+                PostDeleteRequestDto postDeleteRequestDto = PostDeleteRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .build();
+                given(postRepository.findByIdWithAuthor(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> postService.deletePost(postDeleteRequestDto))
@@ -259,7 +268,7 @@ class PostServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "P0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(postRepository, times(1)).findWithAuthorById(1L);
+                verify(postRepository, times(1)).findByIdWithAuthor(1L);
             }
         }
 
@@ -271,11 +280,13 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostDeleteRequestDto postDeleteRequestDto =
-                    new PostDeleteRequestDto(1L, 1L);
+                PostDeleteRequestDto postDeleteRequestDto = PostDeleteRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .build();
                 Post post = new Post("title", "content", null);
-                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.of(post));
-                given(userRepository.findById(1L)).willReturn(Optional.empty());
+                given(postRepository.findByIdWithAuthor(1L)).willReturn(Optional.of(post));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.empty());
 
                 // when, then
                 assertThatCode(() -> postService.deletePost(postDeleteRequestDto))
@@ -284,8 +295,8 @@ class PostServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
-                verify(postRepository, times(1)).findWithAuthorById(1L);
-                verify(userRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findByIdWithAuthor(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
             }
         }
 
@@ -297,12 +308,14 @@ class PostServiceTest {
             @Test
             void it_throws_UserNotFoundException() {
                 // given
-                PostDeleteRequestDto postDeleteRequestDto =
-                    new PostDeleteRequestDto(1L, 1L);
+                PostDeleteRequestDto postDeleteRequestDto = PostDeleteRequestDto.builder()
+                    .postId(1L)
+                    .userId(1L)
+                    .build();
                 User user = new User(1L, "kevin", "image");
                 Post post = new Post("title", "content", user);
-                given(postRepository.findWithAuthorById(1L)).willReturn(Optional.of(post));
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(postRepository.findByIdWithAuthor(1L)).willReturn(Optional.of(post));
+                given(userRepository.findActiveUserById(1L)).willReturn(Optional.of(user));
                 Mockito.doNothing().when(commentRepository).deleteAllByPost(post);
 
                 // when
@@ -312,8 +325,8 @@ class PostServiceTest {
                     .extracting("isDeleted")
                     .isEqualTo(true);
 
-                verify(postRepository, times(1)).findWithAuthorById(1L);
-                verify(userRepository, times(1)).findById(1L);
+                verify(postRepository, times(1)).findByIdWithAuthor(1L);
+                verify(userRepository, times(1)).findActiveUserById(1L);
                 verify(commentRepository, times(1)).deleteAllByPost(post);
             }
         }

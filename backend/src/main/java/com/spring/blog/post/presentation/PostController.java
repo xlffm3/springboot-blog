@@ -12,6 +12,7 @@ import com.spring.blog.post.presentation.dto.response.PostListResponse;
 import com.spring.blog.post.presentation.dto.response.PostResponse;
 import com.spring.blog.post.presentation.dto.request.PostWriteRequest;
 import java.net.URI;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
 public class PostController {
@@ -29,21 +31,17 @@ public class PostController {
 
     private final PostService postService;
 
-    public PostController(PostService postService) {
-        this.postService = postService;
-    }
-
     @PostMapping("/posts")
     public ResponseEntity<Void> write(
         @Authenticated AppUser appUser,
         PostWriteRequest postWriteRequest
     ) {
-        PostWriteRequestDto postWriteRequestDto = new PostWriteRequestDto(
-            appUser.getId(),
-            postWriteRequest.getTitle(),
-            postWriteRequest.getContent(),
-            postWriteRequest.getFiles()
-        );
+        PostWriteRequestDto postWriteRequestDto = PostWriteRequestDto.builder()
+            .userId(appUser.getId())
+            .title(postWriteRequest.getTitle())
+            .content(postWriteRequest.getContent())
+            .files(postWriteRequest.getFiles())
+            .build();
         PostResponseDto postResponseDto = postService.write(postWriteRequestDto);
         String url = String.format(REDIRECT_URL_FORMAT_AFTER_WRITING, postResponseDto.getId());
         return ResponseEntity.created(URI.create(url))
@@ -56,7 +54,11 @@ public class PostController {
         @RequestParam Long size,
         @RequestParam Long pageBlockCounts
     ) {
-        PostListRequestDto postListRequestDto = new PostListRequestDto(page, size, pageBlockCounts);
+        PostListRequestDto postListRequestDto = PostListRequestDto.builder()
+            .page(page)
+            .size(size)
+            .pageBlockCounts(pageBlockCounts)
+            .build();
         PostListResponseDto postListResponseDto = postService.readPostList(postListRequestDto);
         PostListResponse postListResponse = PostListResponse.from(postListResponseDto);
         return ResponseEntity.ok(postListResponse);
@@ -74,7 +76,10 @@ public class PostController {
         @PathVariable Long postId,
         @Authenticated AppUser appUser
     ) {
-        PostDeleteRequestDto postDeleteRequestDto = new PostDeleteRequestDto(postId, appUser.getId());
+        PostDeleteRequestDto postDeleteRequestDto = PostDeleteRequestDto.builder()
+            .postId(postId)
+            .userId(appUser.getId())
+            .build();
         postService.deletePost(postDeleteRequestDto);
         return ResponseEntity.noContent()
             .build();

@@ -23,14 +23,14 @@ public class SimplePostResponseDto {
     private LocalDateTime modifiedDate;
 
     public static SimplePostResponseDto from(Post post) {
-        return new SimplePostResponseDto(
-            post.getId(),
-            post.getTitle(),
-            post.getContent(),
-            post.getAuthorName(),
-            post.getViewCounts(),
-            post.getCreatedDate(),
-            post.getModifiedDate()
-        );
+        return SimplePostResponseDto.builder()
+            .id(post.getId())
+            .title(post.getTitle())
+            .content(post.getContent())
+            .author(post.getAuthorName())
+            .viewCounts(post.getViewCounts())
+            .createdDate(post.getCreatedDate())
+            .modifiedDate(post.getModifiedDate())
+            .build();
     }
 }
