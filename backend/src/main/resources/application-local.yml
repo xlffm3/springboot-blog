@@ -4,6 +4,9 @@ spring:
     url: jdbc:mariadb://localhost:3306/blog?serverTimezone=UTC&characterEncoding=UTF-8
     username: root
     password: root
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
   jpa:
     show-sql: true
     generate-ddl: true
@@ -14,3 +17,6 @@ spring:
         dialects: org.hibernate.dialect.MySQL57Dialect
         format_sql: true
         default_batch_fetch_size: 1000
+      jdbc:
+        lob:
+          non_contextual_creation: true
