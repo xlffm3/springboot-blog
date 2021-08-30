@@ -9,3 +9,6 @@ security:
       secret: 3d4d047c2b27cf8b2201575c880442623f8e81cb
     url:
       redirect: http://localhost:8080/page/auth
+storage:
+  s3:
+    url: http://3.37.129.9:8080/api/storage
