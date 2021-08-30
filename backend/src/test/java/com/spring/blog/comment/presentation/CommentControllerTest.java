@@ -1,13 +1,20 @@
 package com.spring.blog.comment.presentation;
 
+import static com.spring.blog.common.ApiDocumentUtils.getDocumentRequest;
+import static com.spring.blog.common.ApiDocumentUtils.getDocumentResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,13 +26,13 @@ import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.request.CommentDeleteRequestDto;
 import com.spring.blog.comment.application.dto.request.CommentEditRequestDto;
 import com.spring.blog.comment.application.dto.request.CommentListRequestDto;
-import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
 import com.spring.blog.comment.application.dto.request.CommentReplyRequestDto;
-import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import com.spring.blog.comment.application.dto.request.CommentWriteRequestDto;
+import com.spring.blog.comment.application.dto.response.CommentListResponseDto;
+import com.spring.blog.comment.application.dto.response.CommentResponseDto;
 import com.spring.blog.comment.domain.Comment;
-import com.spring.blog.comment.presentation.dto.response.CommentListResponse;
 import com.spring.blog.comment.presentation.dto.request.CommentWriteRequest;
+import com.spring.blog.comment.presentation.dto.response.CommentListResponse;
 import com.spring.blog.common.PageMaker;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.user.domain.User;
@@ -36,13 +43,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 @DisplayName("CommentController 슬라이스 테스트")
+@AutoConfigureRestDocs
 @WebMvcTest(CommentController.class)
 class CommentControllerTest {
 
@@ -61,15 +71,21 @@ class CommentControllerTest {
     @DisplayName("비로그인 유저는 댓글을 작성할 수 없다.")
     @Test
     void write_NotLoginUser_Fail() throws Exception {
-
-        // when, then
-        mockMvc.perform(post("/api/posts/{postId}/comments", "1")
+        // given, when, then
+        ResultActions resultActions = mockMvc.perform(post("/api/posts/{postId}/comments", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
+
+        // restDocs
+        resultActions.andDo(document("comment-write-not-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            responseFields(fieldWithPath("errorCode").description("권한 예외")))
+        );
     }
 
     @DisplayName("로그인 유저는 댓글을 작성할 수 있다.")
@@ -92,7 +108,7 @@ class CommentControllerTest {
             .willReturn(commentResponseDto);
 
         // when, then
-        mockMvc.perform(post("/api/posts/{postId}/comments", "1")
+        ResultActions resultActions = mockMvc.perform(post("/api/posts/{postId}/comments", "1")
             .header(HttpHeaders.AUTHORIZATION, "Bearer token")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE).content(requestBody))
@@ -106,6 +122,18 @@ class CommentControllerTest {
         verify(oAuthService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .writeComment(any(CommentWriteRequestDto.class));
+
+        // restDocs
+        resultActions.andDo(document("comment-write-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            requestHeaders(headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer token")),
+            responseFields(fieldWithPath("id").description("댓글 id"),
+                fieldWithPath("author").description("작성자"),
+                fieldWithPath("content").description("댓글 내용"),
+                fieldWithPath("depth").description("댓글 계층 수준"),
+                fieldWithPath("createdDate").description("작성일")))
+        );
     }
 
     @DisplayName("비로그인 유저는 대댓글을 작성할 수 없다.")
@@ -115,13 +143,21 @@ class CommentControllerTest {
         given(oAuthService.validateToken(any())).willReturn(false);
 
         // when, then
-        mockMvc.perform(post("/api/posts/{postId}/comments/{commentId}/reply", "1", "1")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON_VALUE))
+        ResultActions resultActions = mockMvc
+            .perform(post("/api/posts/{postId}/comments/{commentId}/reply", "1", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
+
+        // restDocs
+        resultActions.andDo(document("comment-reply-not-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            responseFields(fieldWithPath("errorCode").description("권한 예외")))
+        );
     }
 
     @DisplayName("로그인 유저는 대댓글을 작성할 수 있다.")
@@ -144,11 +180,12 @@ class CommentControllerTest {
             .willReturn(commentResponseDto);
 
         // when, then
-        mockMvc.perform(post("/api/posts/{postId}/comments/{commentId}/reply", "1", "1")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .content(requestBody))
+        ResultActions resultActions = mockMvc
+            .perform(post("/api/posts/{postId}/comments/{commentId}/reply", "1", "1")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .content(requestBody))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value("2"))
             .andExpect(jsonPath("$.author").value("kevin"))
@@ -159,6 +196,18 @@ class CommentControllerTest {
         verify(oAuthService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .replyComment(any(CommentReplyRequestDto.class));
+
+        // restDocs
+        resultActions.andDo(document("comment-reply-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            requestHeaders(headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer token")),
+            responseFields(fieldWithPath("id").description("댓글 id"),
+                fieldWithPath("author").description("작성자"),
+                fieldWithPath("content").description("댓글 내용"),
+                fieldWithPath("depth").description("댓글 계층 수준"),
+                fieldWithPath("createdDate").description("작성일")))
+        );
     }
 
     @DisplayName("비로그인 유저는 댓글을 수정할 수 없다.")
@@ -170,7 +219,7 @@ class CommentControllerTest {
         given(oAuthService.validateToken(any())).willReturn(false);
 
         // when, then
-        mockMvc.perform(put("/api/comments/{commentId}", "1")
+        ResultActions resultActions = mockMvc.perform(put("/api/comments/{commentId}", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .content(requestBody))
@@ -178,6 +227,13 @@ class CommentControllerTest {
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
+
+        // restDocs
+        resultActions.andDo(document("comment-edit-not-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            responseFields(fieldWithPath("errorCode").description("권한 예외")))
+        );
     }
 
     @DisplayName("로그인 유저는 댓글을 수정할 수 있다.")
@@ -200,7 +256,7 @@ class CommentControllerTest {
             .willReturn(commentResponseDto);
 
         // when, then
-        mockMvc.perform(put("/api/comments/{commentId}", "1")
+        ResultActions resultActions = mockMvc.perform(put("/api/comments/{commentId}", "1")
             .header(HttpHeaders.AUTHORIZATION, "Bearer token")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -215,6 +271,18 @@ class CommentControllerTest {
         verify(oAuthService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .editComment(any(CommentEditRequestDto.class));
+
+        // restDocs
+        resultActions.andDo(document("comment-edit-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            requestHeaders(headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer token")),
+            responseFields(fieldWithPath("id").description("댓글 id"),
+                fieldWithPath("author").description("작성자"),
+                fieldWithPath("content").description("댓글 내용"),
+                fieldWithPath("depth").description("댓글 계층 수준"),
+                fieldWithPath("createdDate").description("작성일")))
+        );
     }
 
     @DisplayName("비로그인 유저는 댓글을 삭제할 수 없다.")
@@ -224,14 +292,21 @@ class CommentControllerTest {
         given(oAuthService.validateToken(any())).willReturn(false);
 
         // when, then
-        mockMvc.perform(delete("/api/comments/{commentId}", "1"))
+        ResultActions resultActions = mockMvc.perform(delete("/api/comments/{commentId}", "1"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
         verify(oAuthService, times(1)).validateToken(any());
+
+        // restDocs
+        resultActions.andDo(document("comment-delete-not-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            responseFields(fieldWithPath("errorCode").description("권한 예외")))
+        );
     }
 
-    @DisplayName("로그인 유저는 댓글을 수정할 수 있다.")
+    @DisplayName("로그인 유저는 댓글을 삭제할 수 있다.")
     @Test
     void delete_GuestUser_Success() throws Exception {
         // given
@@ -240,7 +315,7 @@ class CommentControllerTest {
         Mockito.doNothing().when(commentService).deleteComment(any(CommentDeleteRequestDto.class));
 
         // when, then
-        mockMvc.perform(delete("/api/comments/{commentId}", "1")
+        ResultActions resultActions = mockMvc.perform(delete("/api/comments/{commentId}", "1")
             .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
             .andExpect(status().isNoContent());
 
@@ -248,6 +323,13 @@ class CommentControllerTest {
         verify(oAuthService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .deleteComment(any(CommentDeleteRequestDto.class));
+
+        // restDocs
+        resultActions.andDo(document("comment-delete-login",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            requestHeaders(headerWithName(HttpHeaders.AUTHORIZATION).description("Bearer token")))
+        );
     }
 
     @DisplayName("게시물에 달린 Comment를 페이지네이션으로 조회한다.")
@@ -265,7 +347,7 @@ class CommentControllerTest {
             .willReturn(commentListResponseDto);
 
         // when, then
-        mockMvc.perform(
+        ResultActions resultActions = mockMvc.perform(
             get("/api/posts/{postId}/comments?page={page}&size={size}&pageBlockCounts={block}",
                 "1", "1", "5", "10")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -273,6 +355,21 @@ class CommentControllerTest {
             .andExpect(content().string(expectedBody));
 
         verify(commentService, times(1)).readCommentList(any(CommentListRequestDto.class));
+
+        // restDocs
+        resultActions.andDo(document("comment-list-read",
+            getDocumentRequest(),
+            getDocumentResponse(),
+            responseFields(fieldWithPath("commentResponses[].id").description("게시물 id"),
+                fieldWithPath("commentResponses[].content").description("내용"),
+                fieldWithPath("commentResponses[].author").description("글쓴이"),
+                fieldWithPath("commentResponses[].depth").description("댓글 계층 수준"),
+                fieldWithPath("commentResponses[].createdDate").description("작성일"),
+                fieldWithPath("startPage").description("시작 페이지"),
+                fieldWithPath("endPage").description("끝 페이지"),
+                fieldWithPath("prev").description("이전 페이지 여부"),
+                fieldWithPath("next").description("다음 페이지 여부")))
+        );
     }
 
     private List<Comment> generateComments() {
