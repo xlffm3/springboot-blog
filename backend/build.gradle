@@ -60,8 +60,14 @@ test {
 }
 
 processResources.dependsOn('copySecurity')
+processResources.dependsOn('copyProd')
 
 task copySecurity(type: Copy) {
     from './submodule/security/application-security.yml'
+    into './src/main/resources'
+}
+
+task copyProd(type: Copy) {
+    from './submodule/security/application-prod.yml'
     into './src/main/resources'
 }
