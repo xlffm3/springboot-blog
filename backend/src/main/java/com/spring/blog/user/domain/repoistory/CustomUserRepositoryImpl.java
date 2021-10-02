@@ -1,5 +1,6 @@
 package com.spring.blog.user.domain.repoistory;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.spring.blog.user.domain.QUser;
 import com.spring.blog.user.domain.User;
@@ -11,35 +12,38 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CustomUserRepositoryImpl implements CustomUserRepository {
 
+    private static final QUser QUSER = QUser.user;
+
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public Optional<User> findActiveUserById(Long id) {
-        QUser user = QUser.user;
-        User findUser = jpaQueryFactory.selectFrom(user)
-            .where(user.id.eq(id)
-                .and(user.isDeleted.eq(false)))
-            .fetchFirst();
+        User findUser = jpaQueryFactory.selectFrom(QUSER)
+            .where(QUSER.id.eq(id)
+                .and(isActiveUser()))
+            .fetchOne();
         return Optional.ofNullable(findUser);
     }
 
     @Override
     public Optional<User> findActiveUserByName(String name) {
-        QUser user = QUser.user;
-        User findUser = jpaQueryFactory.selectFrom(user)
-            .where(user.name.eq(name)
-                .and(user.isDeleted.eq(false)))
-            .fetchFirst();
+        User findUser = jpaQueryFactory.selectFrom(QUSER)
+            .where(QUSER.name.eq(name)
+                .and(isActiveUser()))
+            .fetchOne();
         return Optional.ofNullable(findUser);
     }
 
     @Override
     public Optional<User> findActiveUserByEmail(String email) {
-        QUser user = QUser.user;
-        User findUser = jpaQueryFactory.selectFrom(user)
-            .where(user.email.eq(email)
-                .and(user.isDeleted.eq(false)))
-            .fetchFirst();
+        User findUser = jpaQueryFactory.selectFrom(QUSER)
+            .where(QUSER.email.eq(email)
+                .and(isActiveUser()))
+            .fetchOne();
         return Optional.ofNullable(findUser);
+    }
+
+    private BooleanExpression isActiveUser() {
+        return QUSER.isDeleted.eq(false);
     }
 }
