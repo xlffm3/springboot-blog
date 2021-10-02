@@ -1,12 +1,13 @@
 package com.spring.blog.authentication.presentation;
 
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.presentation.dto.OAuthLoginUrlResponse;
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,22 +15,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
-public class OAuthController {
+public class AuthController {
 
-    private final OAuthService oAuthService;
+    private final AuthService authService;
 
-    @GetMapping("/authorization/github")
-    public ResponseEntity<OAuthLoginUrlResponse> getGithubAuthorizationUrl() {
-        String githubAuthorizationUrl = oAuthService.getGithubAuthorizationUrl();
+    @GetMapping("/authorization/{oauthProvider}")
+    public ResponseEntity<OAuthLoginUrlResponse> getOAuthLoginUrl(
+        @PathVariable String oauthProvider
+    ) {
+        String oauthLoginUrl = authService.getOAuthLoginUrl(oauthProvider);
         OAuthLoginUrlResponse oAuthLoginUrlResponse = OAuthLoginUrlResponse.builder()
-            .url(githubAuthorizationUrl)
+            .url(oauthLoginUrl)
             .build();
         return ResponseEntity.ok(oAuthLoginUrlResponse);
     }
 
-    @GetMapping("/afterlogin")
-    public ResponseEntity<OAuthTokenResponse> getLoginToken(@RequestParam String code) {
-        TokenResponseDto tokenResponseDto = oAuthService.createToken(code);
+    @GetMapping("/{oauthProvider}/login")
+    public ResponseEntity<OAuthTokenResponse> loginByOauth(
+        @PathVariable String oauthProvider,
+        @RequestParam String code
+    ) {
+        TokenResponseDto tokenResponseDto = authService.loginByOauth(oauthProvider, code);
         OAuthTokenResponse oAuthTokenResponse = OAuthTokenResponse.builder()
             .token(tokenResponseDto.getToken())
             .userName(tokenResponseDto.getUserName())

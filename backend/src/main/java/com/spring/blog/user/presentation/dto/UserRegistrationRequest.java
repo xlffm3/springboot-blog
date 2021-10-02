@@ -1,21 +1,23 @@
-package com.spring.blog.authentication.infrastructure.dto.response;
+package com.spring.blog.user.presentation.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserProfileResponseDto {
+public class UserRegistrationRequest {
 
-    @JsonProperty("login")
+    @NotBlank
     private String name;
 
-    @JsonProperty("email")
+    @NotBlank
+    @Email
     private String email;
 }

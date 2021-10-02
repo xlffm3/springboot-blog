@@ -2,7 +2,6 @@ package com.spring.blog.authentication.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -10,11 +9,13 @@ import static org.mockito.Mockito.verify;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
+import com.spring.blog.authentication.domain.repository.OAuthClientRepository;
 import com.spring.blog.authentication.domain.user.AnonymousUser;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.authentication.domain.user.UserProfile;
 import com.spring.blog.exception.authentication.InvalidTokenException;
+import com.spring.blog.exception.authentication.RegistrationRequiredException;
 import com.spring.blog.exception.platform.PlatformHttpErrorException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.user.domain.User;
@@ -29,12 +30,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
-@DisplayName("OAuthService 슬라이스 테스트")
+@DisplayName("AuthService 슬라이스 테스트")
 @ExtendWith(MockitoExtension.class)
-class OAuthServiceTest {
+class AuthServiceTest {
 
     @InjectMocks
-    private OAuthService oAuthService;
+    private AuthService authService;
+
+    @Mock
+    private OAuthClientRepository oAuthClientRepository;
 
     @Mock
     private OAuthClient oAuthClient;
@@ -45,9 +49,9 @@ class OAuthServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
 
-    @DisplayName("getGithubAuthorizationUrl 메서드는")
+    @DisplayName("getLoginUrl 메서드는")
     @Nested
-    class Describe_getGithubAuthorizationUrl {
+    class Describe_getOAuthLoginUrl {
 
         @DisplayName("요청이 들어올 때")
         @Nested
@@ -58,22 +62,24 @@ class OAuthServiceTest {
             void it_returns_authorization_url() {
                 // given
                 String url = "https://github.com/authorize";
+                given(oAuthClientRepository.findByName("github")).willReturn(oAuthClient);
                 given(oAuthClient.getLoginUrl()).willReturn(url);
 
                 // when
-                String githubAuthorizationUrl = oAuthService.getGithubAuthorizationUrl();
+                String githubAuthorizationUrl = authService.getOAuthLoginUrl("github");
 
                 // then
                 assertThat(githubAuthorizationUrl).isEqualTo(url);
 
                 verify(oAuthClient, times(1)).getLoginUrl();
+                verify(oAuthClientRepository, times(1)).findByName("github");
             }
         }
     }
 
-    @DisplayName("createToken 메서드는")
+    @DisplayName("loginByOauth 메서드는")
     @Nested
-    class Describe_createToken {
+    class Describe_loginByOauth {
 
         @DisplayName("유효한 Code값이 아니라면")
         @Nested
@@ -84,11 +90,12 @@ class OAuthServiceTest {
             void it_throws_PlatformHttpErrorException() {
                 // given
                 String invalidCode = "abc";
+                given(oAuthClientRepository.findByName("github")).willReturn(oAuthClient);
                 given(oAuthClient.getAccessToken(invalidCode))
                     .willThrow(new PlatformHttpErrorException());
 
                 // when, then
-                assertThatCode(() -> oAuthService.createToken(invalidCode))
+                assertThatCode(() -> authService.loginByOauth("github", invalidCode))
                     .isInstanceOf(PlatformHttpErrorException.class)
                     .hasMessage("외부 플랫폼 연동에 실패했습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "V0001")
@@ -108,12 +115,13 @@ class OAuthServiceTest {
                 // given
                 String validCode = "valid code";
                 String validAccessToken = "valid access token";
+                given(oAuthClientRepository.findByName("github")).willReturn(oAuthClient);
                 given(oAuthClient.getAccessToken(validCode)).willReturn(validAccessToken);
                 given(oAuthClient.getUserProfile(validAccessToken))
                     .willThrow(new PlatformHttpErrorException());
 
                 // when, then
-                assertThatCode(() -> oAuthService.createToken(validCode))
+                assertThatCode(() -> authService.loginByOauth("github", validCode))
                     .isInstanceOf(PlatformHttpErrorException.class)
                     .hasMessage("외부 플랫폼 연동에 실패했습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "V0001")
@@ -128,39 +136,25 @@ class OAuthServiceTest {
         @Nested
         class Context_valid_code_and_new_user {
 
-            @DisplayName("신규 유저를 DB에 저장한다.")
+            @DisplayName("회원 가입 필요 예외가 발생한다.")
             @Test
-            void it_saves_new_user() {
+            void it_throws_RegistrationRequiredException() {
                 // given
                 String validCode = "valid code";
                 String validAccessToken = "valid access token";
                 String userName = "kevin";
-                String jwtToken = "jwt.token";
-                UserProfile userProfile = new UserProfile(userName, "image");
-                User user = new User(1L, "kevin", "image");
+                String email = "abc@naver.com";
+                UserProfile userProfile = new UserProfile(userName, email);
+                given(oAuthClientRepository.findByName("github")).willReturn(oAuthClient);
                 given(oAuthClient.getAccessToken(validCode)).willReturn(validAccessToken);
                 given(oAuthClient.getUserProfile(validAccessToken)).willReturn(userProfile);
-                given(userRepository.findByName(userName)).willReturn(Optional.empty());
-                given(userRepository.save(any(User.class))).willReturn(user);
-                given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
+                given(userRepository.findActiveUserByEmail(email)).willReturn(Optional.empty());
 
                 // when
-                TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
-                TokenResponseDto expected = TokenResponseDto.builder()
-                    .token(jwtToken)
-                    .userName(userName)
-                    .build();
-
-                // then
-                assertThat(tokenResponseDto)
-                    .usingRecursiveComparison()
-                    .isEqualTo(expected);
-
-                verify(oAuthClient, times(1)).getAccessToken(validCode);
-                verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
-                verify(userRepository, times(1)).findByName(userName);
-                verify(userRepository, times(1)).save(any(User.class));
-                verify(jwtTokenProvider, times(1)).createToken(userName);
+                assertThatCode(() -> authService.loginByOauth("github", validCode))
+                    .isInstanceOf(RegistrationRequiredException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", "A0002")
+                    .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -168,23 +162,25 @@ class OAuthServiceTest {
         @Nested
         class Context_valid_code_and_already_existing_user {
 
-            @DisplayName("DB에 저장하지 않는다.")
+            @DisplayName("로그인에 성공한다")
             @Test
-            void it_does_not_save_new_user() {
+            void it_logins() {
                 // given
                 String validCode = "valid code";
                 String validAccessToken = "valid access token";
                 String userName = "kevin";
                 String jwtToken = "jwt.token";
-                UserProfile userProfile = new UserProfile(userName, "image");
-                User user = new User(userName, "image");
+                String email = "abc@naver.com";
+                UserProfile userProfile = new UserProfile(userName, email);
+                User user = new User(1L, "kevin", email);
+                given(oAuthClientRepository.findByName("github")).willReturn(oAuthClient);
                 given(oAuthClient.getAccessToken(validCode)).willReturn(validAccessToken);
                 given(oAuthClient.getUserProfile(validAccessToken)).willReturn(userProfile);
-                given(userRepository.findByName(userName)).willReturn(Optional.of(user));
+                given(userRepository.findActiveUserByEmail(email)).willReturn(Optional.of(user));
                 given(jwtTokenProvider.createToken(userName)).willReturn(jwtToken);
 
                 // when
-                TokenResponseDto tokenResponseDto = oAuthService.createToken(validCode);
+                TokenResponseDto tokenResponseDto = authService.loginByOauth("github", validCode);
                 TokenResponseDto expected = TokenResponseDto.builder()
                     .token(jwtToken)
                     .userName(userName)
@@ -197,8 +193,7 @@ class OAuthServiceTest {
 
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
-                verify(userRepository, times(1)).findByName(userName);
-                verify(userRepository, times(0)).save(any(User.class));
+                verify(userRepository, times(1)).findActiveUserByEmail(email);
                 verify(jwtTokenProvider, times(1)).createToken(userName);
             }
         }
@@ -220,7 +215,7 @@ class OAuthServiceTest {
                 given(jwtTokenProvider.validateToken(token)).willReturn(true);
 
                 // when
-                boolean isValid = oAuthService.validateToken(token);
+                boolean isValid = authService.validateToken(token);
 
                 // then
                 assertThat(isValid).isTrue();
@@ -241,7 +236,7 @@ class OAuthServiceTest {
                 given(jwtTokenProvider.validateToken(token)).willReturn(false);
 
                 // when
-                boolean isValid = oAuthService.validateToken(token);
+                boolean isValid = authService.validateToken(token);
 
                 // then
                 assertThat(isValid).isFalse();
@@ -263,7 +258,7 @@ class OAuthServiceTest {
             @Test
             void it_returns_anonymous_user() {
                 // given, when
-                AppUser appUser = oAuthService.findRequestUserByToken(null);
+                AppUser appUser = authService.findRequestUserByToken(null);
 
                 // then
                 assertThat(appUser).isInstanceOf(AnonymousUser.class);
@@ -283,7 +278,7 @@ class OAuthServiceTest {
                     .willThrow(new InvalidTokenException());
 
                 // when, then
-                assertThatCode(() -> oAuthService.findRequestUserByToken(token))
+                assertThatCode(() -> authService.findRequestUserByToken(token))
                     .isInstanceOf(InvalidTokenException.class)
                     .hasMessage("유효하지 않은 토큰입니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "A0001")
@@ -305,10 +300,10 @@ class OAuthServiceTest {
                 User user = new User(1L, "kevin", "image");
                 given(jwtTokenProvider.getPayloadByKey(token, "userName"))
                     .willReturn("kevin");
-                given(userRepository.findByName("kevin")).willReturn(Optional.of(user));
+                given(userRepository.findActiveUserByName("kevin")).willReturn(Optional.of(user));
 
                 // when
-                AppUser appUser = oAuthService.findRequestUserByToken(token);
+                AppUser appUser = authService.findRequestUserByToken(token);
 
                 // then
                 assertThat(appUser)
@@ -317,7 +312,7 @@ class OAuthServiceTest {
                     .isInstanceOf(LoginUser.class);
 
                 verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
-                verify(userRepository, times(1)).findByName("kevin");
+                verify(userRepository, times(1)).findActiveUserByName("kevin");
             }
         }
 
@@ -332,17 +327,17 @@ class OAuthServiceTest {
                 String token = "token";
                 given(jwtTokenProvider.getPayloadByKey(token, "userName"))
                     .willReturn("kevin");
-                given(userRepository.findByName("kevin")).willReturn(Optional.empty());
+                given(userRepository.findActiveUserByName("kevin")).willReturn(Optional.empty());
 
                 // when, then
-                assertThatCode(() -> oAuthService.findRequestUserByToken(token))
+                assertThatCode(() -> authService.findRequestUserByToken(token))
                     .isInstanceOf(UserNotFoundException.class)
                     .hasMessage("유저를 조회할 수 없습니다.")
                     .hasFieldOrPropertyWithValue("errorCode", "U0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.NOT_FOUND);
 
                 verify(jwtTokenProvider, times(1)).getPayloadByKey(token, "userName");
-                verify(userRepository, times(1)).findByName("kevin");
+                verify(userRepository, times(1)).findActiveUserByName("kevin");
             }
         }
     }

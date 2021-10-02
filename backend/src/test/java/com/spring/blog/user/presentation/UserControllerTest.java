@@ -15,7 +15,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.user.application.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -41,20 +41,20 @@ class UserControllerTest {
     private UserService userService;
 
     @MockBean
-    private OAuthService oAuthService;
+    private AuthService authService;
 
     @DisplayName("비로그인 유저는 회원 탈퇴를 할 수 없다.")
     @Test
     void withdraw_GuestUser_Failure() throws Exception {
         // given
-        given(oAuthService.validateToken(any())).willReturn(false);
+        given(authService.validateToken(any())).willReturn(false);
 
         // when, then
-        ResultActions resultActions = mockMvc.perform(delete("/api/users/withdraw"))
+        ResultActions resultActions = mockMvc.perform(delete("/api/users"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("withdraw-not-login",
@@ -68,18 +68,18 @@ class UserControllerTest {
     @Test
     void withdraw_LoginUser_Success() throws Exception {
         // given
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token"))
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token"))
             .willReturn(new LoginUser(1L, "kevin"));
         Mockito.doNothing().when(userService).withdraw(1L);
 
         // when, then
-        ResultActions resultActions = mockMvc.perform(delete("/api/users/withdraw")
+        ResultActions resultActions = mockMvc.perform(delete("/api/users")
             .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
             .andExpect(status().isNoContent());
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(userService, times(1)).withdraw(1L);
 
         // restDocs

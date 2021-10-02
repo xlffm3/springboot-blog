@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.common.PageMaker;
@@ -66,20 +66,20 @@ class PostControllerTest {
     private PostService postService;
 
     @MockBean
-    private OAuthService oAuthService;
+    private AuthService authService;
 
     @DisplayName("비로그인 유저는 게시물 작성이 불가능하다.")
     @Test
     void write_NotLoginUser_ExceptionThrown() throws Exception {
         // given
-        given(oAuthService.validateToken(any())).willReturn(false);
+        given(authService.validateToken(any())).willReturn(false);
 
         // when, then
         ResultActions resultActions = mockMvc.perform(multipart("/api/posts"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("post-write-not-login",
@@ -104,8 +104,8 @@ class PostControllerTest {
             .viewCounts(0L)
             .build();
 
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token")).willReturn(appUser);
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token")).willReturn(appUser);
         given(postService.write(any(PostWriteRequestDto.class))).willReturn(postResponseDto);
 
         // when, then
@@ -120,8 +120,8 @@ class PostControllerTest {
             .andExpect(status().isCreated())
             .andExpect(header().string("location", "/api/posts/1"));
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(postService, times(1)).write(any(PostWriteRequestDto.class));
 
         // restDocs
@@ -266,14 +266,14 @@ class PostControllerTest {
     @Test
     void delete_GuestUser_ExceptionThrown() throws Exception {
         // given
-        given(oAuthService.validateToken(any())).willReturn(false);
+        given(authService.validateToken(any())).willReturn(false);
 
         // when, then
         ResultActions resultActions = mockMvc.perform(delete("/api/posts/1"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("post-delete-not-login",
@@ -287,8 +287,8 @@ class PostControllerTest {
     @Test
     void delete_LoginUser_ExceptionThrown() throws Exception {
         // given
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token"))
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token"))
             .willReturn(new LoginUser(1L, "kevin"));
         Mockito.doNothing().when(postService).deletePost(any(PostDeleteRequestDto.class));
 
@@ -297,8 +297,8 @@ class PostControllerTest {
             .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
             .andExpect(status().isNoContent());
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(postService, times(1)).deletePost(any(PostDeleteRequestDto.class));
 
         // restDocs

@@ -1,6 +1,7 @@
 package com.spring.blog.user.application;
 
 import com.spring.blog.exception.user.UserNotFoundException;
+import com.spring.blog.user.application.dto.UserRegistrationRequestDto;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +20,14 @@ public class UserService {
         User user = userRepository.findActiveUserById(id)
             .orElseThrow(UserNotFoundException::new);
         user.withdraw();
+    }
+
+    @Transactional
+    public void register(UserRegistrationRequestDto userRegistrationRequestDto) {
+        User user = new User(
+            userRegistrationRequestDto.getName(),
+            userRegistrationRequestDto.getEmail()
+        );
+        userRepository.save(user);
     }
 }

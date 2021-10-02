@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.comment.application.CommentService;
 import com.spring.blog.comment.application.dto.request.CommentDeleteRequestDto;
@@ -66,7 +66,7 @@ class CommentControllerTest {
     private CommentService commentService;
 
     @MockBean
-    private OAuthService oAuthService;
+    private AuthService authService;
 
     @DisplayName("비로그인 유저는 댓글을 작성할 수 없다.")
     @Test
@@ -78,7 +78,7 @@ class CommentControllerTest {
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("comment-write-not-login",
@@ -102,8 +102,8 @@ class CommentControllerTest {
             .createdDate(LocalDateTime.now())
             .build();
 
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
         given(commentService.writeComment(any(CommentWriteRequestDto.class)))
             .willReturn(commentResponseDto);
 
@@ -118,8 +118,8 @@ class CommentControllerTest {
             .andExpect(jsonPath("$.content").value("comment hi"))
             .andExpect(jsonPath("$.depth").value("1"));
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .writeComment(any(CommentWriteRequestDto.class));
 
@@ -140,7 +140,7 @@ class CommentControllerTest {
     @Test
     void reply_NotLoginUser_Fail() throws Exception {
         // given
-        given(oAuthService.validateToken(any())).willReturn(false);
+        given(authService.validateToken(any())).willReturn(false);
 
         // when, then
         ResultActions resultActions = mockMvc
@@ -150,7 +150,7 @@ class CommentControllerTest {
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("comment-reply-not-login",
@@ -174,8 +174,8 @@ class CommentControllerTest {
             .createdDate(LocalDateTime.now())
             .build();
 
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
         given(commentService.replyComment(any(CommentReplyRequestDto.class)))
             .willReturn(commentResponseDto);
 
@@ -192,8 +192,8 @@ class CommentControllerTest {
             .andExpect(jsonPath("$.content").value("comment hi"))
             .andExpect(jsonPath("$.depth").value("2"));
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .replyComment(any(CommentReplyRequestDto.class));
 
@@ -216,7 +216,7 @@ class CommentControllerTest {
         // given
         String requestBody =
             objectMapper.writeValueAsString(new CommentWriteRequest("comment hi"));
-        given(oAuthService.validateToken(any())).willReturn(false);
+        given(authService.validateToken(any())).willReturn(false);
 
         // when, then
         ResultActions resultActions = mockMvc.perform(put("/api/comments/{commentId}", "1")
@@ -226,7 +226,7 @@ class CommentControllerTest {
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("comment-edit-not-login",
@@ -250,8 +250,8 @@ class CommentControllerTest {
             .createdDate(LocalDateTime.now())
             .build();
 
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
         given(commentService.editComment(any(CommentEditRequestDto.class)))
             .willReturn(commentResponseDto);
 
@@ -267,8 +267,8 @@ class CommentControllerTest {
             .andExpect(jsonPath("$.content").value("comment hi"))
             .andExpect(jsonPath("$.depth").value("2"));
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .editComment(any(CommentEditRequestDto.class));
 
@@ -289,14 +289,14 @@ class CommentControllerTest {
     @Test
     void delete_GuestUser_Failure() throws Exception {
         // given
-        given(oAuthService.validateToken(any())).willReturn(false);
+        given(authService.validateToken(any())).willReturn(false);
 
         // when, then
         ResultActions resultActions = mockMvc.perform(delete("/api/comments/{commentId}", "1"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.errorCode").value("A0001"));
 
-        verify(oAuthService, times(1)).validateToken(any());
+        verify(authService, times(1)).validateToken(any());
 
         // restDocs
         resultActions.andDo(document("comment-delete-not-login",
@@ -310,8 +310,8 @@ class CommentControllerTest {
     @Test
     void delete_GuestUser_Success() throws Exception {
         // given
-        given(oAuthService.validateToken("token")).willReturn(true);
-        given(oAuthService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
+        given(authService.validateToken("token")).willReturn(true);
+        given(authService.findRequestUserByToken("token")).willReturn(new LoginUser(1L, "kevin"));
         Mockito.doNothing().when(commentService).deleteComment(any(CommentDeleteRequestDto.class));
 
         // when, then
@@ -319,8 +319,8 @@ class CommentControllerTest {
             .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
             .andExpect(status().isNoContent());
 
-        verify(oAuthService, times(1)).validateToken("token");
-        verify(oAuthService, times(1)).findRequestUserByToken("token");
+        verify(authService, times(1)).validateToken("token");
+        verify(authService, times(1)).findRequestUserByToken("token");
         verify(commentService, times(1))
             .deleteComment(any(CommentDeleteRequestDto.class));
 

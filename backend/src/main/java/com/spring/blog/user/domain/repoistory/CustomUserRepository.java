@@ -6,4 +6,6 @@ import java.util.Optional;
 public interface CustomUserRepository {
 
     Optional<User> findActiveUserById(Long id);
+    Optional<User> findActiveUserByName(String name);
+    Optional<User> findActiveUserByEmail(String email);
 }

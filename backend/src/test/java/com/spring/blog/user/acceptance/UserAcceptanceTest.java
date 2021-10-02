@@ -20,7 +20,7 @@ class UserAcceptanceTest extends AcceptanceTest {
     void withdraw_GuestUser_Failure() {
         // given, when, then
         webTestClient.delete()
-            .uri("/api/users/withdraw")
+            .uri("/api/users")
             .exchange()
             .expectStatus()
             .isUnauthorized()
@@ -36,7 +36,7 @@ class UserAcceptanceTest extends AcceptanceTest {
 
         // when, then
         webTestClient.delete()
-            .uri("/api/users/withdraw")
+            .uri("/api/users")
             .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
             .exchange()
             .expectStatus()

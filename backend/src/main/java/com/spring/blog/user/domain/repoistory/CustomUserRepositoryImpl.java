@@ -22,4 +22,24 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .fetchFirst();
         return Optional.ofNullable(findUser);
     }
+
+    @Override
+    public Optional<User> findActiveUserByName(String name) {
+        QUser user = QUser.user;
+        User findUser = jpaQueryFactory.selectFrom(user)
+            .where(user.name.eq(name)
+                .and(user.isDeleted.eq(false)))
+            .fetchFirst();
+        return Optional.ofNullable(findUser);
+    }
+
+    @Override
+    public Optional<User> findActiveUserByEmail(String email) {
+        QUser user = QUser.user;
+        User findUser = jpaQueryFactory.selectFrom(user)
+            .where(user.email.eq(email)
+                .and(user.isDeleted.eq(false)))
+            .fetchFirst();
+        return Optional.ofNullable(findUser);
+    }
 }

@@ -40,7 +40,7 @@ class OAuthAcceptanceTest extends AcceptanceTest {
     void getLoginToken_Valid_Success() {
         // given, when, then
         webTestClient.get()
-            .uri("/api/afterlogin?code={code}", "kevin")
+            .uri("/api/github/login?code={code}", "kevin")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

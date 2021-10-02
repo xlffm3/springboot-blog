@@ -17,7 +17,8 @@ public class User {
     @Column(unique = true, nullable = false)
     private String name;
 
-    private String profileImage;
+    @Column(nullable = false)
+    private String email;
 
     @Column(nullable = false)
     private Boolean isDeleted;
@@ -25,18 +26,15 @@ public class User {
     protected User() {
     }
 
-    public User(String name, String profileImage) {
-        this(null, name, profileImage);
+    //todo 이름 검증 필요
+    public User(String name, String email) {
+        this(null, name, email);
     }
 
-    public User(Long id, String name, String profileImage) {
+    public User(Long id, String name, String email) {
         this.id = id;
         this.name = name;
-        this.profileImage = profileImage;
-        this.isDeleted = false;
-    }
-
-    public void activate() {
+        this.email = email;
         this.isDeleted = false;
     }
 
