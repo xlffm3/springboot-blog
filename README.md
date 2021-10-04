@@ -32,35 +32,41 @@
 * Integration
 * Acceptance
 
-### Documentation
-
-* Spring REST Docs
-* SonarQube
-* JaCoCo
-
-### Logging
-
-* Log4j2
-* AWS CloudWatch
-
 ### Database
 
 * MariaDB (Prod, Local)
 * H2 (Test)
+* Flyway
+
+### Code Analysis
+
+* SonarQube
+* JaCoCo
+
+* Documentation
+
+* Spring REST Docs
+
+### Logging
+
+* Log4j2
 
 ### Build
 
 * Gradle 7.1.1
-* Jenkins (CI)
 
 ### Deployment
+
+* Jenkins
+* NGinx (Reverse Proxy & Blue/Green)
+* TLS
+* Docker
+
+### AWS
 
 * AWS EC2
 * AWS S3
 * AWS CloudFront
-* Nginx (Reverse Proxy & CD)
-* TLS
-* Docker
 
 ### Methodology
 

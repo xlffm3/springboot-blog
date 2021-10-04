@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     implementation 'org.flywaydb:flyway-core:6.4.2'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
@@ -50,6 +51,12 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testCompileOnly 'org.projectlombok:lombok:1.18.20'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+    modules {
+        module("org.springframework.boot:spring-boot-starter-logging") {
+            replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
+        }
+    }
 }
 
 sourceSets {
@@ -60,16 +67,11 @@ sourceSets {
     }
 }
 
-processResources.dependsOn('copySecurity')
-processResources.dependsOn('copyProd')
+processResources.dependsOn('copySubmodule')
 
-task copySecurity(type: Copy) {
-    from './submodule/security/application-security.yml'
-    into './src/main/resources'
-}
-
-task copyProd(type: Copy) {
-    from './submodule/security/application-prod.yml'
+task copySubmodule(type: Copy) {
+    from './submodule/security'
+    include '*.yml'
     into './src/main/resources'
 }
 
