@@ -37,10 +37,10 @@ public class AuthService {
         OAuthClient oAuthClient = oAuthClientRepository.findByName(oauthProvider);
         String accessToken = oAuthClient.getAccessToken(code);
         UserProfile userProfile = oAuthClient.getUserProfile(accessToken);
-        String userName = userProfile.getName();
         String email = userProfile.getEmail();
-        userRepository.findActiveUserByEmail(email)
+        User user = userRepository.findActiveUserByEmail(email)
             .orElseThrow(() -> new RegistrationRequiredException(email));
+        String userName = user.getName();
         String jwtToken = jwtTokenProvider.createToken(userName);
         return TokenResponseDto.builder()
             .token(jwtToken)
