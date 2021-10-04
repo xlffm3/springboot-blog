@@ -1,15 +1,14 @@
 package com.spring.blog.common;
 
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
-import com.spring.blog.comment.presentation.dto.response.CommentResponse;
 import com.spring.blog.comment.presentation.dto.request.CommentWriteRequest;
+import com.spring.blog.comment.presentation.dto.response.CommentResponse;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -41,15 +40,14 @@ public class AcceptanceTest {
     @Autowired
     private DatabaseCleaner databaseCleaner;
 
-    @BeforeEach
-    void setUp() {
-        userRepository.save(new User("kevin", "kevin@naver.com"));
-        userRepository.save(new User("other", "other@naver.com"));
-    }
-
     @AfterEach
     void tearDown() {
         databaseCleaner.execute();
+    }
+
+    @DisplayName("회원 등록")
+    protected void api_회원_등록(String userName) {
+        userRepository.save(new User(userName, userName + "@naver.com"));
     }
 
     @DisplayName("로그인 요청 및 토큰 반환")

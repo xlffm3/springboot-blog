@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.spring.blog.common.AcceptanceTest;
 import com.spring.blog.exception.dto.ApiErrorResponse;
+import com.spring.blog.user.presentation.dto.UserRegistrationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @DisplayName("User 인수 테스트")
@@ -32,6 +34,7 @@ class UserAcceptanceTest extends AcceptanceTest {
     @Test
     void withdraw_LoginUser_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
 
         // when, then
@@ -41,5 +44,28 @@ class UserAcceptanceTest extends AcceptanceTest {
             .exchange()
             .expectStatus()
             .isNoContent();
+    }
+
+    @DisplayName("OAuth 기반으로 회원 가입을 진행한다.")
+    @Test
+    void registerByOauth_Success() {
+        // given
+        UserRegistrationRequest userRegistrationRequest = UserRegistrationRequest.builder()
+            .email("abc@naver.com")
+            .name("abc")
+            .build();
+
+        // when
+        webTestClient.post()
+            .uri("/api/users/oauth")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(userRegistrationRequest)
+            .exchange()
+            .expectStatus()
+            .isCreated();
+
+        // then
+        String token = api_로그인_요청_및_토큰_반환("abc");
+        assertThat(token).isNotNull();
     }
 }

@@ -24,8 +24,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 @DisplayName("CommentRepository 단위 테스트")
+@ActiveProfiles("test")
 @Import(JpaTestConfiguration.class)
 @DataJpaTest
 class CommentRepositoryTest {

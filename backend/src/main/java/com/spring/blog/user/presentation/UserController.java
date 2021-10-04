@@ -29,7 +29,7 @@ public class UserController {
             .email(userRegistrationRequest.getEmail())
             .name(userRegistrationRequest.getName())
             .build();
-        userService.register(userRegistrationRequestDto);
+        userService.registerByOauth(userRegistrationRequestDto);
         return ResponseEntity.created(URI.create("/")).build();
     }
 

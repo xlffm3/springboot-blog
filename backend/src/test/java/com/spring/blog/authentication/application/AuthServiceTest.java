@@ -101,6 +101,7 @@ class AuthServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "V0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.INTERNAL_SERVER_ERROR);
 
+                verify(oAuthClientRepository, times(1)).findByName("github");
                 verify(oAuthClient, times(1)).getAccessToken(invalidCode);
             }
         }
@@ -127,6 +128,7 @@ class AuthServiceTest {
                     .hasFieldOrPropertyWithValue("errorCode", "V0001")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.INTERNAL_SERVER_ERROR);
 
+                verify(oAuthClientRepository, times(1)).findByName("github");
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
             }
@@ -155,6 +157,11 @@ class AuthServiceTest {
                     .isInstanceOf(RegistrationRequiredException.class)
                     .hasFieldOrPropertyWithValue("errorCode", "A0002")
                     .hasFieldOrPropertyWithValue("httpStatus", HttpStatus.BAD_REQUEST);
+
+                verify(oAuthClientRepository, times(1)).findByName("github");
+                verify(oAuthClient, times(1)).getAccessToken(validCode);
+                verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
+                verify(userRepository, times(1)).findActiveUserByEmail(email);
             }
         }
 
@@ -191,6 +198,7 @@ class AuthServiceTest {
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
 
+                verify(oAuthClientRepository, times(1)).findByName("github");
                 verify(oAuthClient, times(1)).getAccessToken(validCode);
                 verify(oAuthClient, times(1)).getUserProfile(validAccessToken);
                 verify(userRepository, times(1)).findActiveUserByEmail(email);
