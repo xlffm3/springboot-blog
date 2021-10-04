@@ -38,9 +38,12 @@ class OAuthAcceptanceTest extends AcceptanceTest {
     @DisplayName("Github Login 완료 후 토큰을 생성한다.")
     @Test
     void getLoginToken_Valid_Success() {
-        // given, when, then
+        // given
+        api_회원_등록("kevin");
+
+        // when, then
         webTestClient.get()
-            .uri("/api/afterlogin?code={code}", "kevin")
+            .uri("/api/github/login?code={code}", "kevin")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

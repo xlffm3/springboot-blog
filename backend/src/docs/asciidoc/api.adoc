@@ -3,6 +3,12 @@ ifndef::snippets[]
 endif::[]
 
 == User
+=== 회원가입 (OAuth)
+==== Request
+include::{snippets}/register-oauth/http-request.adoc[]
+==== Response
+include::{snippets}/register-oauth/http-response.adoc[]
+
 === 회원탈퇴 (비로그인)
 ==== Request
 include::{snippets}/withdraw-not-login/http-request.adoc[]

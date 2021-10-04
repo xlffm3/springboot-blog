@@ -1,9 +1,11 @@
 package com.spring.blog.common;
 
 import com.spring.blog.authentication.presentation.dto.OAuthTokenResponse;
-import com.spring.blog.comment.presentation.dto.response.CommentResponse;
 import com.spring.blog.comment.presentation.dto.request.CommentWriteRequest;
+import com.spring.blog.comment.presentation.dto.response.CommentResponse;
 import com.spring.blog.configuration.InfrastructureTestConfiguration;
+import com.spring.blog.user.domain.User;
+import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -33,18 +35,25 @@ public class AcceptanceTest {
     private WebTestClient webTestClient;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private DatabaseCleaner databaseCleaner;
 
     @AfterEach
     void tearDown() {
         databaseCleaner.execute();
-        ;
+    }
+
+    @DisplayName("회원 등록")
+    protected void api_회원_등록(String userName) {
+        userRepository.save(new User(userName, userName + "@naver.com"));
     }
 
     @DisplayName("로그인 요청 및 토큰 반환")
     protected String api_로그인_요청_및_토큰_반환(String userName) {
         return webTestClient.get()
-            .uri("/api/afterlogin?code={code}", userName)
+            .uri("/api/github/login?code={code}", userName)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

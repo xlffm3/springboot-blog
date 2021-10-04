@@ -1,6 +1,6 @@
 package com.spring.blog.configuration;
 
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.presentation.interceptor.AuthenticationInterceptor;
 import com.spring.blog.authentication.presentation.resolver.AuthenticationPrincipalArgumentResolver;
 import java.util.List;
@@ -15,16 +15,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
-    private final OAuthService oAuthService;
+    private final AuthService authService;
 
     @Bean
     public AuthenticationInterceptor authenticationInterceptor() {
-        return new AuthenticationInterceptor(oAuthService);
+        return new AuthenticationInterceptor(authService);
     }
 
     @Bean
     public AuthenticationPrincipalArgumentResolver authenticationPrincipalArgumentResolver() {
-        return new AuthenticationPrincipalArgumentResolver(oAuthService);
+        return new AuthenticationPrincipalArgumentResolver(authService);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class WebConfiguration implements WebMvcConfigurer {
             .addPathPatterns("/api/posts/*/comments/*/reply")
             .addPathPatterns("/api/comments/*")
             .addPathPatterns("/api/posts/*")
-            .addPathPatterns("/api/users/withdraw");
+            .addPathPatterns("/api/users");
     }
 
     @Override

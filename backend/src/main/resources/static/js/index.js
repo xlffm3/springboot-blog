@@ -44,7 +44,7 @@ function renderPostRow(response) {
     const $post = document.getElementById(post.id);
     $post.addEventListener('click', e => {
       sessionStorage.setItem('post-id', post.id);
-      window.location.replace('/page/post')
+      window.location.replace('/page/post/' + post.id)
     });
   });
 }

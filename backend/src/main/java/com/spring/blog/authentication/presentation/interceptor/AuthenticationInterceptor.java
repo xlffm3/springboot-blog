@@ -1,6 +1,6 @@
 package com.spring.blog.authentication.presentation.interceptor;
 
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.presentation.util.AuthorizationExtractor;
 import com.spring.blog.exception.authentication.InvalidTokenException;
 import java.util.Objects;
@@ -18,7 +18,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private static final Pattern COMMENT_IGNORE_PATTERN = Pattern.compile("/api/posts/.*/comments");
     private static final Pattern POST_IGNORE_PATTERN = Pattern.compile("/api/posts/.*");
 
-    private final OAuthService oAuthService;
+    private final AuthService authService;
 
     @Override
     public boolean preHandle(
@@ -33,7 +33,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             return true;
         }
         String token = AuthorizationExtractor.extract(request);
-        if (!oAuthService.validateToken(token)) {
+        if (!authService.validateToken(token)) {
             throw new InvalidTokenException();
         }
         request.setAttribute(HttpHeaders.AUTHORIZATION, token);

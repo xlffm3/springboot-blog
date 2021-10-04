@@ -1,21 +1,17 @@
-package com.spring.blog.authentication.infrastructure.dto.response;
+package com.spring.blog.user.application.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserProfileResponseDto {
+public class UserRegistrationRequestDto {
 
-    @JsonProperty("login")
     private String name;
-
-    @JsonProperty("email")
     private String email;
 }

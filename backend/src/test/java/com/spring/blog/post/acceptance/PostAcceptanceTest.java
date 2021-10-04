@@ -41,6 +41,7 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void write_LoginWithImage_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
 
         // when
@@ -84,6 +85,7 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void read_OnePost_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         api_테스트용_게시물_작성(token);
         String postId = api_게시물_작성_ID_회수("hi", "there", token);
@@ -117,6 +119,7 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_OrderByDateDesc_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         for (int i = 0; i < 15; i++) {
             api_게시물_작성("title", "content" + i, token);
@@ -144,6 +147,8 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_SearchByName_Success() {
         // given
+        api_회원_등록("kevin");
+        api_회원_등록("other");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String token2 = api_로그인_요청_및_토큰_반환("other");
         api_게시물_작성("title1", "1", token);
@@ -171,6 +176,7 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_SearchByTitle_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         api_게시물_작성("title1", "1", token);
         api_게시물_작성("title2", "2", token);
@@ -197,6 +203,7 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_SearchByContent_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         api_게시물_작성("title1", "3kk", token);
         api_게시물_작성("title2", "333", token);
@@ -236,6 +243,7 @@ class PostAcceptanceTest extends AcceptanceTest {
     @Test
     void delete_LoginUser_Failure() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_게시물_작성_ID_회수("hi", "there", token);
 

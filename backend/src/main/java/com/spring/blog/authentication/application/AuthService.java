@@ -3,15 +3,16 @@ package com.spring.blog.authentication.application;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import com.spring.blog.authentication.domain.JwtTokenProvider;
 import com.spring.blog.authentication.domain.OAuthClient;
+import com.spring.blog.authentication.domain.repository.OAuthClientRepository;
 import com.spring.blog.authentication.domain.user.AnonymousUser;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.authentication.domain.user.LoginUser;
 import com.spring.blog.authentication.domain.user.UserProfile;
+import com.spring.blog.exception.authentication.RegistrationRequiredException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.user.domain.User;
 import com.spring.blog.user.domain.repoistory.UserRepository;
 import java.util.Objects;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,38 +20,32 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class OAuthService {
+public class AuthService {
 
     private static final String JWT_TOKEN_KEY_NAME = "userName";
 
-    private final OAuthClient oAuthClient;
+    private final OAuthClientRepository oAuthClientRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public String getGithubAuthorizationUrl() {
-        return oAuthClient.getLoginUrl();
+    public String getOAuthLoginUrl(String oauthProvider) {
+        return oAuthClientRepository.findByName(oauthProvider)
+            .getLoginUrl();
     }
 
-    @Transactional
-    public TokenResponseDto createToken(String code) {
+    public TokenResponseDto loginByOauth(String oauthProvider, String code) {
+        OAuthClient oAuthClient = oAuthClientRepository.findByName(oauthProvider);
         String accessToken = oAuthClient.getAccessToken(code);
         UserProfile userProfile = oAuthClient.getUserProfile(accessToken);
         String userName = userProfile.getName();
-        User user = userRepository.findByName(userName)
-            .orElseGet(registerNewUser(userProfile));
-        user.activate();
+        String email = userProfile.getEmail();
+        userRepository.findActiveUserByEmail(email)
+            .orElseThrow(() -> new RegistrationRequiredException(email));
         String jwtToken = jwtTokenProvider.createToken(userName);
         return TokenResponseDto.builder()
             .token(jwtToken)
             .userName(userName)
             .build();
-    }
-
-    private Supplier<User> registerNewUser(UserProfile userProfile) {
-        return () -> {
-            User user = new User(userProfile.getName(), userProfile.getProfileImageUrl());
-            return userRepository.save(user);
-        };
     }
 
     public boolean validateToken(String token) {
@@ -62,7 +57,7 @@ public class OAuthService {
             return new AnonymousUser();
         }
         String userName = jwtTokenProvider.getPayloadByKey(token, JWT_TOKEN_KEY_NAME);
-        User user = userRepository.findByName(userName)
+        User user = userRepository.findActiveUserByName(userName)
             .orElseThrow(UserNotFoundException::new);
         return new LoginUser(user.getId(), user.getName());
     }

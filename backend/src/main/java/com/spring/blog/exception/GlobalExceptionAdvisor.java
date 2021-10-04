@@ -1,5 +1,6 @@
 package com.spring.blog.exception;
 
+import com.spring.blog.exception.authentication.RegistrationRequiredException;
 import com.spring.blog.exception.dto.ApiErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -14,6 +15,14 @@ public class GlobalExceptionAdvisor {
 
     private static final String LOG_FORMAT = "Class : {}, Code : {}, Message : {}";
     private static final String INTERNAL_SERVER_ERROR_CODE = "S0001";
+
+    @ExceptionHandler(RegistrationRequiredException.class)
+    public ResponseEntity<String> registrationRequiredException(RegistrationRequiredException e) {
+        log.warn(LOG_FORMAT, e.getClass().getSimpleName(), e.getErrorCode(), e.getMessage());
+        return ResponseEntity
+            .status(e.getHttpStatus())
+            .body(e.getEmail());
+    }
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ApiErrorResponse> applicationException(ApplicationException e) {

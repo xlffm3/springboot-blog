@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.spring.blog.authentication.application.OAuthService;
+import com.spring.blog.authentication.application.AuthService;
 import com.spring.blog.authentication.application.dto.TokenResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,22 +24,22 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-@DisplayName("OAuthController 슬라이스 테스트")
+@DisplayName("AuthController 슬라이스 테스트")
 @AutoConfigureRestDocs
-@WebMvcTest(OAuthController.class)
-class OAuthControllerTest {
+@WebMvcTest(AuthController.class)
+class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private OAuthService oAuthService;
+    private AuthService authService;
 
     @DisplayName("Github Login URL을 요청한다.")
     @Test
     void getGithubAuthorizationUrl_Valid_Success() throws Exception {
         // given
-        given(oAuthService.getGithubAuthorizationUrl()).willReturn("https://github.com/authorize");
+        given(authService.getOAuthLoginUrl("github")).willReturn("https://github.com/authorize");
 
         // when, then
         ResultActions resultActions = mockMvc.perform(get("/api/authorization/github")
@@ -47,7 +47,7 @@ class OAuthControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.url").value("https://github.com/authorize"));
 
-        verify(oAuthService, times(1)).getGithubAuthorizationUrl();
+        verify(authService, times(1)).getOAuthLoginUrl("github");
 
         // restDocs
         resultActions.andDo(document("github-login-url-request",
@@ -63,16 +63,16 @@ class OAuthControllerTest {
         // given
         String code = "code.123.for.github";
         TokenResponseDto tokenResponseDto = new TokenResponseDto("user jwt token", "kevin");
-        given(oAuthService.createToken(code)).willReturn(tokenResponseDto);
+        given(authService.loginByOauth("github", code)).willReturn(tokenResponseDto);
 
         // when, then
-        ResultActions resultActions = mockMvc.perform(get("/api/afterlogin?code={code}", code)
+        ResultActions resultActions = mockMvc.perform(get("/api/github/login?code={code}", code)
             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.token").value("user jwt token"))
             .andExpect(jsonPath("$.userName").value("kevin"));
 
-        verify(oAuthService, times(1)).createToken(code);
+        verify(authService, times(1)).loginByOauth("github", code);
 
         // restDocs
         resultActions.andDo(document("github-afterlogin",

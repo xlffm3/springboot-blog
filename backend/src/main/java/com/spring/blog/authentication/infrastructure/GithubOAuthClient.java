@@ -6,6 +6,7 @@ import com.spring.blog.authentication.infrastructure.dto.request.AccessTokenRequ
 import com.spring.blog.authentication.infrastructure.dto.response.AccessTokenResponseDto;
 import com.spring.blog.authentication.infrastructure.dto.response.UserProfileResponseDto;
 import com.spring.blog.exception.platform.PlatformHttpErrorException;
+import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,11 @@ public class GithubOAuthClient implements OAuthClient {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUrl = redirectUrl;
+    }
+
+    @Override
+    public boolean matches(String name) {
+        return name.toUpperCase(Locale.ROOT).matches("GITHUB");
     }
 
     @Override
@@ -78,7 +84,7 @@ public class GithubOAuthClient implements OAuthClient {
                 .orElseThrow(PlatformHttpErrorException::new);
             return new UserProfile(
                 userProfileResponseDto.getName(),
-                userProfileResponseDto.getProfileImageUrl()
+                userProfileResponseDto.getEmail()
             );
         } catch (WebClientException webClientException) {
             throw new PlatformHttpErrorException();

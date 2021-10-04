@@ -4,6 +4,8 @@ import com.spring.blog.authentication.domain.user.UserProfile;
 
 public interface OAuthClient {
 
+    boolean matches(String name);
+
     String getLoginUrl();
 
     String getAccessToken(String code);

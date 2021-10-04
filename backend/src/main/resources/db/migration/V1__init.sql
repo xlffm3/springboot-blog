@@ -42,8 +42,8 @@ create table user
 (
     id            bigint       not null auto_increment,
     is_deleted    bit          not null,
-    name          varchar(255) not null,
-    profile_image varchar(255),
+    name          varchar(10) not null,
+    email         varchar(255) not null,
     primary key (id)
 );
 

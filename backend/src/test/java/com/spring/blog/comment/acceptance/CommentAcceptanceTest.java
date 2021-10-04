@@ -25,6 +25,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void write_LoginUser_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
 
@@ -42,6 +43,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void write_GuestUser_Fail() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
         CommentWriteRequest commentWriteRequest = new CommentWriteRequest("comment!");
@@ -63,6 +65,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void reply_LoginUser_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
         Long commentId = api_테스트용_댓글_작성_ID_회수(token, postId);
@@ -81,6 +84,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void reply_GuestUser_Fail() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
         Long commentId = api_테스트용_댓글_작성_ID_회수(token, postId);
@@ -111,6 +115,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void readList_Pagination_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
 
@@ -166,6 +171,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void edit_LoginUser_Failure() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
         Long commentId = api_댓글_작성_요청_ID_회수(token, "first comment", postId);
@@ -206,6 +212,7 @@ class CommentAcceptanceTest extends AcceptanceTest {
     @Test
     void delete_LoginUser_Success() {
         // given
+        api_회원_등록("kevin");
         String token = api_로그인_요청_및_토큰_반환("kevin");
         String postId = api_테스트용_게시물_작성_ID_회수(token);
         Long commentId = api_댓글_작성_요청_ID_회수(token, "first comment", postId);
