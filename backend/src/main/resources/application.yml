@@ -1,4 +1,12 @@
 spring:
   profiles:
     include: security
-    active: test
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          cache-private: true
+          max-age: 3600
+server:
+  compression:
+    enabled: true

@@ -44,7 +44,7 @@ function renderUserInformationSection() {
 
 async function requestToWithdraw() {
   const token = localStorage.getItem('token');
-  const url = '/api/users/withdraw';
+  const url = '/api/users';
   await axios.delete(url, {
     headers: {
       'Authorization': 'Bearer ' + token
