@@ -55,11 +55,10 @@
 
 * Gradle 7.1.1
 
-### Deployment
+### CI/CD
 
 * Jenkins
-* NGinx (Reverse Proxy & Blue/Green)
-* TLS
+* Nginx (Reverse Proxy & TLS & Blue/Green)
 * Docker
 
 ### AWS
