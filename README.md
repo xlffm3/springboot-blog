@@ -43,7 +43,7 @@
 * SonarQube
 * JaCoCo
 
-* Documentation
+### Documentation
 
 * Spring REST Docs
 
