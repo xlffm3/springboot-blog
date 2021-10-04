@@ -38,7 +38,7 @@ function moveToPostPage(response) {
   const lastIndex = location.lastIndexOf('/');
   const postId = location.substring(lastIndex + 1);
   sessionStorage.setItem('post-id', postId);
-  window.location.replace('/page/post')
+  window.location.replace('/page/post/' + postId)
 }
 
 validateState();
