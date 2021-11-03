@@ -5,10 +5,11 @@ import com.spring.blog.common.PageMaker;
 import com.spring.blog.exception.post.PostNotFoundException;
 import com.spring.blog.exception.user.UserNotFoundException;
 import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
+import com.spring.blog.post.application.dto.request.PostEditRequestDto;
 import com.spring.blog.post.application.dto.request.PostListRequestDto;
+import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import com.spring.blog.post.application.dto.response.PostResponseDto;
-import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.domain.FileStorage;
 import com.spring.blog.post.domain.Post;
 import com.spring.blog.post.domain.SearchCondition;
@@ -72,6 +73,16 @@ public class PostService {
             Math.toIntExact(postListRequestDto.getPageBlockCounts()),
             Math.toIntExact(postRepository.countActivePosts(searchCondition))
         );
+    }
+
+    @Transactional
+    public PostResponseDto edit(PostEditRequestDto postEditRequestDto) {
+        Post post = postRepository.findByIdWithAuthor(postEditRequestDto.getPostId())
+            .orElseThrow(PostNotFoundException::new);
+        userRepository.findActiveUserById(postEditRequestDto.getUserId())
+            .orElseThrow(UserNotFoundException::new);
+        post.edit(postEditRequestDto.getTitle(), postEditRequestDto.getContent());
+        return PostResponseDto.from(post);
     }
 
     @Transactional

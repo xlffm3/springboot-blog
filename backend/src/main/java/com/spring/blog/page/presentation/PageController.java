@@ -15,7 +15,7 @@ public class PageController {
     }
 
     @GetMapping("/user/register")
-    public String moveToReigsterPage() {
+    public String moveToRegisterPage() {
         return "user-register-oauth.html";
     }
 
@@ -24,8 +24,13 @@ public class PageController {
         return "post.html";
     }
 
-    @GetMapping("/post/write")
+    @GetMapping("/post/edit")
     public String moveToPostEditPage() {
+        return "post-edit.html";
+    }
+
+    @GetMapping("/post/write")
+    public String moveToPostWritePage() {
         return "post-write.html";
     }
 }

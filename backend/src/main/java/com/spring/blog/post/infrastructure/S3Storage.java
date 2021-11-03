@@ -10,21 +10,24 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
+import reactor.core.publisher.Mono;
 
 @Repository
 public class S3Storage implements FileStorage {
 
     private final String s3ProxyUrl;
+    private final WebClient webClient;
 
-    public S3Storage(@Value("${storage.s3.url}") String s3ProxyUrl) {
+    public S3Storage(@Value("${storage.s3.url}") String s3ProxyUrl, WebClient webClient) {
         this.s3ProxyUrl = s3ProxyUrl;
+        this.webClient = webClient;
     }
 
     @Override
@@ -32,21 +35,19 @@ public class S3Storage implements FileStorage {
         if (Objects.isNull(files) || files.isEmpty()) {
             return new ArrayList<>();
         }
-        try {
-            return WebClient.create()
-                .post()
-                .uri(s3ProxyUrl)
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(generateMultipartBody(files, userName))
-                .retrieve()
-                .bodyToMono(FilesResponse.class)
-                .blockOptional()
-                .orElseThrow(PlatformHttpErrorException::new)
-                .getUrls();
-        } catch (WebClientException webClientException) {
-            throw new PlatformHttpErrorException();
-        }
+        return WebClient.create()
+            .post()
+            .uri(s3ProxyUrl)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(generateMultipartBody(files, userName))
+            .retrieve()
+            .onStatus(HttpStatus::isError, response -> response.bodyToMono(String.class)
+                .flatMap(errorMessage -> Mono.error(new PlatformHttpErrorException(errorMessage))))
+            .bodyToMono(FilesResponse.class)
+            .blockOptional()
+            .orElseThrow(PlatformHttpErrorException::new)
+            .getUrls();
     }
 
     private MultiValueMap<String, Object> generateMultipartBody(

@@ -8,10 +8,10 @@ import com.spring.blog.authentication.infrastructure.dto.response.UserProfileRes
 import com.spring.blog.exception.platform.PlatformHttpErrorException;
 import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -26,15 +26,18 @@ public class GithubOAuthClient implements OAuthClient {
     private final String clientId;
     private final String clientSecret;
     private final String redirectUrl;
+    private final WebClient webClient;
 
     public GithubOAuthClient(
         @Value("${security.github.client.id}") String clientId,
         @Value("${security.github.client.secret}") String clientSecret,
-        @Value("${security.github.url.redirect}")String redirectUrl
+        @Value("${security.github.url.redirect}") String redirectUrl,
+        WebClient webClient
     ) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUrl = redirectUrl;
+        this.webClient = webClient;
     }
 
     @Override
@@ -54,40 +57,35 @@ public class GithubOAuthClient implements OAuthClient {
             .clientId(clientId)
             .clientSecret(clientSecret)
             .build();
-        try {
-            return WebClient.create()
-                .post()
-                .uri(ACCESS_TOKEN_URL)
-                .body(Mono.just(accessTokenRequestDto), AccessTokenRequestDto.class)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(AccessTokenResponseDto.class)
-                .blockOptional()
-                .orElseThrow(PlatformHttpErrorException::new)
-                .getAccessToken();
-        } catch (WebClientException webClientException) {
-            throw new PlatformHttpErrorException();
-        }
+        return webClient.post()
+            .uri(ACCESS_TOKEN_URL)
+            .body(Mono.just(accessTokenRequestDto), AccessTokenRequestDto.class)
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .onStatus(HttpStatus::isError, response -> response.bodyToMono(String.class)
+                .flatMap(errorMessage -> Mono.error(new PlatformHttpErrorException(errorMessage))))
+            .bodyToMono(AccessTokenResponseDto.class)
+            .blockOptional()
+            .orElseThrow(PlatformHttpErrorException::new)
+            .getAccessToken();
     }
 
     @Override
     public UserProfile getUserProfile(String accessToken) {
-        try {
-            UserProfileResponseDto userProfileResponseDto = WebClient.create()
-                .get()
-                .uri(USER_PROFILE_URL)
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(UserProfileResponseDto.class)
-                .blockOptional()
-                .orElseThrow(PlatformHttpErrorException::new);
-            return new UserProfile(
-                userProfileResponseDto.getName(),
-                userProfileResponseDto.getEmail()
-            );
-        } catch (WebClientException webClientException) {
-            throw new PlatformHttpErrorException();
-        }
+        UserProfileResponseDto userProfileResponseDto = WebClient.create()
+            .get()
+            .uri(USER_PROFILE_URL)
+            .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .onStatus(HttpStatus::isError, response -> response.bodyToMono(String.class)
+                .flatMap(errorMessage -> Mono.error(new PlatformHttpErrorException(errorMessage))))
+            .bodyToMono(UserProfileResponseDto.class)
+            .blockOptional()
+            .orElseThrow(PlatformHttpErrorException::new);
+        return new UserProfile(
+            userProfileResponseDto.getName(),
+            userProfileResponseDto.getEmail()
+        );
     }
 }
