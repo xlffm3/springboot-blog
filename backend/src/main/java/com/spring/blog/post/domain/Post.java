@@ -81,6 +81,10 @@ public class Post {
         this.isDeleted = true;
     }
 
+    public void edit(String title, String content) {
+        postContent.update(title, content);
+    }
+
     public void updateViewCounts() {
         this.viewCounts++;
     }

@@ -4,11 +4,13 @@ import com.spring.blog.authentication.domain.Authenticated;
 import com.spring.blog.authentication.domain.user.AppUser;
 import com.spring.blog.post.application.PostService;
 import com.spring.blog.post.application.dto.request.PostDeleteRequestDto;
+import com.spring.blog.post.application.dto.request.PostEditRequestDto;
 import com.spring.blog.post.application.dto.request.PostListRequestDto;
 import com.spring.blog.post.application.dto.request.PostWriteRequestDto;
 import com.spring.blog.post.application.dto.response.PostListResponseDto;
 import com.spring.blog.post.application.dto.response.PostResponseDto;
 import com.spring.blog.post.presentation.dto.PostListRequest;
+import com.spring.blog.post.presentation.dto.request.PostEditRequest;
 import com.spring.blog.post.presentation.dto.request.PostWriteRequest;
 import com.spring.blog.post.presentation.dto.response.PostListResponse;
 import com.spring.blog.post.presentation.dto.response.PostResponse;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -71,7 +75,25 @@ public class PostController {
         PostResponse postResponse = PostResponse.from(postResponseDto);
         return ResponseEntity.ok(postResponse);
     }
-    
+
+    @PutMapping("/posts/{postId}")
+    public ResponseEntity<Void> edit(
+        @Authenticated AppUser appUser,
+        @PathVariable Long postId,
+        @RequestBody PostEditRequest postEditRequest
+    ) {
+        PostEditRequestDto postEditRequestDto = PostEditRequestDto.builder()
+            .userId(appUser.getId())
+            .postId(postId)
+            .title(postEditRequest.getTitle())
+            .content(postEditRequest.getContent())
+            .build();
+        PostResponseDto postResponseDto = postService.edit(postEditRequestDto);
+        String url = String.format(REDIRECT_URL_FORMAT_AFTER_WRITING, postResponseDto.getId());
+        return ResponseEntity.created(URI.create(url))
+            .build();
+    }
+
     @DeleteMapping("/posts/{postId}")
     public ResponseEntity<Void> delete(
         @PathVariable Long postId,

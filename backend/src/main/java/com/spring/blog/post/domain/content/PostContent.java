@@ -48,6 +48,11 @@ public class PostContent {
         }
     }
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     public String getTitle() {
         return title;
     }
