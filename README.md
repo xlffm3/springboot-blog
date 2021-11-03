@@ -30,7 +30,7 @@
 
 ### Backend
 
-![image](https://user-images.githubusercontent.com/56240505/140028082-83108cdc-4932-4a1a-bc51-aab14c641b70.png)
+![image](https://user-images.githubusercontent.com/56240505/140095130-dc1230d3-5608-44f4-92e5-42d5612277c2.png)
 
 ### Front-End
 
