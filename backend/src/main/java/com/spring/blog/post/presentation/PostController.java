@@ -71,7 +71,7 @@ public class PostController {
         PostResponse postResponse = PostResponse.from(postResponseDto);
         return ResponseEntity.ok(postResponse);
     }
-
+    
     @DeleteMapping("/posts/{postId}")
     public ResponseEntity<Void> delete(
         @PathVariable Long postId,
