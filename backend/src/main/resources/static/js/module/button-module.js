@@ -27,6 +27,16 @@ export function activateButtonsSection() {
   $postButtonSection.insertAdjacentHTML('beforeend', postEditButtonHtml);
   $postButtonSection.insertAdjacentHTML('beforeend', postDeleteButtonHtml);
 
+  document.getElementById('edit-submit-btn')
+  .addEventListener('click', e => {
+    const title = document.getElementById('post-title').innerText;
+    const content = document.getElementById('content').innerText;
+    const author = document.getElementById('author-name').innerText;
+    sessionStorage.setItem('edit-title', title);
+    sessionStorage.setItem('edit-content', content);
+    sessionStorage.setItem('edit-author', author);
+    window.location.replace('/page/post/edit');
+  });
   document.getElementById('delete-submit-btn')
   .addEventListener('click', e => requestToDeletePost());
 }
