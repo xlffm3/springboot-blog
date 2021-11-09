@@ -4,7 +4,7 @@
 
 <img width="600" alt="aaa" src="https://user-images.githubusercontent.com/56240505/140022961-1fe0d15f-9dc3-43ef-bfdd-186f2afe9059.png">
 
-* 기간 : 2021.08.18 -
+* 기간 : 2021.08.18 - 2021.09.30
 * 학습 내용
   * [관계형 DB에서 계층적인 데이터 관리하기](https://xlffm3.github.io/spring%20data/woowacourse/hierarchy-data-with-relational-database/)
   * [Spring Boot AWS S3 이미지 업로드](https://xlffm3.github.io/spring%20&%20spring%20boot/s3-cloud-front/)
