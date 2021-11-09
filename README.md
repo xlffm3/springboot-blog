@@ -42,7 +42,7 @@
 
 ## 🔌 Infrastructures
 
-![image](https://user-images.githubusercontent.com/56240505/140029196-2a9cf990-8de3-4814-a1e2-03be621b53e1.png)
+![image](https://user-images.githubusercontent.com/56240505/140871150-bc61c8bc-f3f2-46e6-8f0d-d82450274b67.png)
 ![image](https://user-images.githubusercontent.com/56240505/140029677-ce413385-2d35-4a9b-b1c5-64a27f2c31e7.png)
 
 <br>
