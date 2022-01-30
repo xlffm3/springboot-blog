@@ -6,7 +6,7 @@
 
 * 기간 : 2021.08.18 - 2021.09.30
 * 학습 내용
-  * [관계형 DB에서 계층적인 데이터 관리하기](https://xlffm3.github.io/spring%20data/woowacourse/hierarchy-data-with-relational-database/)
+  * [관계형 DB에서 계층적인 데이터 관리하기](https://xlffm3.github.io/spring%20data/hierarchy-data-with-relational-database/)
   * [Spring Boot AWS S3 이미지 업로드](https://xlffm3.github.io/spring%20&%20spring%20boot/s3-cloud-front/)
   * [Jenkins Pipeline를 통한 CI/CD 구현](https://xlffm3.github.io/devops/jenkins-pipeline/)
   * [Gradle 프로젝트에 JaCoCo & SonarQube 적용](https://xlffm3.github.io/devops/jacoco-sonarcube/)
